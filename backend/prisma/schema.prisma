@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  JOB_SEEKER
+  COMPANY
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum AadhaarStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+}
+
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  INTERVIEW
+  HIRED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  role      UserRole
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  JobSeeker        JobSeeker?
+  Company          Company?
+  Notifications    Notification[]
+  verifiedAadhaars AadhaarVault[]  @relation("AadhaarVerifiedByAdmin")
+  AuditLogs        AdminAuditLog[] @relation("UserAdminActions")
+  ConsentRecords   ConsentRecord[]
+}
+
+model JobSeeker {
+  id              String        @id @default(uuid())
+  user            User          @relation(fields: [userId], references: [id])
+  userId          String        @unique
+  fullName        String
+  phone           String?
+  location        String?
+  skills          String[]
+  experienceYears Int?
+  resumeUrl       String?
+  aadhaarStatus   AadhaarStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  Applications JobApplication[]
+  AadhaarVault AadhaarVault?
+}
+
+model AadhaarVault {
+  id             String        @id @default(uuid())
+  jobSeeker      JobSeeker     @relation(fields: [jobSeekerId], references: [id])
+  jobSeekerId    String        @unique
+  encryptedValue String
+  status         AadhaarStatus @default(PENDING)
+  verifiedBy     User?         @relation("AadhaarVerifiedByAdmin", fields: [verifiedById], references: [id])
+  verifiedById   String?
+  verifiedAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @unique
+  name        String
+  industry    String?
+  logoUrl     String?
+  website     String?
+  description String?
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  Jobs     JobPosting[]
+  Payments PaymentTransaction[]
+}
+
+model JobPosting {
+  id           String    @id @default(uuid())
+  company      Company   @relation(fields: [companyId], references: [id])
+  companyId    String
+  title        String
+  description  String
+  requirements String[]
+  location     String?
+  jobType      JobType
+  salaryRange  String?
+  status       JobStatus @default(DRAFT)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  expiresAt    DateTime?
+
+  Applications JobApplication[]
+  Payment      PaymentTransaction?
+}
+
+model JobApplication {
+  id             String            @id @default(uuid())
+  job            JobPosting        @relation(fields: [jobId], references: [id])
+  jobId          String
+  jobSeeker      JobSeeker         @relation(fields: [jobSeekerId], references: [id])
+  jobSeekerId    String
+  status         ApplicationStatus @default(APPLIED)
+  coverLetter    String?
+  resumeSnapshot String?
+  appliedAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model PaymentTransaction {
+  id            String        @id @default(uuid())
+  company       Company       @relation(fields: [companyId], references: [id])
+  companyId     String
+  jobPosting    JobPosting?   @relation(fields: [jobPostingId], references: [id])
+  jobPostingId  String?       @unique
+  gateway       String
+  transactionId String        @unique
+  amount        Decimal
+  currency      String        @default("INR")
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  completedAt   DateTime?
+}
+
+model Notification {
+  id           String              @id @default(uuid())
+  user         User                @relation(fields: [userId], references: [id])
+  userId       String
+  templateKey  String
+  channel      NotificationChannel @default(EMAIL)
+  status       NotificationStatus  @default(PENDING)
+  payload      Json?
+  scheduledFor DateTime?
+  sentAt       DateTime?
+  errorMessage String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model AdminAuditLog {
+  id         String   @id @default(uuid())
+  admin      User     @relation("UserAdminActions", fields: [adminId], references: [id])
+  adminId    String
+  action     String
+  objectType String
+  objectId   String
+  changes    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+}
+
+model ConsentRecord {
+  id          String    @id @default(uuid())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  consentType String
+  granted     Boolean
+  grantedAt   DateTime  @default(now())
+  revokedAt   DateTime?
+  version     Int       @default(1)
+}
