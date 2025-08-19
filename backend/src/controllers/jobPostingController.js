@@ -190,7 +190,24 @@ async function deleteJobPosting(req, res) {
 // Get all job postings (for any authenticated user)
 async function getJobList(req, res) {
   try {
+    console.log('getJobList called for user:', req.user?.sub);
+    
+    // Test database connection
+    try {
+      await prisma.$connect();
+      console.log('Database connected successfully');
+    } catch (dbError) {
+      console.error('Database connection failed:', dbError.message);
+      return res.status(503).json({ 
+        error: "Database unavailable", 
+        message: "Unable to connect to database. Please try again later."
+      });
+    }
+    
     const jobs = await prisma.jobPosting.findMany({
+      where: {
+        status: 'PUBLISHED' // Only show published jobs
+      },
       include: {
         company: {
           select: {
@@ -209,10 +226,12 @@ async function getJobList(req, res) {
         createdAt: 'desc'
       }
     });
+    
+    console.log(`Found ${jobs.length} published jobs`);
     res.json(jobs);
   } catch (error) {
     console.error("Error fetching job list:", error);
-    res.status(500).json({ error: "Failed to fetch job list" });
+    res.status(500).json({ error: "Failed to fetch job list", details: error.message });
   }
 }
 

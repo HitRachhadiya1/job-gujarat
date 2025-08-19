@@ -1,5 +1,31 @@
 const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  errorFormat: 'pretty',
+});
+
+// Database connection helper with Supabase-specific error handling
+async function ensureDatabaseConnection() {
+  try {
+    // Test the connection with a simple query
+    await prisma.$queryRaw`SELECT 1 as test`;
+    console.log('✅ Supabase database connection successful');
+    return true;
+  } catch (error) {
+    console.error('❌ Supabase database connection failed:', error.message);
+    console.error('Error code:', error.code);
+    
+    // Specific Supabase error handling
+    if (error.code === 'P1001') {
+      console.error('🔧 Supabase Troubleshooting:');
+      console.error('1. Check if your Supabase project is active (not paused)');
+      console.error('2. Verify your database credentials in Supabase dashboard');
+      console.error('3. Check your network connection');
+      console.error('4. Ensure your IP is whitelisted (if IP restrictions are enabled)');
+    }
+    
+    return false;
+  }
+}
 
 // Create company (for employer)
 async function createCompany(req, res) {
@@ -13,18 +39,45 @@ async function createCompany(req, res) {
         .status(403)
         .json({ error: `Forbidden User Role is : ${user?.role || 'undefined'}` });
 
-    console.log("Role check passed, checking for existing company...");
+    console.log("Role check passed, checking database connection...");
+    
+    // Check database connection first
+    const dbConnected = await ensureDatabaseConnection();
+    if (!dbConnected) {
+      return res.status(503).json({ 
+        error: "Database unavailable", 
+        message: "Unable to connect to database. Please try again later."
+      });
+    }
+    
+    console.log("Database connected, checking for existing company...");
+
+    // Validate required fields
+    if (!req.body.name || !req.body.industry || !req.body.description) {
+      return res.status(400).json({ 
+        error: "Missing required fields",
+        message: "Company name, industry, and description are required"
+      });
+    }
+
+    // Validate user email
+    if (!user.email) {
+      return res.status(400).json({ 
+        error: "Invalid user data",
+        message: "User email is required but not found in token"
+      });
+    }
 
     // First, ensure a User record exists
     let dbUser = await prisma.user.findFirst({
-      where: { email: req.user.email || "temp@example.com" }
+      where: { email: user.email }
     });
 
     if (!dbUser) {
       console.log("Creating User record...");
       dbUser = await prisma.user.create({
         data: {
-          email: req.user.email || "temp@example.com",
+          email: user.email,
           role: "COMPANY"
         }
       });

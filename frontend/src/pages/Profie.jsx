@@ -1,23 +1,14 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import React from "react";
-import LogoutButton from "../components/LogoutButton";
+import React from 'react';
+import JobSeekerProfileForm from '../components/JobSeekerProfileForm';
 
 const Profile = () => {
-  const { user, isAuthenticated, isLoading } = useAuth0();
-
-  if (isLoading) {
-    return <div>Loading ...</div>;
-  }
-
   return (
-    isAuthenticated && (
-      <div>
-        <img src={user.picture} alt={user.name} />
-        <h2>{user.name}</h2>
-        <p>{user.email}</p>
-        <LogoutButton />
+    <div className="page-container">
+      <div className="container">
+        <h1>My Profile</h1>
+        <JobSeekerProfileForm />
       </div>
-    )
+    </div>
   );
 };
 

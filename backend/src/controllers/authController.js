@@ -2,6 +2,7 @@ const { assignRoleToUser, updateUserAppMetadata, getManagementToken } = require(
 const validateRole = require("../utils/validateRole");
 const axios = require("axios");
 const { PrismaClient } = require("@prisma/client");
+const { clearUserCache } = require("../middleware/jwtAuth");
 const prisma = new PrismaClient();
 
 async function assignRole(req, res) {
@@ -24,6 +25,10 @@ async function assignRole(req, res) {
     console.log("Updating user app metadata...");
     await updateUserAppMetadata(userId, role);
     console.log("App metadata updated successfully");
+    
+    // Clear the user cache to force fresh data fetch
+    clearUserCache(userId);
+    console.log("User cache cleared for:", userId);
     
     // Small delay to allow Auth0 to propagate the changes
     console.log("Waiting for Auth0 propagation...");
@@ -121,6 +126,29 @@ async function getCurrentUserInfo(req, res) {
           return res.json({ role, companyStatus: { error: "User not authenticated" } });
         }
 
+        // Check if database is available before making queries
+        let databaseAvailable = true;
+        try {
+          await prisma.$connect();
+        } catch (dbError) {
+          console.log("Database not available:", dbError.message);
+          databaseAvailable = false;
+        }
+
+        if (!databaseAvailable) {
+          console.log("Database unavailable, returning basic company status");
+          return res.json({ 
+            role, 
+            companyStatus: { 
+              exists: false,
+              completed: false,
+              company: null,
+              databaseUnavailable: true,
+              message: "Database is currently unavailable. Please try again later."
+            } 
+          });
+        }
+
         // Use cached database ID if available, otherwise look it up
         let userId = user.id;
         if (!userId) {
@@ -134,7 +162,8 @@ async function getCurrentUserInfo(req, res) {
               companyStatus: { 
                 exists: false, 
                 completed: false, 
-                company: null 
+                company: null,
+                message: "User not found in database. Please complete your profile setup."
               } 
             });
           }
@@ -159,6 +188,7 @@ async function getCurrentUserInfo(req, res) {
             exists: false,
             completed: false,
             company: null,
+            message: "Company profile not found. Please complete your company setup."
           };
           return res.json({ role, companyStatus });
         }
@@ -173,16 +203,33 @@ async function getCurrentUserInfo(req, res) {
           exists: true,
           completed: isCompleted,
           company: company,
+          message: isCompleted ? "Company profile is complete" : "Company profile needs completion"
         };
         
         return res.json({ role, companyStatus });
       } catch (companyError) {
         console.error("Error getting company status:", companyError);
+        
+        // Check if it's a database connection error
+        if (companyError.code === 'P1001' || companyError.message.includes("Can't reach database")) {
+          return res.json({ 
+            role, 
+            companyStatus: { 
+              exists: false,
+              completed: false,
+              company: null,
+              databaseUnavailable: true,
+              message: "Database is currently unavailable. Please try again later."
+            } 
+          });
+        }
+        
         return res.json({ 
           role, 
           companyStatus: { 
             error: "Error getting company status", 
-            details: companyError.message 
+            details: companyError.message,
+            message: "Unable to retrieve company information. Please try again."
           } 
         });
       }

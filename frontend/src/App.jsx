@@ -7,6 +7,7 @@ import JobManagement from "./components/JobManagement";
 import RoleSelection from "./pages/RoleSelection";
 import Profile from "./pages/Profie"; // Note: fixing the typo in filename would be better
 import BrowseJobs from "./pages/BrowseJobs";
+import MyApplications from "./pages/MyApplications";
 import PublicRoutes from "./components/PublicRoutes";
 import Spinner from "./components/Spinner";
 import UnknownRole from "./components/UnknownRole";
@@ -199,7 +200,7 @@ function App() {
           path="/applications" 
           element={
             <ProtectedRoute roles={["JOB_SEEKER"]}>
-              <div className="page-container">My Applications - Coming Soon!</div>
+              <MyApplications />
             </ProtectedRoute>
           } 
         />

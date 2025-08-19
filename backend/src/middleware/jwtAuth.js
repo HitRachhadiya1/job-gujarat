@@ -81,42 +81,58 @@ const debugJWT = (req, res, next) => {
   next();
 };
 
+// Cache for Auth0 user data to avoid repeated calls
+const userCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 // Middleware to add user role to req.user
 const addUserRole = async (req, res, next) => {
   try {
     console.log("addUserRole middleware called for user:", req.user?.sub);
+    
     if (req.user && req.user.sub) {
+      const userId = req.user.sub;
+      const now = Date.now();
+      
+      // Check if we have cached data that's still valid
+      const cachedData = userCache.get(userId);
+      if (cachedData && (now - cachedData.timestamp) < CACHE_DURATION) {
+        console.log("Using cached Auth0 user data for:", userId);
+        req.user.role = cachedData.role;
+        req.user.email = cachedData.email;
+        req.user.name = cachedData.name;
+        console.log("User role set to:", req.user.role);
+        return next();
+      }
+      
+      // Fetch fresh data from Auth0
       const token = await getManagementToken();
-      console.log("Management token obtained");
+      console.log("Management token obtained - fetching fresh Auth0 data");
       
       const response = await axios.get(
         `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${req.user.sub}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Auth0 user data:", JSON.stringify(response.data, null, 2));
+      console.log("Fresh Auth0 user data fetched:", JSON.stringify(response.data, null, 2));
+      
+      // Cache the user data
+      const userData = {
+        role: response.data.app_metadata?.role || null,
+        email: response.data.email,
+        name: response.data.name,
+        timestamp: now
+      };
+      
+      userCache.set(userId, userData);
       
       // Add role and email to req.user object
-      req.user.role = response.data.app_metadata?.role || null;
-      req.user.email = response.data.email;
+      req.user.role = userData.role;
+      req.user.email = userData.email;
+      req.user.name = userData.name;
       console.log("User role set to:", req.user.role);
       console.log("User email set to:", req.user.email);
       
-      // Optional: Store database user ID for efficiency (avoids repeated lookups)
-      if (req.user.email) {
-        try {
-          const dbUser = await prisma.user.findFirst({
-            where: { email: req.user.email }
-          });
-          if (dbUser) {
-            req.user.id = dbUser.id; // Store numeric database ID
-            console.log("Database user ID cached:", req.user.id);
-          }
-        } catch (dbError) {
-          console.error("Error fetching database user:", dbError);
-          // Continue without database ID - controllers will handle the lookup
-        }
-      }
     } else {
       console.log("No user or user.sub found in req.user");
     }
@@ -129,6 +145,17 @@ const addUserRole = async (req, res, next) => {
   }
 };
 
+// Function to clear user cache (useful when user data changes)
+const clearUserCache = (userId) => {
+  if (userId) {
+    userCache.delete(userId);
+    console.log("Cleared cache for user:", userId);
+  } else {
+    userCache.clear();
+    console.log("Cleared all user cache");
+  }
+};
+
 // Combined middleware that checks JWT and adds role
 const jwtWithRole = [jwtWithErrorHandling, addUserRole];
 
@@ -136,5 +163,6 @@ module.exports = {
   jwtWithRole,
   addUserRole,
   jwtWithErrorHandling,
-  debugJWT
+  debugJWT,
+  clearUserCache
 };

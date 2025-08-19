@@ -1,37 +1,64 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 
 const AuthMetaContext = createContext();
 
 export const AuthMetaProvider = ({ children }) => {
-  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
   const [authMeta, setAuthMeta] = useState({
     role: null,
     companyStatus: null,
     loading: false,
     error: null
   });
+  const fetchingRef = useRef(false);
+  const cacheRef = useRef({ data: null, timestamp: 0 });
+  const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache
 
-  const fetchAuthMeta = async (retryCount = 0) => {
-    if (!isAuthenticated) {
+  const fetchAuthMeta = async (forceRefresh = false, retryCount = 0) => {
+    if (!isAuthenticated || !user?.sub) {
       setAuthMeta({
         role: null,
         companyStatus: null,
         loading: false,
         error: null
       });
+      cacheRef.current = { data: null, timestamp: 0 };
       return;
     }
+
+    // Check if we're already fetching to prevent multiple concurrent calls
+    if (fetchingRef.current && !forceRefresh) {
+      console.log('Already fetching auth metadata, skipping duplicate call');
+      return;
+    }
+
+    // Check cache first (unless forcing refresh)
+    const now = Date.now();
+    const cachedData = cacheRef.current;
+    if (!forceRefresh && cachedData.data && (now - cachedData.timestamp) < CACHE_DURATION) {
+      console.log('Using cached auth metadata');
+      setAuthMeta({
+        role: cachedData.data.role,
+        companyStatus: cachedData.data.companyStatus,
+        loading: false,
+        error: null
+      });
+      return cachedData.data;
+    }
+
+    fetchingRef.current = true;
 
     try {
       setAuthMeta(prev => ({ ...prev, loading: true, error: null }));
       
-      // Force token refresh to get latest metadata
+      // Use cached token unless forcing refresh
       const token = await getAccessTokenSilently({
-        cacheMode: 'off' // Force fresh token
+        cacheMode: forceRefresh ? 'off' : 'cache-only'
       });
       
-      console.log('Fetching auth metadata...', retryCount > 0 ? `(retry ${retryCount})` : '');
+      console.log('Fetching fresh auth metadata...', retryCount > 0 ? `(retry ${retryCount})` : '');
       const response = await fetch('http://localhost:5000/api/auth/me', {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -44,7 +71,10 @@ export const AuthMetaProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      console.log('Auth metadata fetched:', data);
+      console.log('Fresh auth metadata fetched:', data);
+
+      // Update cache
+      cacheRef.current = { data, timestamp: now };
 
       setAuthMeta({
         role: data.role,
@@ -63,6 +93,8 @@ export const AuthMetaProvider = ({ children }) => {
         error: error.message
       });
       throw error; // Re-throw for retry logic
+    } finally {
+      fetchingRef.current = false;
     }
   };
 
@@ -73,7 +105,15 @@ export const AuthMetaProvider = ({ children }) => {
 
   // Function to refresh auth meta (useful after role assignment or company creation)
   const refreshAuthMeta = () => {
-    fetchAuthMeta();
+    console.log('Forcing auth metadata refresh...');
+    fetchAuthMeta(true); // Force refresh
+  };
+
+  // Function to clear cache and refresh
+  const clearCacheAndRefresh = () => {
+    console.log('Clearing cache and refreshing auth metadata...');
+    cacheRef.current = { data: null, timestamp: 0 };
+    fetchAuthMeta(true);
   };
 
   // Function to update auth meta locally (optimistic updates)

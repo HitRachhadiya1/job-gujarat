@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import JobApplicationModal from '../components/JobApplicationModal';
 
 const BrowseJobs = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -8,6 +9,8 @@ const BrowseJobs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLocation, setFilterLocation] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -15,16 +18,27 @@ const BrowseJobs = () => {
 
   const fetchJobs = async () => {
     try {
+      console.log('Fetching jobs...');
       const token = await getAccessTokenSilently();
+      console.log('Token obtained, making API call...');
+      
       const response = await fetch('http://localhost:5000/api/job-postings', {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
 
+      console.log('API response status:', response.status);
+      
       if (response.ok) {
         const jobsData = await response.json();
+        console.log('Jobs fetched successfully:', jobsData.length, 'jobs');
         setJobs(jobsData);
+      } else {
+        console.error('Failed to fetch jobs:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error details:', errorText);
       }
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -33,11 +47,21 @@ const BrowseJobs = () => {
     }
   };
 
+  const handleApplyClick = (job) => {
+    setSelectedJob(job);
+    setIsApplicationModalOpen(true);
+  };
+
+  const handleApplicationSubmitted = (application) => {
+    alert(`Application submitted successfully for "${application.job.title}"!`);
+    // Optionally refresh jobs or update UI to show applied status
+  };
+
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLocation = !filterLocation || job.location.toLowerCase().includes(filterLocation.toLowerCase());
-    const matchesType = !filterType || job.type === filterType;
+    const matchesSearch = job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         job.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLocation = !filterLocation || (job.location && job.location.toLowerCase().includes(filterLocation.toLowerCase()));
+    const matchesType = !filterType || job.jobType === filterType;
     
     return matchesSearch && matchesLocation && matchesType;
   });
@@ -89,10 +113,10 @@ const BrowseJobs = () => {
                   onChange={(e) => setFilterType(e.target.value)}
                 >
                   <option value="">All Job Types</option>
-                  <option value="full-time">Full Time</option>
-                  <option value="part-time">Part Time</option>
-                  <option value="contract">Contract</option>
-                  <option value="remote">Remote</option>
+                  <option value="FULL_TIME">Full Time</option>
+                  <option value="PART_TIME">Part Time</option>
+                  <option value="CONTRACT">Contract</option>
+                  <option value="INTERNSHIP">Internship</option>
                 </select>
               </div>
             </div>
@@ -118,8 +142,8 @@ const BrowseJobs = () => {
                   <h3 className="job-title">{job.title}</h3>
                   <div className="job-meta">
                     <span className="company-name">🏢 {job.company?.name || 'Company'}</span>
-                    <span className="job-location">📍 {job.location}</span>
-                    <span className="job-type">💼 {job.type}</span>
+                    <span className="job-location">📍 {job.location || 'Location not specified'}</span>
+                    <span className="job-type">💼 {job.jobType || 'Not specified'}</span>
                   </div>
                 </div>
                 
@@ -128,20 +152,23 @@ const BrowseJobs = () => {
                 </div>
 
                 <div className="job-requirements">
-                  {job.requirements && (
+                  {job.requirements && job.requirements.length > 0 && (
                     <div>
                       <strong>Requirements:</strong>
-                      <p>{job.requirements.substring(0, 150)}...</p>
+                      <p>{Array.isArray(job.requirements) ? job.requirements.join(', ').substring(0, 150) : job.requirements.substring(0, 150)}...</p>
                     </div>
                   )}
                 </div>
 
                 <div className="job-footer">
                   <div className="job-salary">
-                    {job.salary && <span className="salary">💰 ${job.salary}</span>}
+                    {job.salaryRange && <span className="salary">💰 {job.salaryRange}</span>}
                   </div>
                   <div className="job-actions">
-                    <button className="btn btn-primary">
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => handleApplyClick(job)}
+                    >
                       Apply Now
                     </button>
                     <button className="btn btn-secondary">
@@ -154,6 +181,16 @@ const BrowseJobs = () => {
           )}
         </div>
       </div>
+
+      {/* Job Application Modal */}
+      {selectedJob && (
+        <JobApplicationModal 
+          job={selectedJob}
+          isOpen={isApplicationModalOpen}
+          onClose={() => setIsApplicationModalOpen(false)}
+          onApplicationSubmitted={handleApplicationSubmitted}
+        />
+      )}
 
       <style jsx>{`
         .search-filters {
