@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Building2, 
   Globe, 
-  Edit3, 
+  Settings,
   Briefcase, 
   Users, 
   BarChart3, 
@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   ExternalLink
 } from "lucide-react";
-import CompanyDetailsForm from "./CompanyDetailsForm";
 import Spinner from "./Spinner";
 
 const CompanyDashboard = () => {
@@ -25,7 +24,6 @@ const CompanyDashboard = () => {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetchCompanyData();
@@ -54,11 +52,6 @@ const CompanyDashboard = () => {
     }
   };
 
-  const handleUpdateSuccess = (updatedCompany) => {
-    setCompany(updatedCompany);
-    setIsEditing(false);
-  };
-
   if (loading) {
     return <Spinner />;
   }
@@ -76,26 +69,6 @@ const CompanyDashboard = () => {
             </Button>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
-
-  if (isEditing) {
-    return (
-      <div>
-        <CompanyDetailsForm
-          existingCompany={company}
-          onSuccess={handleUpdateSuccess}
-        />
-        <div className="fixed bottom-6 right-6">
-          <Button 
-            onClick={() => setIsEditing(false)} 
-            variant="outline"
-            className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm"
-          >
-            Cancel
-          </Button>
-        </div>
       </div>
     );
   }
@@ -155,11 +128,11 @@ const CompanyDashboard = () => {
                 </div>
               </div>
               <Button 
-                onClick={() => setIsEditing(true)} 
+                onClick={() => navigate('/company-setup')} 
                 className="bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white flex items-center space-x-2"
               >
-                <Edit3 className="w-4 h-4" />
-                <span>Edit Company Details</span>
+                <Settings className="w-4 h-4" />
+                <span>Company Settings</span>
               </Button>
             </div>
           </CardContent>

@@ -1,4 +1,4 @@
-# JobPortal Pro - Combined Frontend
+# Job Gujarat — Connecting you to What's Next
 
 This is a combined frontend application that merges the beautiful UI design from `job-portal(1)` with the OAuth functionality and backend integration from the original `frontend` project.
 

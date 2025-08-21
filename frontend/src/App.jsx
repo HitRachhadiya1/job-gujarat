@@ -4,7 +4,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Building2, ArrowRight, Briefcase, TrendingUp, UserCheck, Award, Globe, Moon, Sun, LogOut } from "lucide-react"
+import { Users, Building2, ArrowRight, Briefcase, TrendingUp, UserCheck, Award, Globe, LogOut } from "lucide-react"
+import { useTheme } from "./context/ThemeContext"
+import ThemeToggle from "./components/ThemeToggle"
 
 // Import components from frontend for functionality
 import CompanyDetailsForm from "./components/CompanyDetailsForm";
@@ -13,6 +15,7 @@ import JobManagement from "./components/JobManagement";
 import BrowseJobs from "./pages/BrowseJobs";
 import MyApplications from "./pages/MyApplications";
 import Profile from "./pages/Profile";
+import CompanySettings from "./pages/CompanySettings";
 import Navbar from "./components/Navbar";
 import { useAuthMeta } from "./context/AuthMetaContext";
 import Spinner from "./components/Spinner";
@@ -28,26 +31,6 @@ export default function JobPortalApp() {
   const { isAuthenticated, getAccessTokenSilently, user, logout } = useAuth0();
   const { role, companyStatus, loading, refreshAuthMeta } = useAuthMeta();
   const [currentView, setCurrentView] = useState("landing")
-  const [isDarkMode, setIsDarkMode] = useState(false)
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme")
-    if (savedTheme === "dark") {
-      setIsDarkMode(true)
-      document.documentElement.classList.add("dark")
-    }
-  }, [])
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
-    if (!isDarkMode) {
-      document.documentElement.classList.add("dark")
-      localStorage.setItem("theme", "dark")
-    } else {
-      document.documentElement.classList.remove("dark")
-      localStorage.setItem("theme", "light")
-    }
-  }
 
   // Helper function for role selection
   async function handleRoleSelected(selectedRole) {
@@ -154,7 +137,7 @@ export default function JobPortalApp() {
   // Early returns for unauthenticated users or loading states
   if (!isAuthenticated) return <PublicRoutes onGetStarted={handleGetStarted} />;
   if (loading) return <Spinner />;
-  if (!role) return <RoleSelection onRoleSelected={handleRoleSelected} toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} onBackToLanding={handleBackToLanding} />;
+  if (!role) return <RoleSelection onRoleSelected={handleRoleSelected} onBackToLanding={handleBackToLanding} />;
   
   // Debug logging
   console.log('App rendering with role:', role);
@@ -224,12 +207,7 @@ export default function JobPortalApp() {
           path="/company-setup" 
           element={
             <ProtectedRoute roles={["COMPANY"]}>
-              <CompanyDetailsForm 
-                refreshAuthMeta={refreshAuthMeta}
-                onSuccess={() => {
-                  console.log("Company details saved successfully");
-                }} 
-              />
+              <CompanySettings />
             </ProtectedRoute>
           } 
         />
@@ -312,7 +290,7 @@ export default function JobPortalApp() {
 }
 
 // Role Selection Component (extracted from the original landing page logic)
-function RoleSelection({ onRoleSelected, toggleDarkMode, isDarkMode, onBackToLanding }) {
+function RoleSelection({ onRoleSelected, onBackToLanding }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden transition-colors duration-300">
       <div className="absolute inset-0 overflow-hidden">
@@ -330,20 +308,13 @@ function RoleSelection({ onRoleSelected, toggleDarkMode, isDarkMode, onBackToLan
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
-                  JobPortal Pro
+                  Job Gujarat
                 </h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Professional Career Platform</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Connecting you to What's Next</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button
-                onClick={toggleDarkMode}
-                variant="outline"
-                size="sm"
-                className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 bg-transparent"
-              >
-                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </Button>
+              <ThemeToggle />
               <Button
                 onClick={onBackToLanding}
                 variant="outline"

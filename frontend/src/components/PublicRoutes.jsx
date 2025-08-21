@@ -48,9 +48,9 @@ export default function PublicRoutes({ onGetStarted }) {
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
-                  JobPortal Pro
+                  Job Gujarat
                 </h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Professional Career Platform</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Connecting you to What's Next</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -135,13 +135,13 @@ export default function PublicRoutes({ onGetStarted }) {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-slate-700 dark:from-blue-500 dark:to-slate-600 rounded-lg flex items-center justify-center">
                 <Briefcase className="w-4 h-4 text-white" />
               </div>
-              <span className="text-slate-800 dark:text-slate-200 font-semibold">JobPortal Pro</span>
+              <span className="text-slate-800 dark:text-slate-200 font-semibold">Job Gujarat</span>
             </div>
             <p className="text-slate-600 dark:text-slate-400 mb-4">
-              Professional career solutions for modern businesses
+              Connecting you to What's Next
             </p>
             <div className="flex items-center justify-center space-x-6 text-sm text-slate-500 dark:text-slate-500">
-              <span>© 2024 JobPortal Pro</span>
+              <span> 2024 Job Gujarat</span>
               <span>•</span>
               <span>Enterprise Solutions</span>
               <span>•</span>

@@ -20,6 +20,7 @@ import {
   Menu,
   X
 } from "lucide-react";
+import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
   const { logout, user, isAuthenticated } = useAuth0();
@@ -88,8 +89,9 @@ const Navbar = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
-                JobPortal Pro
+                Job Gujarat
               </h1>
+              <p className="text-[10px] leading-tight text-slate-600 dark:text-slate-400">Connecting you to What's Next</p>
             </div>
           </div>
           
@@ -139,6 +141,9 @@ const Navbar = () => {
               </div>
             </div>
             
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
             {/* Logout Button */}
             <Button 
               onClick={handleLogout} 
@@ -168,24 +173,27 @@ const Navbar = () => {
         <div className="md:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700">
           <div className="container mx-auto px-4 py-4 space-y-2">
             {/* User Info Mobile */}
-            <div className="flex items-center space-x-3 pb-4 border-b border-slate-200 dark:border-slate-700">
-              {user?.picture && (
-                <img 
-                  src={user.picture} 
-                  alt="User Avatar" 
-                  className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-600"
-                />
-              )}
-              <div>
-                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                  {user?.name || 'User'}
-                </div>
-                {role && (
-                  <Badge variant="secondary" className="text-xs">
-                    {role.replace('_', ' ')}
-                  </Badge>
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center space-x-3">
+                {user?.picture && (
+                  <img 
+                    src={user.picture} 
+                    alt="User Avatar" 
+                    className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-600"
+                  />
                 )}
+                <div>
+                  <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                    {user?.name || 'User'}
+                  </div>
+                  {role && (
+                    <Badge variant="secondary" className="text-xs">
+                      {role.replace('_', ' ')}
+                    </Badge>
+                  )}
+                </div>
               </div>
+              <ThemeToggle />
             </div>
             
             {/* Mobile Navigation Items */}
