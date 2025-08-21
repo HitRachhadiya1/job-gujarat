@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Globe, Link as LinkIcon, Image, AlertCircle } from "lucide-react";
 
 const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -129,229 +134,170 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
   };
 
   return (
-    <div className="company-details-form" data-testid="company-setup-form">
-      <h2>
-        {existingCompany
-          ? "Update Company Details"
-          : "Complete Your Company Profile"}
-      </h2>
-      <p className="form-description">
-        Please fill in your company information to continue using the platform.
-      </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+      <div className="container mx-auto px-4 max-w-2xl">
+        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
+              <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <span>
+                {existingCompany
+                  ? "Update Company Details"
+                  : "Complete Your Company Profile"}
+              </span>
+            </CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-400">
+              Please fill in your company information to continue using the platform.
+            </CardDescription>
+          </CardHeader>
 
-      <form onSubmit={handleSubmit} className="form">
-        <div className="form-group">
-          <label htmlFor="name">Company Name *</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            className={errors.name ? "error" : ""}
-            placeholder="Enter your company name"
-          />
-          {errors.name && <span className="error-message">{errors.name}</span>}
-        </div>
+          <CardContent className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                  <Building2 className="w-4 h-4" />
+                  <span>Company Name *</span>
+                </label>
+                <Input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className={`bg-white dark:bg-slate-800 ${errors.name ? 'border-red-500' : ''}`}
+                  placeholder="Enter your company name"
+                />
+                {errors.name && (
+                  <div className="flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{errors.name}</span>
+                  </div>
+                )}
+              </div>
 
-        <div className="form-group">
-          <label htmlFor="industry">Industry *</label>
-          <select
-            id="industry"
-            name="industry"
-            value={formData.industry}
-            onChange={handleInputChange}
-            className={errors.industry ? "error" : ""}
-          >
-            <option value="">Select an industry</option>
-            <option value="Technology">Technology</option>
-            <option value="Healthcare">Healthcare</option>
-            <option value="Finance">Finance</option>
-            <option value="Education">Education</option>
-            <option value="Manufacturing">Manufacturing</option>
-            <option value="Retail">Retail</option>
-            <option value="Construction">Construction</option>
-            <option value="Transportation">Transportation</option>
-            <option value="Hospitality">Hospitality</option>
-            <option value="Media">Media</option>
-            <option value="Other">Other</option>
-          </select>
-          {errors.industry && (
-            <span className="error-message">{errors.industry}</span>
-          )}
-        </div>
+              <div className="space-y-2">
+                <label htmlFor="industry" className="text-sm font-medium text-slate-700 dark:text-slate-300">Industry *</label>
+                <select
+                  id="industry"
+                  name="industry"
+                  value={formData.industry}
+                  onChange={handleInputChange}
+                  className={`w-full p-3 border rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.industry ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'
+                  }`}
+                >
+                  <option value="">Select an industry</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Education">Education</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="Retail">Retail</option>
+                  <option value="Construction">Construction</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Hospitality">Hospitality</option>
+                  <option value="Media">Media</option>
+                  <option value="Other">Other</option>
+                </select>
+                {errors.industry && (
+                  <div className="flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{errors.industry}</span>
+                  </div>
+                )}
+              </div>
 
-        <div className="form-group">
-          <label htmlFor="description">Company Description *</label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            className={errors.description ? "error" : ""}
-            placeholder="Describe your company, its mission, and what you do..."
-            rows="4"
-          />
-          {errors.description && (
-            <span className="error-message">{errors.description}</span>
-          )}
-        </div>
+              <div className="space-y-2">
+                <label htmlFor="description" className="text-sm font-medium text-slate-700 dark:text-slate-300">Company Description *</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className={`w-full min-h-[120px] p-3 border rounded-md resize-vertical bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.description ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'
+                  }`}
+                  placeholder="Describe your company, its mission, and what you do..."
+                  rows="4"
+                />
+                {errors.description && (
+                  <div className="flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{errors.description}</span>
+                  </div>
+                )}
+              </div>
 
-        <div className="form-group">
-          <label htmlFor="website">Website</label>
-          <input
-            type="url"
-            id="website"
-            name="website"
-            value={formData.website}
-            onChange={handleInputChange}
-            className={errors.website ? "error" : ""}
-            placeholder="https://www.yourcompany.com"
-          />
-          {errors.website && (
-            <span className="error-message">{errors.website}</span>
-          )}
-        </div>
+              <div className="space-y-2">
+                <label htmlFor="website" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                  <Globe className="w-4 h-4" />
+                  <span>Website</span>
+                </label>
+                <Input
+                  type="url"
+                  id="website"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleInputChange}
+                  className={`bg-white dark:bg-slate-800 ${errors.website ? 'border-red-500' : ''}`}
+                  placeholder="https://www.yourcompany.com"
+                />
+                {errors.website && (
+                  <div className="flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{errors.website}</span>
+                  </div>
+                )}
+              </div>
 
-        <div className="form-group">
-          <label htmlFor="logoUrl">Company Logo URL</label>
-          <input
-            type="url"
-            id="logoUrl"
-            name="logoUrl"
-            value={formData.logoUrl}
-            onChange={handleInputChange}
-            className={errors.logoUrl ? "error" : ""}
-            placeholder="https://www.yourcompany.com/logo.png"
-          />
-          {errors.logoUrl && (
-            <span className="error-message">{errors.logoUrl}</span>
-          )}
-        </div>
+              <div className="space-y-2">
+                <label htmlFor="logoUrl" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                  <Image className="w-4 h-4" />
+                  <span>Company Logo URL</span>
+                </label>
+                <Input
+                  type="url"
+                  id="logoUrl"
+                  name="logoUrl"
+                  value={formData.logoUrl}
+                  onChange={handleInputChange}
+                  className={`bg-white dark:bg-slate-800 ${errors.logoUrl ? 'border-red-500' : ''}`}
+                  placeholder="https://www.yourcompany.com/logo.png"
+                />
+                {errors.logoUrl && (
+                  <div className="flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{errors.logoUrl}</span>
+                  </div>
+                )}
+              </div>
 
-        {errors.submit && (
-          <div className="error-message submit-error">{errors.submit}</div>
-        )}
+              {errors.submit && (
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <p className="text-sm text-red-700 dark:text-red-400">{errors.submit}</p>
+                  </div>
+                </div>
+              )}
 
-        <button type="submit" className="submit-button" disabled={loading}>
-          {loading
-            ? "Saving..."
-            : existingCompany
-            ? "Update Company"
-            : "Create Company Profile"}
-        </button>
-      </form>
-
-      <style jsx="true">{`
-        .company-details-form {
-          max-width: 600px;
-          margin: 0 auto;
-          padding: 2rem;
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-          color: #333;
-          margin-bottom: 0.5rem;
-          text-align: center;
-        }
-
-        .form-description {
-          color: #666;
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-
-        .form {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .form-group {
-          display: flex;
-          flex-direction: column;
-        }
-
-        label {
-          font-weight: 600;
-          margin-bottom: 0.5rem;
-          color: #333;
-        }
-
-        input,
-        select,
-        textarea {
-          padding: 0.75rem;
-          border: 2px solid #e1e5e9;
-          border-radius: 4px;
-          font-size: 1rem;
-          transition: border-color 0.2s;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus {
-          outline: none;
-          border-color: #007bff;
-        }
-
-        input.error,
-        select.error,
-        textarea.error {
-          border-color: #dc3545;
-        }
-
-        .error-message {
-          color: #dc3545;
-          font-size: 0.875rem;
-          margin-top: 0.25rem;
-        }
-
-        .submit-error {
-          background: #f8d7da;
-          border: 1px solid #f5c6cb;
-          border-radius: 4px;
-          padding: 0.75rem;
-          margin-top: 1rem;
-        }
-
-        .submit-button {
-          background: #007bff;
-          color: white;
-          border: none;
-          padding: 0.75rem 1.5rem;
-          border-radius: 4px;
-          font-size: 1rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          margin-top: 1rem;
-        }
-
-        .submit-button:hover:not(:disabled) {
-          background: #0056b3;
-        }
-
-        .submit-button:disabled {
-          background: #6c757d;
-          cursor: not-allowed;
-        }
-
-        textarea {
-          resize: vertical;
-          min-height: 100px;
-        }
-
-        @media (max-width: 768px) {
-          .company-details-form {
-            margin: 1rem;
-            padding: 1.5rem;
-          }
-        }
-      `}</style>
+              <div className="pt-4">
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white font-semibold py-3"
+                >
+                  {loading
+                    ? "Saving..."
+                    : existingCompany
+                    ? "Update Company"
+                    : "Create Company Profile"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

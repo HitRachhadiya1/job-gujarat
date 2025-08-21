@@ -1,5 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { 
+  FileText, 
+  Building2, 
+  MapPin, 
+  Calendar, 
+  Trash2, 
+  ExternalLink, 
+  Search,
+  Filter,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Users
+} from 'lucide-react';
+import Spinner from '../components/Spinner';
 
 const MyApplications = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -69,14 +88,21 @@ const MyApplications = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      APPLIED: { class: 'status-applied', text: 'Applied' },
-      INTERVIEW: { class: 'status-interview', text: 'Interview' },
-      HIRED: { class: 'status-hired', text: 'Hired' },
-      REJECTED: { class: 'status-rejected', text: 'Rejected' }
+      APPLIED: { variant: "default", text: 'Applied', icon: Clock, className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
+      INTERVIEW: { variant: "secondary", text: 'Interview', icon: Users, className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" },
+      HIRED: { variant: "secondary", text: 'Hired', icon: CheckCircle, className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
+      REJECTED: { variant: "secondary", text: 'Rejected', icon: XCircle, className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" }
     };
     
-    const config = statusConfig[status] || { class: 'status-default', text: status };
-    return <span className={`status-badge ${config.class}`}>{config.text}</span>;
+    const config = statusConfig[status] || { variant: "outline", text: status, icon: Clock, className: "" };
+    const IconComponent = config.icon;
+    
+    return (
+      <Badge variant={config.variant} className={`flex items-center gap-1 ${config.className}`}>
+        <IconComponent className="w-3 h-3" />
+        {config.text}
+      </Badge>
+    );
   };
 
   const formatDate = (dateString) => {
@@ -88,360 +114,163 @@ const MyApplications = () => {
   };
 
   if (loading) {
-    return (
-      <div className="page-container">
-        <div className="text-center">
-          <div className="loading-spinner"></div>
-          <p>Loading your applications...</p>
-        </div>
-      </div>
-    );
+    return <Spinner />;
   }
 
   return (
-    <div className="page-container">
-      <div className="container">
-        <div className="page-header">
-          <h1>My Applications</h1>
-          <p>Track your job applications and their status</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+      <div className="container mx-auto px-4 max-w-6xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center space-x-3">
+            <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            <span>My Applications</span>
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-400">
+            Track your job applications and their current status
+          </p>
         </div>
 
         {/* Filter Section */}
-        <div className="card">
-          <div className="filters">
-            <label htmlFor="statusFilter">Filter by Status:</label>
-            <select 
-              id="statusFilter"
-              className="form-control"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            >
-              <option value="">All Applications</option>
-              <option value="APPLIED">Applied</option>
-              <option value="INTERVIEW">Interview</option>
-              <option value="HIRED">Hired</option>
-              <option value="REJECTED">Rejected</option>
-            </select>
-          </div>
-        </div>
+        <Card className="mb-6 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-4">
+              <Filter className="w-5 h-5 text-slate-500" />
+              <label htmlFor="statusFilter" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Filter by Status:
+              </label>
+              <select 
+                id="statusFilter"
+                className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              >
+                <option value="">All Applications</option>
+                <option value="APPLIED">Applied</option>
+                <option value="INTERVIEW">Interview</option>
+                <option value="HIRED">Hired</option>
+                <option value="REJECTED">Rejected</option>
+              </select>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Results Summary */}
-        <div className="results-summary">
-          <p>{pagination.total || 0} application{(pagination.total !== 1) ? 's' : ''} found</p>
+        <div className="mb-6">
+          <p className="text-slate-600 dark:text-slate-400">
+            {pagination.total || 0} application{(pagination.total !== 1) ? 's' : ''} found
+          </p>
         </div>
 
         {/* Applications List */}
-        <div className="applications-list">
+        <div className="space-y-4">
           {applications.length === 0 ? (
-            <div className="card text-center">
-              <h3>No applications found</h3>
-              <p>
-                {filter ? 
-                  'Try changing your filter criteria.' : 
-                  "You haven't applied to any jobs yet. Start browsing jobs to find opportunities!"
-                }
-              </p>
-              {!filter && (
-                <a href="/browse-jobs" className="btn btn-primary">
-                  Browse Jobs
-                </a>
-              )}
-            </div>
+            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
+              <CardContent className="p-12 text-center">
+                <FileText className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  No applications found
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                  {filter ? 
+                    'Try changing your filter criteria.' : 
+                    "You haven't applied to any jobs yet. Start browsing jobs to find opportunities!"
+                  }
+                </p>
+                {!filter && (
+                  <Button asChild className="bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white">
+                    <a href="/browse-jobs">Browse Jobs</a>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           ) : (
             applications.map((application) => (
-              <div key={application.id} className="card application-card">
-                <div className="application-header">
-                  <div className="job-info">
-                    <h3 className="job-title">{application.job.title}</h3>
-                    <div className="company-info">
-                      <span className="company-name">
-                        🏢 {application.job.company?.name}
+              <Card key={application.id} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                        {application.job.title}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                        <div className="flex items-center space-x-1">
+                          <Building2 className="w-4 h-4" />
+                          <span>{application.job.company?.name}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="w-4 h-4" />
+                          <span>{application.job.location}</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {application.job.jobType}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {getStatusBadge(application.status)}
+                    </div>
+                  </div>
+
+                  <div className="mb-4 space-y-2">
+                    <div className="flex items-center space-x-1 text-sm text-slate-500 dark:text-slate-400">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        Applied: {formatDate(application.appliedAt)}
+                        {application.updatedAt !== application.appliedAt && (
+                          <span> • Last Updated: {formatDate(application.updatedAt)}</span>
+                        )}
                       </span>
-                      <span className="job-location">📍 {application.job.location}</span>
-                      <span className="job-type">💼 {application.job.jobType}</span>
                     </div>
-                  </div>
-                  <div className="application-status">
-                    {getStatusBadge(application.status)}
-                  </div>
-                </div>
 
-                <div className="application-details">
-                  <div className="application-dates">
-                    <small>
-                      <strong>Applied:</strong> {formatDate(application.appliedAt)}
-                      {application.updatedAt !== application.appliedAt && (
-                        <span> • <strong>Last Updated:</strong> {formatDate(application.updatedAt)}</span>
-                      )}
-                    </small>
+                    {application.coverLetter && (
+                      <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-md">
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cover Letter:</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3">
+                          {application.coverLetter.substring(0, 150)}
+                          {application.coverLetter.length > 150 && '...'}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  {application.coverLetter && (
-                    <div className="cover-letter-preview">
-                      <strong>Cover Letter:</strong>
-                      <p>{application.coverLetter.substring(0, 150)}
-                        {application.coverLetter.length > 150 && '...'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="application-actions">
-                  {application.status === 'APPLIED' && (
-                    <button 
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleWithdraw(application.id, application.job.title)}
-                    >
-                      Withdraw Application
-                    </button>
-                  )}
-                  
-                  {application.resumeSnapshot && (
-                    <a 
-                      href={application.resumeSnapshot}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-secondary btn-sm"
-                    >
-                      View Resume Used
-                    </a>
-                  )}
-                </div>
-              </div>
+                  <div className="flex justify-end space-x-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    {application.status === 'APPLIED' && (
+                      <Button 
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleWithdraw(application.id, application.job.title)}
+                        className="flex items-center space-x-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Withdraw</span>
+                      </Button>
+                    )}
+                    
+                    {application.resumeSnapshot && (
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        asChild
+                        className="flex items-center space-x-1"
+                      >
+                        <a 
+                          href={application.resumeSnapshot}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          <span>View Resume</span>
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             ))
           )}
         </div>
       </div>
-
-      <style jsx>{`
-        .page-header {
-          margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-          margin: 0 0 0.5rem 0;
-          color: #333;
-        }
-
-        .page-header p {
-          margin: 0;
-          color: #666;
-          font-size: 1.1rem;
-        }
-
-        .filters {
-          display: flex;
-          gap: 1rem;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-
-        .filters label {
-          font-weight: 600;
-          color: #333;
-        }
-
-        .form-control {
-          padding: 0.5rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 1rem;
-          min-width: 200px;
-        }
-
-        .results-summary {
-          margin: 1rem 0;
-        }
-
-        .results-summary p {
-          color: #666;
-          margin: 0;
-        }
-
-        .application-card {
-          transition: transform 0.2s, box-shadow 0.2s;
-          border-left: 4px solid #007bff;
-        }
-
-        .application-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .application-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 1rem;
-        }
-
-        .job-title {
-          margin: 0 0 0.5rem 0;
-          color: #333;
-          font-size: 1.25rem;
-        }
-
-        .company-info {
-          display: flex;
-          gap: 1rem;
-          flex-wrap: wrap;
-          font-size: 0.9rem;
-          color: #666;
-        }
-
-        .application-status {
-          flex-shrink: 0;
-        }
-
-        .status-badge {
-          padding: 0.25rem 0.75rem;
-          border-radius: 12px;
-          font-size: 0.8rem;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .status-applied {
-          background: #cce7ff;
-          color: #0056b3;
-        }
-
-        .status-interview {
-          background: #fff3cd;
-          color: #856404;
-        }
-
-        .status-hired {
-          background: #d1e7dd;
-          color: #0f5132;
-        }
-
-        .status-rejected {
-          background: #f8d7da;
-          color: #721c24;
-        }
-
-        .application-details {
-          margin-bottom: 1rem;
-        }
-
-        .application-dates {
-          margin-bottom: 0.75rem;
-        }
-
-        .application-dates small {
-          color: #666;
-        }
-
-        .cover-letter-preview {
-          font-size: 0.9rem;
-        }
-
-        .cover-letter-preview p {
-          margin: 0.25rem 0 0 0;
-          color: #555;
-          line-height: 1.4;
-        }
-
-        .application-actions {
-          display: flex;
-          gap: 0.75rem;
-          justify-content: flex-end;
-          padding-top: 1rem;
-          border-top: 1px solid #e5e5e5;
-        }
-
-        .btn {
-          padding: 0.5rem 1rem;
-          border: none;
-          border-radius: 4px;
-          font-size: 0.9rem;
-          cursor: pointer;
-          transition: all 0.2s;
-          text-decoration: none;
-          display: inline-block;
-        }
-
-        .btn-sm {
-          padding: 0.375rem 0.75rem;
-          font-size: 0.85rem;
-        }
-
-        .btn-primary {
-          background: #007bff;
-          color: white;
-        }
-
-        .btn-primary:hover {
-          background: #0056b3;
-        }
-
-        .btn-secondary {
-          background: #6c757d;
-          color: white;
-        }
-
-        .btn-secondary:hover {
-          background: #545b62;
-        }
-
-        .btn-danger {
-          background: #dc3545;
-          color: white;
-        }
-
-        .btn-danger:hover {
-          background: #c82333;
-        }
-
-        .loading-spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid #f3f3f3;
-          border-top: 4px solid #007bff;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .text-center {
-          text-align: center;
-        }
-
-        @media (max-width: 768px) {
-          .application-header {
-            flex-direction: column;
-            gap: 1rem;
-          }
-
-          .company-info {
-            flex-direction: column;
-            gap: 0.25rem;
-          }
-
-          .application-actions {
-            flex-direction: column;
-          }
-
-          .btn {
-            width: 100%;
-          }
-
-          .filters {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .form-control {
-            min-width: auto;
-          }
-        }
-      `}</style>
     </div>
   );
 };

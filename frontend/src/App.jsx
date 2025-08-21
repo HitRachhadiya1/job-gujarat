@@ -1,23 +1,53 @@
-// frontend/src/App.jsx
+import { useState, useEffect } from "react"
 import { useAuth0 } from "@auth0/auth0-react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Users, Building2, ArrowRight, Briefcase, TrendingUp, UserCheck, Award, Globe, Moon, Sun, LogOut } from "lucide-react"
+
+// Import components from frontend for functionality
 import CompanyDetailsForm from "./components/CompanyDetailsForm";
 import CompanyDashboard from "./components/CompanyDashboard";
 import JobManagement from "./components/JobManagement";
-import RoleSelection from "./pages/RoleSelection";
-import Profile from "./pages/Profie"; // Note: fixing the typo in filename would be better
 import BrowseJobs from "./pages/BrowseJobs";
 import MyApplications from "./pages/MyApplications";
-import PublicRoutes from "./components/PublicRoutes";
+import Profile from "./pages/Profile";
+import Navbar from "./components/Navbar";
+import { useAuthMeta } from "./context/AuthMetaContext";
 import Spinner from "./components/Spinner";
 import UnknownRole from "./components/UnknownRole";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Navbar from "./components/Navbar";
-import { useAuthMeta } from "./context/AuthMetaContext";
+import PublicRoutes from "./components/PublicRoutes";
 
-function App() {
-  const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
+// Import dashboard components with beautiful UI from job-portal(1)
+import JobSeekerDashboard from "./components/job-seeker-dashboard";
+import AdminDashboard from "./components/admin-dashboard";
+
+export default function JobPortalApp() {
+  const { isAuthenticated, getAccessTokenSilently, user, logout } = useAuth0();
   const { role, companyStatus, loading, refreshAuthMeta } = useAuthMeta();
+  const [currentView, setCurrentView] = useState("landing")
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme")
+    if (savedTheme === "dark") {
+      setIsDarkMode(true)
+      document.documentElement.classList.add("dark")
+    }
+  }, [])
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode)
+    if (!isDarkMode) {
+      document.documentElement.classList.add("dark")
+      localStorage.setItem("theme", "dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+      localStorage.setItem("theme", "light")
+    }
+  }
 
   // Helper function for role selection
   async function handleRoleSelected(selectedRole) {
@@ -96,10 +126,35 @@ function App() {
     // Don't throw error, let the user try manually or wait for eventual consistency
   }
 
+  const handleGetStarted = () => {
+    if (!isAuthenticated) {
+      // This will be handled by PublicRoutes
+      return;
+    }
+    setCurrentView("roleSelection")
+  }
+
+  const handleRoleSelect = async (selectedRole) => {
+    try {
+      await handleRoleSelected(selectedRole);
+      setCurrentView("dashboard")
+    } catch (error) {
+      console.error("Failed to select role:", error);
+    }
+  }
+
+  const handleLogout = () => {
+    logout({ returnTo: window.location.origin });
+  }
+
+  const handleBackToLanding = () => {
+    setCurrentView("landing")
+  }
+
   // Early returns for unauthenticated users or loading states
-  if (!isAuthenticated) return <PublicRoutes />;
+  if (!isAuthenticated) return <PublicRoutes onGetStarted={handleGetStarted} />;
   if (loading) return <Spinner />;
-  if (!role) return <RoleSelection onRoleSelected={handleRoleSelected} />;
+  if (!role) return <RoleSelection onRoleSelected={handleRoleSelected} toggleDarkMode={toggleDarkMode} isDarkMode={isDarkMode} onBackToLanding={handleBackToLanding} />;
   
   // Debug logging
   console.log('App rendering with role:', role);
@@ -133,8 +188,10 @@ function App() {
                   </ProtectedRoute>
                 );
               } else if (role === "JOB_SEEKER") {
-                console.log('Redirecting job seeker to browse-jobs');
-                return <Navigate to="/browse-jobs" replace />;
+                console.log('Redirecting job seeker to dashboard');
+                return <JobSeekerDashboard onLogout={handleLogout} />;
+              } else if (role === "ADMIN") {
+                return <AdminDashboard onLogout={handleLogout} />;
               } else {
                 console.log('Unknown role, showing UnknownRole component');
                 return <UnknownRole />;
@@ -222,6 +279,16 @@ function App() {
             </ProtectedRoute>
           } 
         />
+
+        {/* Admin Routes */}
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute roles={["ADMIN"]}>
+              <AdminDashboard onLogout={handleLogout} />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Default redirect based on role */}
         <Route 
@@ -230,7 +297,9 @@ function App() {
             role === "COMPANY" ? (
               <Navigate to="/" replace />
             ) : role === "JOB_SEEKER" ? (
-              <Navigate to="/browse-jobs" replace />
+              <Navigate to="/" replace />
+            ) : role === "ADMIN" ? (
+              <Navigate to="/" replace />
             ) : (
               <UnknownRole />
             )
@@ -242,4 +311,148 @@ function App() {
   );
 }
 
-export default App;
+// Role Selection Component (extracted from the original landing page logic)
+function RoleSelection({ onRoleSelected, toggleDarkMode, isDarkMode, onBackToLanding }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden transition-colors duration-300">
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-blue-100/30 to-slate-200/30 dark:from-blue-900/20 dark:to-slate-700/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-slate-100/30 to-blue-200/30 dark:from-slate-800/20 dark:to-blue-900/20 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Header */}
+      <header className="relative z-10 backdrop-blur-sm bg-white/90 dark:bg-slate-900/90 border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm transition-colors duration-300">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-slate-700 dark:from-blue-500 dark:to-slate-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Briefcase className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
+                  JobPortal Pro
+                </h1>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Professional Career Platform</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={toggleDarkMode}
+                variant="outline"
+                size="sm"
+                className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 bg-transparent"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
+              <Button
+                onClick={onBackToLanding}
+                variant="outline"
+                className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 bg-transparent"
+              >
+                Back to Home
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Role Selection Section */}
+      <section className="relative z-10 container mx-auto px-4 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-700 to-blue-700 dark:from-slate-200 dark:to-blue-400 mb-6">
+            Choose Your Role
+          </h2>
+          <p className="text-xl text-slate-700 dark:text-slate-300 max-w-2xl mx-auto">
+            Select your role to access the appropriate dashboard and features
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Job Seeker Card */}
+          <div className="group transform transition-all duration-300 hover:scale-105">
+            <Card className="relative overflow-hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-slate-600"></div>
+
+              <CardHeader className="text-center pb-6 relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-slate-600 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">
+                  Job Seeker
+                </CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-400 text-base">
+                  Discover your next career opportunity with intelligent matching
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-6 relative z-10">
+                <div className="space-y-3">
+                  {[
+                    "Smart job recommendations",
+                    "Company culture insights",
+                    "Application tracking",
+                    "Career development tools",
+                  ].map((feature, index) => (
+                    <div key={index} className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-slate-600 rounded-full"></div>
+                      <span className="text-slate-700 dark:text-slate-300 text-sm">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={() => onRoleSelected("JOB_SEEKER")}
+                  className="w-full bg-gradient-to-r from-blue-500 to-slate-600 hover:from-blue-600 hover:to-slate-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                >
+                  <span className="mr-2">Start Your Journey</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Company Card */}
+          <div className="group transform transition-all duration-300 hover:scale-105">
+            <Card className="relative overflow-hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-600 to-blue-500"></div>
+
+              <CardHeader className="text-center pb-6 relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-r from-slate-600 to-blue-500 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
+                  <Building2 className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">Company</CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-400 text-base">
+                  Build exceptional teams with advanced recruitment tools
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-6 relative z-10">
+                <div className="space-y-3">
+                  {[
+                    "Intelligent candidate matching",
+                    "Comprehensive talent analytics",
+                    "Streamlined hiring process",
+                    "Employer branding tools",
+                  ].map((feature, index) => (
+                    <div key={index} className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-gradient-to-r from-slate-600 to-blue-500 rounded-full"></div>
+                      <span className="text-slate-700 dark:text-slate-300 text-sm">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={() => onRoleSelected("COMPANY")}
+                  className="w-full bg-gradient-to-r from-slate-600 to-blue-500 hover:from-slate-700 hover:to-blue-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                >
+                  <span className="mr-2">Find Top Talent</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}

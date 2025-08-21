@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { X, MapPin, Building2, DollarSign, Clock } from 'lucide-react';
 
 const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -46,247 +51,102 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <div className="modal-header">
-          <h2>Apply for {job.title}</h2>
-          <button className="close-button" onClick={onClose}>×</button>
-        </div>
-
-        <div className="job-details">
-          <h3>{job.company?.name}</h3>
-          <p>📍 {job.location}</p>
-          <p>💼 {job.jobType}</p>
-          {job.salaryRange && <p>💰 {job.salaryRange}</p>}
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="coverLetter">Cover Letter (Optional)</label>
-            <textarea
-              id="coverLetter"
-              className="form-control"
-              rows="6"
-              placeholder="Write a brief cover letter explaining why you're interested in this position and what makes you a good fit..."
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-            />
-            <small className="text-muted">
-              This will help your application stand out to the employer.
-            </small>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden bg-white dark:bg-slate-900">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-slate-200 dark:border-slate-700">
+          <div>
+            <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
+              Apply for {job.title}
+            </CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-400">
+              Submit your application to this position
+            </CardDescription>
           </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onClose}
+            className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </CardHeader>
 
-          {error && (
-            <div className="alert alert-error">
-              {error}
+        <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 p-6">
+          <div className="flex items-center space-x-2 mb-2">
+            <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              {job.company?.name}
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div className="flex items-center space-x-2">
+              <MapPin className="w-4 h-4 text-slate-500" />
+              <span className="text-slate-600 dark:text-slate-400">{job.location}</span>
             </div>
-          )}
-
-          <div className="modal-actions">
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              className="btn btn-primary"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Application'}
-            </button>
+            <div className="flex items-center space-x-2">
+              <Clock className="w-4 h-4 text-slate-500" />
+              <Badge variant="secondary" className="text-xs">
+                {job.jobType}
+              </Badge>
+            </div>
+            {job.salaryRange && (
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-4 h-4 text-slate-500" />
+                <span className="text-slate-600 dark:text-slate-400">{job.salaryRange}</span>
+              </div>
+            )}
           </div>
-        </form>
-      </div>
+        </div>
 
-      <style jsx>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: 1rem;
-        }
+        <CardContent className="p-6 overflow-y-auto">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label 
+                htmlFor="coverLetter" 
+                className="text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Cover Letter (Optional)
+              </label>
+              <textarea
+                id="coverLetter"
+                className="w-full min-h-[120px] p-3 border border-slate-300 dark:border-slate-600 rounded-md resize-vertical text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Write a brief cover letter explaining why you're interested in this position and what makes you a good fit..."
+                value={coverLetter}
+                onChange={(e) => setCoverLetter(e.target.value)}
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                This will help your application stand out to the employer.
+              </p>
+            </div>
 
-        .modal-content {
-          background: white;
-          border-radius: 8px;
-          width: 100%;
-          max-width: 600px;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
+            {error && (
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+              </div>
+            )}
 
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1.5rem;
-          border-bottom: 1px solid #e5e5e5;
-        }
-
-        .modal-header h2 {
-          margin: 0;
-          color: #333;
-        }
-
-        .close-button {
-          background: none;
-          border: none;
-          font-size: 1.5rem;
-          color: #666;
-          cursor: pointer;
-          padding: 0.25rem;
-          line-height: 1;
-        }
-
-        .close-button:hover {
-          color: #333;
-        }
-
-        .job-details {
-          padding: 1.5rem;
-          background: #f8f9fa;
-          border-bottom: 1px solid #e5e5e5;
-        }
-
-        .job-details h3 {
-          margin: 0 0 0.5rem 0;
-          color: #007bff;
-        }
-
-        .job-details p {
-          margin: 0.25rem 0;
-          color: #666;
-          font-size: 0.9rem;
-        }
-
-        form {
-          padding: 1.5rem;
-        }
-
-        .form-group {
-          margin-bottom: 1rem;
-        }
-
-        .form-group label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 600;
-          color: #333;
-        }
-
-        .form-control {
-          width: 100%;
-          padding: 0.75rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 1rem;
-          resize: vertical;
-          min-height: 120px;
-        }
-
-        .form-control:focus {
-          outline: none;
-          border-color: #007bff;
-          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-
-        .text-muted {
-          font-size: 0.85rem;
-          color: #6c757d;
-          margin-top: 0.25rem;
-        }
-
-        .alert {
-          padding: 0.75rem 1rem;
-          border: 1px solid transparent;
-          border-radius: 4px;
-          margin-bottom: 1rem;
-        }
-
-        .alert-error {
-          color: #721c24;
-          background-color: #f8d7da;
-          border-color: #f5c6cb;
-        }
-
-        .modal-actions {
-          display: flex;
-          gap: 1rem;
-          justify-content: flex-end;
-          margin-top: 1.5rem;
-          padding-top: 1rem;
-          border-top: 1px solid #e5e5e5;
-        }
-
-        .btn {
-          padding: 0.75rem 1.5rem;
-          border: none;
-          border-radius: 4px;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .btn-primary {
-          background: #007bff;
-          color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-          background: #0056b3;
-        }
-
-        .btn-secondary {
-          background: #6c757d;
-          color: white;
-        }
-
-        .btn-secondary:hover:not(:disabled) {
-          background: #545b62;
-        }
-
-        @media (max-width: 768px) {
-          .modal-overlay {
-            padding: 0.5rem;
-          }
-
-          .modal-header {
-            padding: 1rem;
-          }
-
-          .job-details {
-            padding: 1rem;
-          }
-
-          form {
-            padding: 1rem;
-          }
-
-          .modal-actions {
-            flex-direction: column;
-          }
-
-          .btn {
-            width: 100%;
-          }
-        }
-      `}</style>
+            <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus, User, Phone, MapPin, Clock, Link as LinkIcon } from 'lucide-react';
 
 const JobSeekerProfileForm = ({ onSuccess }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -108,269 +113,150 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
   };
 
   return (
-    <div className="profile-form-container">
-      <div className="card">
-        <h2>{existingProfile ? 'Update Your Profile' : 'Create Your Job Seeker Profile'}</h2>
-        <p>Complete your profile to start applying for jobs.</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+      <div className="container mx-auto px-4 max-w-2xl">
+        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
+              <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <span>{existingProfile ? 'Update Your Profile' : 'Create Your Job Seeker Profile'}</span>
+            </CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-400">
+              Complete your profile to start applying for jobs and get personalized recommendations.
+            </CardDescription>
+          </CardHeader>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="fullName">Full Name *</label>
-            <input
-              type="text"
-              id="fullName"
-              className="form-control"
-              value={formData.fullName}
-              onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-              required
-            />
-          </div>
+          <CardContent className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="fullName" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                  <User className="w-4 h-4" />
+                  <span>Full Name *</span>
+                </label>
+                <Input
+                  type="text"
+                  id="fullName"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                  required
+                  className="bg-white dark:bg-slate-800"
+                />
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="phone">Phone Number</label>
-            <input
-              type="tel"
-              id="phone"
-              className="form-control"
-              value={formData.phone}
-              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-            />
-          </div>
+              <div className="space-y-2">
+                <label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                  <Phone className="w-4 h-4" />
+                  <span>Phone Number</span>
+                </label>
+                <Input
+                  type="tel"
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  className="bg-white dark:bg-slate-800"
+                />
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="location">Location</label>
-            <input
-              type="text"
-              id="location"
-              className="form-control"
-              placeholder="City, State"
-              value={formData.location}
-              onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-            />
-          </div>
+              <div className="space-y-2">
+                <label htmlFor="location" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>Location</span>
+                </label>
+                <Input
+                  type="text"
+                  id="location"
+                  placeholder="City, State"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  className="bg-white dark:bg-slate-800"
+                />
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="experienceYears">Years of Experience</label>
-            <select
-              id="experienceYears"
-              className="form-control"
-              value={formData.experienceYears}
-              onChange={(e) => setFormData(prev => ({ ...prev, experienceYears: e.target.value }))}
-            >
-              <option value="">Select experience level</option>
-              <option value="0">Entry Level (0 years)</option>
-              <option value="1">1 year</option>
-              <option value="2">2 years</option>
-              <option value="3">3 years</option>
-              <option value="4">4 years</option>
-              <option value="5">5 years</option>
-              <option value="10">5-10 years</option>
-              <option value="15">10+ years</option>
-            </select>
-          </div>
+              <div className="space-y-2">
+                <label htmlFor="experienceYears" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                  <Clock className="w-4 h-4" />
+                  <span>Years of Experience</span>
+                </label>
+                <select
+                  id="experienceYears"
+                  className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={formData.experienceYears}
+                  onChange={(e) => setFormData(prev => ({ ...prev, experienceYears: e.target.value }))}
+                >
+                  <option value="">Select experience level</option>
+                  <option value="0">Entry Level (0 years)</option>
+                  <option value="1">1 year</option>
+                  <option value="2">2 years</option>
+                  <option value="3">3 years</option>
+                  <option value="4">4 years</option>
+                  <option value="5">5 years</option>
+                  <option value="10">5-10 years</option>
+                  <option value="15">10+ years</option>
+                </select>
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="skills">Skills</label>
-            <div className="skills-input">
-              <input
-                type="text"
-                id="skills"
-                className="form-control"
-                placeholder="Add a skill and press Enter"
-                value={skillInput}
-                onChange={(e) => setSkillInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-              />
-              <button type="button" className="btn btn-secondary" onClick={handleSkillAdd}>
-                Add
-              </button>
-            </div>
-            <div className="skills-list">
-              {formData.skills.map((skill, index) => (
-                <span key={index} className="skill-tag">
-                  {skill}
-                  <button
-                    type="button"
-                    className="skill-remove"
-                    onClick={() => handleSkillRemove(skill)}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Skills</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Add a skill and press Enter"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="flex-1 bg-white dark:bg-slate-800"
+                  />
+                  <Button type="button" onClick={handleSkillAdd} variant="outline" size="sm">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {formData.skills.map((skill, index) => (
+                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                      {skill}
+                      <button
+                        type="button"
+                        onClick={() => handleSkillRemove(skill)}
+                        className="ml-1 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="resumeUrl">Resume URL</label>
-            <input
-              type="url"
-              id="resumeUrl"
-              className="form-control"
-              placeholder="Link to your resume (Google Drive, Dropbox, etc.)"
-              value={formData.resumeUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, resumeUrl: e.target.value }))}
-            />
-            <small className="form-text">Upload your resume to a cloud service and paste the public link here</small>
-          </div>
+              <div className="space-y-2">
+                <label htmlFor="resumeUrl" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                  <LinkIcon className="w-4 h-4" />
+                  <span>Resume URL</span>
+                </label>
+                <Input
+                  type="url"
+                  id="resumeUrl"
+                  placeholder="Link to your resume (Google Drive, Dropbox, etc.)"
+                  value={formData.resumeUrl}
+                  onChange={(e) => setFormData(prev => ({ ...prev, resumeUrl: e.target.value }))}
+                  className="bg-white dark:bg-slate-800"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Upload your resume to a cloud service and paste the public link here
+                </p>
+              </div>
 
-          <div className="form-actions">
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Saving...' : existingProfile ? 'Update Profile' : 'Create Profile'}
-            </button>
-          </div>
-        </form>
+              <div className="pt-4">
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white font-semibold py-3"
+                >
+                  {loading ? 'Saving...' : existingProfile ? 'Update Profile' : 'Create Profile'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-
-      <style jsx>{`
-        .profile-form-container {
-          max-width: 600px;
-          margin: 0 auto;
-        }
-
-        .card {
-          padding: 2rem;
-        }
-
-        .card h2 {
-          margin: 0 0 0.5rem 0;
-          color: #333;
-        }
-
-        .card p {
-          margin: 0 0 2rem 0;
-          color: #666;
-        }
-
-        .form-group {
-          margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 600;
-          color: #333;
-        }
-
-        .form-control {
-          width: 100%;
-          padding: 0.75rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-size: 1rem;
-        }
-
-        .form-control:focus {
-          outline: none;
-          border-color: #007bff;
-          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-        }
-
-        .skills-input {
-          display: flex;
-          gap: 0.5rem;
-          margin-bottom: 0.75rem;
-        }
-
-        .skills-input .form-control {
-          flex: 1;
-        }
-
-        .skills-list {
-          display: flex;
-          gap: 0.5rem;
-          flex-wrap: wrap;
-        }
-
-        .skill-tag {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.25rem;
-          background: #e3f2fd;
-          color: #1565c0;
-          padding: 0.25rem 0.75rem;
-          border-radius: 12px;
-          font-size: 0.85rem;
-        }
-
-        .skill-remove {
-          background: none;
-          border: none;
-          color: #1565c0;
-          cursor: pointer;
-          font-size: 1.1rem;
-          line-height: 1;
-          padding: 0;
-          margin-left: 0.25rem;
-        }
-
-        .skill-remove:hover {
-          color: #0d47a1;
-        }
-
-        .form-text {
-          font-size: 0.85rem;
-          color: #6c757d;
-          margin-top: 0.25rem;
-        }
-
-        .form-actions {
-          margin-top: 2rem;
-          text-align: center;
-        }
-
-        .btn {
-          padding: 0.75rem 2rem;
-          border: none;
-          border-radius: 4px;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .btn-primary {
-          background: #007bff;
-          color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-          background: #0056b3;
-        }
-
-        .btn-secondary {
-          background: #6c757d;
-          color: white;
-          padding: 0.75rem 1rem;
-        }
-
-        .btn-secondary:hover {
-          background: #545b62;
-        }
-
-        @media (max-width: 768px) {
-          .profile-form-container {
-            max-width: none;
-          }
-
-          .card {
-            padding: 1.5rem;
-          }
-
-          .skills-input {
-            flex-direction: column;
-          }
-
-          .btn {
-            width: 100%;
-          }
-        }
-      `}</style>
     </div>
   );
 };

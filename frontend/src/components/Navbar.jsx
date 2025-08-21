@@ -2,20 +2,34 @@ import React, { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthMeta } from '../context/AuthMetaContext';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Briefcase, 
+  LogOut, 
+  Home,
+  Building2,
+  Settings,
+  User,
+  Search,
+  FileText,
+  Heart,
+  Target,
+  BarChart3,
+  Users,
+  Menu,
+  X
+} from "lucide-react";
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated } = useAuth0();
+  const { logout, user, isAuthenticated } = useAuth0();
   const { role } = useAuthMeta();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    logout({
-      logoutParams: {
-        returnTo: window.location.origin
-      }
-    });
+    logout({ returnTo: window.location.origin });
   };
 
   const isActive = (path) => {
@@ -27,21 +41,27 @@ const Navbar = () => {
 
     if (role === 'COMPANY') {
       return [
-        { path: '/dashboard', label: 'Dashboard', icon: '🏢' },
-        { path: '/jobs', label: 'Job Management', icon: '💼' },
-        { path: '/applications', label: 'Applications', icon: '📋' },
-        { path: '/company-setup', label: 'Company Settings', icon: '⚙️' },
-        { path: '/analytics', label: 'Analytics', icon: '📊' }
+        { path: '/', label: 'Dashboard', icon: Home },
+        { path: '/jobs', label: 'Job Management', icon: Briefcase },
+        { path: '/company-setup', label: 'Company Settings', icon: Settings }
       ];
     }
 
     if (role === 'JOB_SEEKER') {
       return [
-        { path: '/profile', label: 'Profile', icon: '👤' },
-        { path: '/browse-jobs', label: 'Browse Jobs', icon: '🔍' },
-        { path: '/applications', label: 'My Applications', icon: '📄' },
-        { path: '/saved-jobs', label: 'Saved Jobs', icon: '❤️' },
-        { path: '/recommendations', label: 'Recommendations', icon: '🎯' }
+        { path: '/', label: 'Dashboard', icon: Home },
+        { path: '/profile', label: 'Profile', icon: User },
+        { path: '/browse-jobs', label: 'Browse Jobs', icon: Search },
+        { path: '/applications', label: 'My Applications', icon: FileText },
+        { path: '/saved-jobs', label: 'Saved Jobs', icon: Heart },
+        { path: '/recommendations', label: 'Recommendations', icon: Target }
+      ];
+    }
+
+    if (role === 'ADMIN') {
+      return [
+        { path: '/admin', label: 'Admin Dashboard', icon: BarChart3 },
+        { path: '/users', label: 'Users', icon: Users }
       ];
     }
 
@@ -55,357 +75,140 @@ const Navbar = () => {
   const navigationItems = getNavigationItems();
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        {/* Logo/Brand */}
-        <div className="navbar-brand" onClick={() => navigate('/')}>
-          <span className="brand-icon">💼</span>
-          <span className="brand-text">JobPortal</span>
-        </div>
-
-        {/* Desktop Navigation */}
-        <div className="navbar-menu desktop-menu">
-          {navigationItems.map((item) => (
-            <button
-              key={item.path}
-              className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-              onClick={() => navigate(item.path)}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              <span className="nav-label">{item.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* User Menu */}
-        <div className="navbar-user">
-          <div className="user-info">
-            <img 
-              src={user?.picture || '/default-avatar.png'} 
-              alt="User Avatar" 
-              className="user-avatar"
-            />
-            <div className="user-details">
-              <span className="user-name">{user?.name || 'User'}</span>
-              <span className="user-role">{role?.replace('_', ' ')}</span>
+    <nav className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm sticky top-0 z-50 transition-colors duration-300">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo/Brand */}
+          <div 
+            className="flex items-center space-x-3 cursor-pointer group"
+            onClick={() => navigate('/')}
+          >
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-slate-700 dark:from-blue-500 dark:to-slate-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+              <Briefcase className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
+                JobPortal Pro
+              </h1>
             </div>
           </div>
-          <div className="user-dropdown">
-            <button className="dropdown-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              ⚙️
-            </button>
-            {isMenuOpen && (
-              <div className="dropdown-menu">
-                <button onClick={() => navigate('/settings')} className="dropdown-item">
-                  Settings
-                </button>
-                <button onClick={() => navigate('/help')} className="dropdown-item">
-                  Help & Support
-                </button>
-                <hr className="dropdown-divider" />
-                <button onClick={handleLogout} className="dropdown-item logout">
-                  Logout
-                </button>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-2">
+            {navigationItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Button
+                  key={item.path}
+                  variant={isActive(item.path) ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => navigate(item.path)}
+                  className={`flex items-center space-x-2 transition-all duration-200 ${
+                    isActive(item.path) 
+                      ? "bg-gradient-to-r from-blue-600 to-slate-700 text-white shadow-md" 
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Button>
+              );
+            })}
+          </div>
+          
+          {/* User Menu */}
+          <div className="flex items-center space-x-4">
+            {/* User Info */}
+            <div className="hidden md:flex items-center space-x-3">
+              {user?.picture && (
+                <img 
+                  src={user.picture} 
+                  alt="User Avatar" 
+                  className="w-8 h-8 rounded-full border-2 border-slate-200 dark:border-slate-600"
+                />
+              )}
+              <div className="text-right">
+                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  {user?.name?.split(' ')[0] || 'User'}
+                </div>
+                {role && (
+                  <Badge variant="secondary" className="text-xs">
+                    {role.replace('_', ' ')}
+                  </Badge>
+                )}
               </div>
-            )}
+            </div>
+            
+            {/* Logout Button */}
+            <Button 
+              onClick={handleLogout} 
+              variant="outline" 
+              size="sm"
+              className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              <LogOut className="w-4 h-4 md:mr-2" />
+              <span className="hidden md:inline">Logout</span>
+            </Button>
+
+            {/* Mobile Menu Toggle */}
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="md:hidden text-slate-600 dark:text-slate-400"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
           </div>
         </div>
-
-        {/* Mobile Menu Toggle */}
-        <button 
-          className="mobile-menu-toggle"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          ☰
-        </button>
       </div>
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="mobile-menu">
-          {navigationItems.map((item) => (
-            <button
-              key={item.path}
-              className={`mobile-nav-item ${isActive(item.path) ? 'active' : ''}`}
-              onClick={() => {
-                navigate(item.path);
-                setIsMenuOpen(false);
-              }}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              <span className="nav-label">{item.label}</span>
-            </button>
-          ))}
-          <hr className="mobile-divider" />
-          <button onClick={() => navigate('/settings')} className="mobile-nav-item">
-            <span className="nav-icon">⚙️</span>
-            <span className="nav-label">Settings</span>
-          </button>
-          <button onClick={handleLogout} className="mobile-nav-item logout">
-            <span className="nav-icon">🚪</span>
-            <span className="nav-label">Logout</span>
-          </button>
+        <div className="md:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700">
+          <div className="container mx-auto px-4 py-4 space-y-2">
+            {/* User Info Mobile */}
+            <div className="flex items-center space-x-3 pb-4 border-b border-slate-200 dark:border-slate-700">
+              {user?.picture && (
+                <img 
+                  src={user.picture} 
+                  alt="User Avatar" 
+                  className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-600"
+                />
+              )}
+              <div>
+                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  {user?.name || 'User'}
+                </div>
+                {role && (
+                  <Badge variant="secondary" className="text-xs">
+                    {role.replace('_', ' ')}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            
+            {/* Mobile Navigation Items */}
+            {navigationItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Button
+                  key={item.path}
+                  variant={isActive(item.path) ? "default" : "ghost"}
+                  className={`w-full justify-start space-x-3 ${isActive(item.path) ? "bg-gradient-to-r from-blue-600 to-slate-700 text-white" : "text-slate-600 dark:text-slate-400"}`}
+                  onClick={() => {
+                    navigate(item.path);
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </Button>
+              );
+            })}
+          </div>
         </div>
       )}
-
-      <style jsx>{`
-        .navbar {
-          background: #ffffff;
-          border-bottom: 1px solid #e5e5e5;
-          position: sticky;
-          top: 0;
-          z-index: 1000;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .navbar-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 1rem;
-          height: 64px;
-        }
-
-        .navbar-brand {
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          font-weight: bold;
-          font-size: 1.25rem;
-          color: #333;
-          transition: color 0.2s;
-        }
-
-        .navbar-brand:hover {
-          color: #007bff;
-        }
-
-        .brand-icon {
-          margin-right: 0.5rem;
-          font-size: 1.5rem;
-        }
-
-        .desktop-menu {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .nav-item {
-          display: flex;
-          align-items: center;
-          padding: 0.5rem 1rem;
-          background: none;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s;
-          color: #666;
-          text-decoration: none;
-        }
-
-        .nav-item:hover {
-          background-color: #f8f9fa;
-          color: #007bff;
-        }
-
-        .nav-item.active {
-          background-color: #007bff;
-          color: white;
-        }
-
-        .nav-icon {
-          margin-right: 0.5rem;
-          font-size: 1rem;
-        }
-
-        .nav-label {
-          font-size: 0.9rem;
-          font-weight: 500;
-        }
-
-        .navbar-user {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          position: relative;
-        }
-
-        .user-info {
-          display: flex;
-          align-items: center;
-          gap: 0.75rem;
-        }
-
-        .user-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 2px solid #e5e5e5;
-        }
-
-        .user-details {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .user-name {
-          font-size: 0.9rem;
-          font-weight: 600;
-          color: #333;
-        }
-
-        .user-role {
-          font-size: 0.75rem;
-          color: #666;
-          text-transform: capitalize;
-        }
-
-        .user-dropdown {
-          position: relative;
-        }
-
-        .dropdown-toggle {
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 0.5rem;
-          border-radius: 50%;
-          transition: background-color 0.2s;
-        }
-
-        .dropdown-toggle:hover {
-          background-color: #f8f9fa;
-        }
-
-        .dropdown-menu {
-          position: absolute;
-          top: 100%;
-          right: 0;
-          background: white;
-          border: 1px solid #e5e5e5;
-          border-radius: 6px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          min-width: 160px;
-          z-index: 1001;
-        }
-
-        .dropdown-item {
-          display: block;
-          width: 100%;
-          padding: 0.75rem 1rem;
-          background: none;
-          border: none;
-          text-align: left;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          font-size: 0.9rem;
-        }
-
-        .dropdown-item:hover {
-          background-color: #f8f9fa;
-        }
-
-        .dropdown-item.logout {
-          color: #dc3545;
-        }
-
-        .dropdown-item.logout:hover {
-          background-color: #f8f9fa;
-          color: #c82333;
-        }
-
-        .dropdown-divider {
-          border: none;
-          border-top: 1px solid #e5e5e5;
-          margin: 0;
-        }
-
-        .mobile-menu-toggle {
-          display: none;
-          background: none;
-          border: none;
-          font-size: 1.5rem;
-          cursor: pointer;
-          padding: 0.5rem;
-        }
-
-        .mobile-menu {
-          display: none;
-          background: white;
-          border-top: 1px solid #e5e5e5;
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .mobile-nav-item {
-          display: flex;
-          align-items: center;
-          width: 100%;
-          padding: 1rem;
-          background: none;
-          border: none;
-          text-align: left;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          border-bottom: 1px solid #f5f5f5;
-        }
-
-        .mobile-nav-item:hover {
-          background-color: #f8f9fa;
-        }
-
-        .mobile-nav-item.active {
-          background-color: #e3f2fd;
-          color: #007bff;
-        }
-
-        .mobile-nav-item.logout {
-          color: #dc3545;
-        }
-
-        .mobile-divider {
-          border: none;
-          border-top: 1px solid #e5e5e5;
-          margin: 0;
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-          .desktop-menu {
-            display: none;
-          }
-
-          .user-details {
-            display: none;
-          }
-
-          .mobile-menu-toggle {
-            display: block;
-          }
-
-          .mobile-menu {
-            display: block;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .navbar-container {
-            padding: 0 0.75rem;
-          }
-
-          .brand-text {
-            display: none;
-          }
-        }
-      `}</style>
     </nav>
   );
 };

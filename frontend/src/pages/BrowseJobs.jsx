@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Search, 
+  MapPin, 
+  Building2, 
+  DollarSign, 
+  Clock, 
+  Heart, 
+  Briefcase,
+  Filter,
+  Users
+} from 'lucide-react';
 import JobApplicationModal from '../components/JobApplicationModal';
+import Spinner from '../components/Spinner';
 
 const BrowseJobs = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -67,116 +83,153 @@ const BrowseJobs = () => {
   });
 
   if (loading) {
-    return (
-      <div className="page-container">
-        <div className="text-center">
-          <div className="loading-spinner"></div>
-          <p>Loading job opportunities...</p>
-        </div>
-      </div>
-    );
+    return <Spinner />;
   }
 
   return (
-    <div className="page-container">
-      <div className="container">
-        <h1>Browse Jobs</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+      <div className="container mx-auto px-4 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center space-x-3">
+            <Briefcase className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            <span>Browse Jobs</span>
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-400">
+            Discover your next career opportunity
+          </p>
+        </div>
         
         {/* Search and Filter Section */}
-        <div className="card">
-          <div className="search-filters">
-            <div className="form-group">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search jobs by title, company, or keywords..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
-                <input
+        <Card className="mb-6 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
                   type="text"
-                  className="form-control"
-                  placeholder="Location"
-                  value={filterLocation}
-                  onChange={(e) => setFilterLocation(e.target.value)}
+                  className="pl-10 bg-white dark:bg-slate-800"
+                  placeholder="Search jobs by title, company, or keywords..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               
-              <div className="form-group" style={{ flex: 1, minWidth: '200px' }}>
-                <select
-                  className="form-control"
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                >
-                  <option value="">All Job Types</option>
-                  <option value="FULL_TIME">Full Time</option>
-                  <option value="PART_TIME">Part Time</option>
-                  <option value="CONTRACT">Contract</option>
-                  <option value="INTERNSHIP">Internship</option>
-                </select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Input
+                    type="text"
+                    className="pl-10 bg-white dark:bg-slate-800"
+                    placeholder="Location"
+                    value={filterLocation}
+                    onChange={(e) => setFilterLocation(e.target.value)}
+                  />
+                </div>
+                
+                <div className="relative">
+                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <select
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                  >
+                    <option value="">All Job Types</option>
+                    <option value="FULL_TIME">Full Time</option>
+                    <option value="PART_TIME">Part Time</option>
+                    <option value="CONTRACT">Contract</option>
+                    <option value="INTERNSHIP">Internship</option>
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Results Summary */}
-        <div style={{ margin: '1rem 0' }}>
-          <p>{filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''} found</p>
+        <div className="mb-6">
+          <p className="text-slate-600 dark:text-slate-400">
+            {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''} found
+          </p>
         </div>
 
         {/* Jobs List */}
-        <div className="jobs-list">
+        <div className="space-y-6">
           {filteredJobs.length === 0 ? (
-            <div className="card text-center">
-              <h3>No jobs found</h3>
-              <p>Try adjusting your search criteria or check back later for new opportunities.</p>
-            </div>
+            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
+              <CardContent className="p-12 text-center">
+                <Briefcase className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                  No jobs found
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400">
+                  Try adjusting your search criteria or check back later for new opportunities.
+                </p>
+              </CardContent>
+            </Card>
           ) : (
             filteredJobs.map((job) => (
-              <div key={job.id} className="card job-card">
-                <div className="job-header">
-                  <h3 className="job-title">{job.title}</h3>
-                  <div className="job-meta">
-                    <span className="company-name">🏢 {job.company?.name || 'Company'}</span>
-                    <span className="job-location">📍 {job.location || 'Location not specified'}</span>
-                    <span className="job-type">💼 {job.jobType || 'Not specified'}</span>
+              <Card key={job.id} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                        {job.title}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400 mb-3">
+                        <div className="flex items-center space-x-1">
+                          <Building2 className="w-4 h-4" />
+                          <span>{job.company?.name || 'Company'}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="w-4 h-4" />
+                          <span>{job.location || 'Location not specified'}</span>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {job.jobType || 'Not specified'}
+                        </Badge>
+                        {job.salaryRange && (
+                          <div className="flex items-center space-x-1 text-green-600 dark:text-green-400 font-semibold">
+                            <DollarSign className="w-4 h-4" />
+                            <span>{job.salaryRange}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="job-description">
-                  <p>{job.description?.substring(0, 200)}...</p>
-                </div>
+                  
+                  <div className="mb-4">
+                    <p className="text-slate-700 dark:text-slate-300 line-clamp-3">
+                      {job.description?.substring(0, 200)}...
+                    </p>
+                  </div>
 
-                <div className="job-requirements">
                   {job.requirements && job.requirements.length > 0 && (
-                    <div>
-                      <strong>Requirements:</strong>
-                      <p>{Array.isArray(job.requirements) ? job.requirements.join(', ').substring(0, 150) : job.requirements.substring(0, 150)}...</p>
+                    <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-md">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Requirements:</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        {Array.isArray(job.requirements) ? job.requirements.join(', ').substring(0, 150) : job.requirements.substring(0, 150)}...
+                      </p>
                     </div>
                   )}
-                </div>
 
-                <div className="job-footer">
-                  <div className="job-salary">
-                    {job.salaryRange && <span className="salary">💰 {job.salaryRange}</span>}
+                  <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={() => handleApplyClick(job)}
+                        className="bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white"
+                      >
+                        Apply Now
+                      </Button>
+                      <Button variant="outline" className="flex items-center space-x-1">
+                        <Heart className="w-4 h-4" />
+                        <span>Save</span>
+                      </Button>
+                    </div>
                   </div>
-                  <div className="job-actions">
-                    <button 
-                      className="btn btn-primary"
-                      onClick={() => handleApplyClick(job)}
-                    >
-                      Apply Now
-                    </button>
-                    <button className="btn btn-secondary">
-                      ❤️ Save
-                    </button>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))
           )}
         </div>
@@ -191,107 +244,6 @@ const BrowseJobs = () => {
           onApplicationSubmitted={handleApplicationSubmitted}
         />
       )}
-
-      <style jsx>{`
-        .search-filters {
-          margin-bottom: 0;
-        }
-
-        .job-card {
-          transition: transform 0.2s, box-shadow 0.2s;
-          border-left: 4px solid #007bff;
-        }
-
-        .job-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .job-header {
-          margin-bottom: 1rem;
-        }
-
-        .job-title {
-          margin: 0 0 0.5rem 0;
-          color: #333;
-          font-size: 1.25rem;
-        }
-
-        .job-meta {
-          display: flex;
-          gap: 1rem;
-          flex-wrap: wrap;
-          font-size: 0.9rem;
-          color: #666;
-        }
-
-        .job-description {
-          margin-bottom: 1rem;
-          color: #555;
-          line-height: 1.5;
-        }
-
-        .job-requirements {
-          margin-bottom: 1rem;
-          font-size: 0.9rem;
-          color: #666;
-        }
-
-        .job-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 1rem;
-          padding-top: 1rem;
-          border-top: 1px solid #e5e5e5;
-        }
-
-        .job-actions {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .salary {
-          font-weight: 600;
-          color: #28a745;
-        }
-
-        .loading-spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid #f3f3f3;
-          border-top: 4px solid #007bff;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .text-center {
-          text-align: center;
-        }
-
-        @media (max-width: 768px) {
-          .job-meta {
-            flex-direction: column;
-            gap: 0.25rem;
-          }
-
-          .job-footer {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-          }
-
-          .job-actions {
-            justify-content: center;
-          }
-        }
-      `}</style>
     </div>
   );
 };
