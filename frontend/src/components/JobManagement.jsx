@@ -211,10 +211,10 @@ const JobManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="text-gray-600">Loading job postings...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-slate-700 dark:text-slate-200" />
+          <p className="text-gray-600 dark:text-slate-300">Loading job postings...</p>
         </div>
       </div>
     );
@@ -222,13 +222,13 @@ const JobManagement = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 flex items-center justify-center p-6">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md bg-white/85 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
           <CardHeader>
-            <CardTitle className="text-red-600">Error Loading Jobs</CardTitle>
+            <CardTitle className="text-red-600 dark:text-red-400">Error Loading Jobs</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-600">{error}</p>
+            <p className="text-gray-600 dark:text-slate-300">{error}</p>
             <Button onClick={fetchJobs} className="w-full">
               Try Again
             </Button>
@@ -239,35 +239,35 @@ const JobManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 p-6">
       <div className="container mx-auto max-w-7xl space-y-8">
         {/* Enhanced Header Section */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-2xl"></div>
-          <Card className="relative border-0 bg-white/80 backdrop-blur-sm shadow-xl">
+          <Card className="relative border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-xl">
             <CardContent className="p-8">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="space-y-2">
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
                     Job Management
                   </h1>
-                  <p className="text-slate-600 text-lg">
+                  <p className="text-slate-600 dark:text-slate-300 text-lg">
                     Create, manage, and track your job postings to find the perfect candidates
                   </p>
                   <div className="flex items-center gap-6 pt-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-blue-600">{jobs.length}</span>
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-300">{jobs.length}</span>
                       </div>
-                      <span className="text-sm text-slate-600">Active Jobs</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-300">Active Jobs</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-green-600">
+                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-green-600 dark:text-green-300">
                           {jobs.reduce((acc, job) => acc + (job._count?.Applications || 0), 0)}
                         </span>
                       </div>
-                      <span className="text-sm text-slate-600">Total Applications</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-300">Total Applications</span>
                     </div>
                   </div>
                 </div>
@@ -279,7 +279,7 @@ const JobManagement = () => {
                         Create New Job
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50/30">
+                    <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50/30 dark:from-slate-900 dark:to-slate-800/40">
               <DialogHeader className="text-center space-y-3 pb-6">
                 <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                   {editingJob ? (
@@ -291,7 +291,7 @@ const JobManagement = () => {
                 <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                   {editingJob ? "Edit Job Posting" : "Create New Job Posting"}
                 </DialogTitle>
-                <DialogDescription className="text-slate-600 text-base">
+                <DialogDescription className="text-slate-600 dark:text-slate-300 text-base">
                   {editingJob ? "Update your job posting details to attract the right candidates" : "Fill in the details below to create an attractive job posting"}
                 </DialogDescription>
               </DialogHeader>
@@ -305,7 +305,7 @@ const JobManagement = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <Label htmlFor="title" className="text-slate-700 font-medium flex items-center gap-2">
+                      <Label htmlFor="title" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
                         Job Title *
                         <span className="text-xs text-slate-500">(Be specific and descriptive)</span>
                       </Label>
@@ -315,18 +315,18 @@ const JobManagement = () => {
                         value={formData.title}
                         onChange={handleInputChange}
                         placeholder="e.g. Senior React Developer"
-                        className="h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 bg-white/80"
+                        className="h-12 border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500 bg-white/80 dark:bg-slate-900/50"
                         required
                       />
                     </div>
 
                     <div className="space-y-3">
-                      <Label htmlFor="jobType" className="text-slate-700 font-medium">Job Type *</Label>
+                      <Label htmlFor="jobType" className="text-slate-700 dark:text-slate-200 font-medium">Job Type *</Label>
                       <Select
                         value={formData.jobType}
                         onValueChange={(value) => setFormData(prev => ({ ...prev, jobType: value }))}
                       >
-                        <SelectTrigger className="h-12 border-slate-300 focus:border-blue-500 bg-white/80">
+                        <SelectTrigger className="h-12 border-slate-300 dark:border-slate-700 focus:border-blue-500 bg-white/80 dark:bg-slate-900/50">
                           <SelectValue placeholder="Select employment type" />
                         </SelectTrigger>
                         <SelectContent>
@@ -368,7 +368,7 @@ const JobManagement = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <Label htmlFor="location" className="text-slate-700 font-medium flex items-center gap-2">
+                      <Label htmlFor="location" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
                         Work Location
                       </Label>
@@ -378,12 +378,12 @@ const JobManagement = () => {
                         value={formData.location}
                         onChange={handleInputChange}
                         placeholder="e.g. Ahmedabad, Gujarat or Remote"
-                        className="h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 bg-white/80"
+                        className="h-12 border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500 bg-white/80 dark:bg-slate-900/50"
                       />
                     </div>
 
                     <div className="space-y-3">
-                      <Label htmlFor="salaryRange" className="text-slate-700 font-medium flex items-center gap-2">
+                      <Label htmlFor="salaryRange" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
                         <DollarSign className="h-4 w-4" />
                         Salary Range
                       </Label>
@@ -406,7 +406,7 @@ const JobManagement = () => {
                     <h3 className="text-lg font-semibold text-slate-800">Job Description</h3>
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="description" className="text-slate-700 font-medium">
+                    <Label htmlFor="description" className="text-slate-700 dark:text-slate-200 font-medium">
                       Detailed Description *
                       <span className="text-xs text-slate-500 font-normal ml-2">
                         (Include role responsibilities, team culture, growth opportunities)
@@ -419,10 +419,10 @@ const JobManagement = () => {
                       onChange={handleInputChange}
                       placeholder="We are looking for a passionate developer to join our growing team...\n\nKey Responsibilities:\n• Develop and maintain web applications\n• Collaborate with cross-functional teams\n• Write clean, maintainable code\n\nWhat we offer:\n• Competitive salary and benefits\n• Flexible working hours\n• Professional development opportunities"
                       rows={8}
-                      className="border-slate-300 focus:border-blue-500 focus:ring-blue-500 bg-white/80 resize-none"
+                      className="border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500 bg-white/80 dark:bg-slate-900/50 resize-none"
                       required
                     />
-                    <div className="text-xs text-slate-500 flex justify-between">
+                    <div className="text-xs text-slate-500 dark:text-slate-400 flex justify-between">
                       <span>{formData.description.length} characters</span>
                       <span>Minimum 50 characters recommended</span>
                     </div>
@@ -436,7 +436,7 @@ const JobManagement = () => {
                     <h3 className="text-lg font-semibold text-slate-800">Requirements & Skills</h3>
                   </div>
                   <div className="space-y-4">
-                    <Label className="text-slate-700 font-medium">
+                    <Label className="text-slate-700 dark:text-slate-200 font-medium">
                       Add Requirements
                       <span className="text-xs text-slate-500 font-normal ml-2">
                         (Skills, experience, education, etc.)
@@ -448,7 +448,7 @@ const JobManagement = () => {
                           value={newRequirement}
                           onChange={(e) => setNewRequirement(e.target.value)}
                           placeholder="e.g. 3+ years React experience, Bachelor's degree, etc."
-                          className="h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 bg-white/80 pr-20"
+                          className="h-12 border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500 bg-white/80 dark:bg-slate-900/50 pr-20"
                           onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addRequirement())}
                         />
                         <Button 
@@ -463,19 +463,19 @@ const JobManagement = () => {
                     </div>
                     {formData.requirements.length > 0 && (
                       <div className="space-y-2">
-                        <Label className="text-sm text-slate-600">Added Requirements:</Label>
-                        <div className="flex flex-wrap gap-2 p-4 bg-slate-50 rounded-lg border">
+                        <Label className="text-sm text-slate-600 dark:text-slate-300">Added Requirements:</Label>
+                        <div className="flex flex-wrap gap-2 p-4 bg-slate-50 dark:bg-slate-900/40 rounded-lg border border-slate-200 dark:border-slate-700">
                           {formData.requirements.map((req, index) => (
                             <Badge 
                               key={index} 
                               variant="secondary" 
-                              className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
+                              className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
                             >
                               <span>{req}</span>
                               <button
                                 type="button"
                                 onClick={() => removeRequirement(index)}
-                                className="text-red-500 hover:text-red-700 transition-colors"
+                                className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                               >
                                 ×
                               </button>
@@ -494,7 +494,7 @@ const JobManagement = () => {
                     <h3 className="text-lg font-semibold text-slate-800">Additional Details</h3>
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="expiresAt" className="text-slate-700 font-medium flex items-center gap-2">
+                    <Label htmlFor="expiresAt" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
                       Application Deadline
                       <span className="text-xs text-slate-500 font-normal">(Optional)</span>
@@ -505,10 +505,10 @@ const JobManagement = () => {
                       name="expiresAt"
                       value={formData.expiresAt}
                       onChange={handleInputChange}
-                      className="h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 bg-white/80 max-w-xs"
+                      className="h-12 border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500 bg-white/80 dark:bg-slate-900/50 max-w-xs"
                       min={new Date().toISOString().split('T')[0]}
                     />
-                    <div className="text-xs text-slate-500 mt-1">
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       Leave empty for no deadline
                     </div>
                   </div>
@@ -518,7 +518,7 @@ const JobManagement = () => {
 
                 {/* Action Buttons */}
                 <div className="flex justify-between items-center pt-4">
-                  <div className="text-sm text-slate-600">
+                  <div className="text-sm text-slate-600 dark:text-slate-400">
                     <span className="text-red-500">*</span> Required fields
                   </div>
                   <div className="flex gap-3">
@@ -526,7 +526,7 @@ const JobManagement = () => {
                       type="button" 
                       variant="outline" 
                       onClick={resetForm}
-                      className="px-6 py-2 h-11 border-slate-300 hover:bg-slate-50"
+                      className="px-6 py-2 h-11 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60"
                     >
                       Cancel
                     </Button>
@@ -559,14 +559,14 @@ const JobManagement = () => {
 
         <div className="grid grid-cols-1 gap-6">
           {jobs.length === 0 ? (
-            <Card className="shadow-lg border-0 bg-white/70 backdrop-blur-sm">
+            <Card className="shadow-lg border-0 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm">
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <div className="text-center space-y-4">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                    <Plus className="h-8 w-8 text-blue-600" />
+                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto">
+                    <Plus className="h-8 w-8 text-blue-600 dark:text-blue-300" />
                   </div>
-                  <h3 className="text-xl font-semibold text-slate-800">No job postings yet</h3>
-                  <p className="text-slate-600 max-w-md">
+                  <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">No job postings yet</h3>
+                  <p className="text-slate-600 dark:text-slate-300 max-w-md">
                     Create your first job posting to start attracting candidates.
                   </p>
                   <Button 
@@ -582,15 +582,15 @@ const JobManagement = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {jobs.map((job) => (
-                <Card key={job.id} className="shadow-lg border-0 bg-white/70 backdrop-blur-sm hover:shadow-xl transition-shadow overflow-hidden">
+                <Card key={job.id} className="shadow-lg border-0 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm hover:shadow-xl transition-shadow overflow-hidden">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1 flex-1">
-                        <CardTitle className="line-clamp-2 text-slate-800">{job.title}</CardTitle>
+                        <CardTitle className="line-clamp-2 text-slate-800 dark:text-slate-100">{job.title}</CardTitle>
                         <div className="flex items-center gap-2">
                           <Badge
                             variant="secondary"
-                            className="capitalize bg-blue-100 text-blue-800 border-blue-200"
+                            className="capitalize bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800"
                           >
                             {job.jobType.replace('_', ' ')}
                           </Badge>
@@ -606,7 +606,7 @@ const JobManagement = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => handleEdit(job)}
-                          className="border-green-200 text-green-700 hover:bg-green-50"
+                          className="border-green-200 dark:border-green-900/40 text-green-700 dark:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20"
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
@@ -614,7 +614,7 @@ const JobManagement = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDelete(job.id)}
-                          className="border-red-200 text-red-600 hover:bg-red-50"
+                          className="border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -625,36 +625,36 @@ const JobManagement = () => {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       {job.location && (
-                        <div className="flex items-center gap-1 text-slate-600">
+                        <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
                           <MapPin className="h-3 w-3" />
                           <span>{job.location}</span>
                         </div>
                       )}
                       {job.salaryRange && (
-                        <div className="flex items-center gap-1 text-slate-600">
+                        <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
                           <DollarSign className="h-3 w-3" />
                           <span>{job.salaryRange}</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-1 text-slate-600">
+                      <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
                         <Users className="h-3 w-3" />
                         <span>Applications: {job._count?.Applications || 0}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-slate-600">
+                      <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
                         <Calendar className="h-3 w-3" />
                         <span>Expires: {formatDate(job.expiresAt)}</span>
                       </div>
                     </div>
 
-                    <p className="text-slate-600 line-clamp-3">
+                    <p className="text-slate-600 dark:text-slate-300 line-clamp-3">
                       {job.description.length > 150
                         ? `${job.description.substring(0, 150)}...`
                         : job.description}
                     </p>
 
-                    <Separator className="bg-slate-200" />
+                    <Separator className="bg-slate-200 dark:bg-slate-700" />
 
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
                       Created: {formatDate(job.createdAt)}
                     </div>
                   </CardContent>
