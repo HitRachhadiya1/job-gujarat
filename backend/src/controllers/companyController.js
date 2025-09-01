@@ -117,32 +117,56 @@ async function createCompany(req, res) {
 // Get company details for current employer
 async function getMyCompany(req, res) {
   try {
+    console.log("getMyCompany called for user:", req.user?.sub);
     const user = req.user;
-    if (!user || !user.role || user.role !== "COMPANY")
+    
+    if (!user || !user.role || user.role !== "COMPANY") {
+      console.log("Access denied - user role:", user?.role);
       return res
         .status(403)
         .json({ error: `Forbidden User Role is : ${user?.role || 'undefined'}` });
+    }
+
+    // Check database connection first
+    const dbConnected = await ensureDatabaseConnection();
+    if (!dbConnected) {
+      return res.status(503).json({ 
+        error: "Database unavailable", 
+        message: "Unable to connect to database. Please try again later."
+      });
+    }
 
     // Use cached database ID if available, otherwise look it up
     let userId = user.id;
     if (!userId) {
+      console.log("Looking up user by email:", user.email);
       const dbUser = await prisma.user.findFirst({
         where: { email: user.email }
       });
       
       if (!dbUser) {
+        console.log("User record not found for email:", user.email);
         return res.status(404).json({ error: "User record not found" });
       }
       userId = dbUser.id;
+      console.log("Found user ID:", userId);
     }
 
+    console.log("Fetching company for userId:", userId);
     const company = await prisma.company.findUnique({
       where: { userId: userId },
     });
-    if (!company) return res.status(404).json({ error: "Company not found" });
+    
+    if (!company) {
+      console.log("Company not found for userId:", userId);
+      return res.status(404).json({ error: "Company not found" });
+    }
+    
+    console.log("Company found:", company.name);
     res.json(company);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch company" });
+    console.error("Error in getMyCompany:", err);
+    res.status(500).json({ error: "Failed to fetch company", details: err.message });
   }
 }
 
