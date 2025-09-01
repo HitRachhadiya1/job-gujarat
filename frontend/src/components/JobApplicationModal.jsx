@@ -74,7 +74,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
 
         <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 p-6">
           <div className="flex items-center space-x-2 mb-2">
-            <Building2 className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {job.company?.name}
             </h3>
@@ -110,7 +110,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
               </label>
               <textarea
                 id="coverLetter"
-                className="w-full min-h-[120px] p-3 border border-slate-300 dark:border-slate-600 rounded-md resize-vertical text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-500 transition-all duration-200"
+                className="w-full min-h-[120px] p-3 border border-slate-300 dark:border-slate-600 rounded-md resize-vertical text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Write a brief cover letter explaining why you're interested in this position and what makes you a good fit..."
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
@@ -139,7 +139,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white transition-colors duration-200"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Application'}
               </Button>

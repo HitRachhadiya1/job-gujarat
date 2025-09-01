@@ -238,48 +238,29 @@ async function getJobList(req, res) {
 // Get job postings for the current company
 async function getMyJobPostings(req, res) {
   try {
-    console.log("getMyJobPostings called for user:", req.user?.sub);
     const user = req.user;
 
     if (!user || user.role !== "COMPANY") {
-      console.log("Access denied - user role:", user?.role);
       return res.status(403).json({ error: "Only companies can view their job postings" });
     }
 
-    // Test database connection
-    try {
-      await prisma.$connect();
-      console.log('Database connected successfully for getMyJobPostings');
-    } catch (dbError) {
-      console.error('Database connection failed:', dbError.message);
-      return res.status(503).json({ 
-        error: "Database unavailable", 
-        message: "Unable to connect to database. Please try again later."
-      });
-    }
-
     // Get the company for this user
-    console.log("Looking up user by email:", user.email);
     let dbUser = await prisma.user.findFirst({
       where: { email: user.email || "temp@example.com" }
     });
 
     if (!dbUser) {
-      console.log("User not found for email:", user.email);
       return res.status(404).json({ error: "User not found" });
     }
 
-    console.log("Found user ID:", dbUser.id);
     const company = await prisma.company.findUnique({
       where: { userId: dbUser.id }
     });
 
     if (!company) {
-      console.log("Company profile not found for userId:", dbUser.id);
       return res.status(404).json({ error: "Company profile not found" });
     }
 
-    console.log("Found company:", company.name, "ID:", company.id);
     const jobs = await prisma.jobPosting.findMany({
       where: {
         companyId: company.id
@@ -302,11 +283,10 @@ async function getMyJobPostings(req, res) {
       }
     });
 
-    console.log(`Found ${jobs.length} job postings for company ${company.name}`);
     res.json(jobs);
   } catch (error) {
     console.error("Error fetching company job postings:", error);
-    res.status(500).json({ error: "Failed to fetch job postings", details: error.message });
+    res.status(500).json({ error: "Failed to fetch job postings" });
   }
 }
 
