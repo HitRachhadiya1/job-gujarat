@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const authRoutes = require("./routes/authRoutes");
 const { getManagementToken } = require("./services/auth0Service");
 const jobPostingRoutes = require("./routes/jobPostingRoutes");
@@ -11,6 +12,9 @@ const jobSeekerRoutes = require("./routes/jobSeekerRoutes");
 const app = express();
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/job-postings", jobPostingRoutes);

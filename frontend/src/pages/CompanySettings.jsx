@@ -33,6 +33,13 @@ const CompanySettings = () => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
+  // Resolve logo source to include backend host for relative '/uploads/..' paths
+  const resolveLogoSrc = (value) => {
+    if (!value) return "";
+    if (value.startsWith("http") || value.startsWith("blob:")) return value;
+    return `http://localhost:5000${value}`;
+  };
+
   useEffect(() => {
     fetchCompanyData();
   }, []);
@@ -157,9 +164,10 @@ const CompanySettings = () => {
               {company.logoUrl && (
                 <div className="flex-shrink-0">
                   <img
-                    src={company.logoUrl}
+                    src={resolveLogoSrc(company.logoUrl)}
                     alt={`${company.name} logo`}
-                    className="w-20 h-20 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-600 shadow-md"
+                    className="rounded-xl object-contain border-2 border-slate-200 dark:border-slate-600 shadow-md bg-white"
+                    style={{ maxWidth: '80px', maxHeight: '80px' }}
                   />
                 </div>
               )}

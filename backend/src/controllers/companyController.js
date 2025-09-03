@@ -3,6 +3,21 @@ const prisma = new PrismaClient({
   errorFormat: 'pretty',
 });
 
+// Remove accidental multipart header text that may have been stored previously
+function cleanField(value) {
+  if (typeof value !== 'string') return value;
+  return value.replace(/^Content-Disposition:[\s\S]*?\r?\n\r?\n/i, '').trim();
+}
+
+function sanitizeCompanyPayload(body) {
+  return {
+    name: cleanField(body.name),
+    industry: cleanField(body.industry),
+    description: cleanField(body.description),
+    website: cleanField(body.website),
+  };
+}
+
 // Database connection helper with Supabase-specific error handling
 async function ensureDatabaseConnection() {
   try {
@@ -48,6 +63,12 @@ async function createCompany(req, res) {
         error: "Database unavailable", 
         message: "Unable to connect to database. Please try again later."
       });
+    }
+
+    // Handle logo file if uploaded (multer: req.file)
+    let logoUrl = null;
+    if (req.file && req.file.filename) {
+      logoUrl = `/uploads/${req.file.filename}`;
     }
     
     console.log("Database connected, checking for existing company...");
@@ -95,14 +116,20 @@ async function createCompany(req, res) {
 
     console.log("No existing company found, creating new company...");
 
+    // Require logo on create
+    if (!logoUrl) {
+      return res.status(400).json({ error: "Company logo is required" });
+    }
+
+    const sanitizedCreate = sanitizeCompanyPayload(req.body);
     const company = await prisma.company.create({
       data: {
         userId: dbUser.id, // Use the database User ID
-        name: req.body.name,
-        industry: req.body.industry,
-        logoUrl: req.body.logoUrl,
-        website: req.body.website,
-        description: req.body.description,
+        name: sanitizedCreate.name,
+        industry: sanitizedCreate.industry,
+        logoUrl: logoUrl,
+        website: sanitizedCreate.website,
+        description: sanitizedCreate.description,
         // ...add other fields as needed
       },
     });
@@ -136,10 +163,18 @@ async function getMyCompany(req, res) {
       userId = dbUser.id;
     }
 
-    const company = await prisma.company.findUnique({
+    let company = await prisma.company.findUnique({
       where: { userId: userId },
     });
     if (!company) return res.status(404).json({ error: "Company not found" });
+    // sanitize on output so old corrupted records render cleanly
+    company = {
+      ...company,
+      name: cleanField(company.name),
+      industry: cleanField(company.industry),
+      description: cleanField(company.description),
+      website: cleanField(company.website),
+    };
     res.json(company);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch company" });
@@ -173,9 +208,24 @@ async function updateCompany(req, res) {
     });
     if (!company) return res.status(404).json({ error: "Company not found" });
 
+    // Handle logo file if uploaded (multer: req.file)
+    let logoUrl = company.logoUrl; // Keep existing logo by default
+    if (req.file && req.file.filename) {
+      logoUrl = `/uploads/${req.file.filename}`;
+    }
+
+    const sanitized = sanitizeCompanyPayload(req.body);
+    const updateData = {
+      name: sanitized.name,
+      industry: sanitized.industry,
+      description: sanitized.description,
+      website: sanitized.website,
+      logoUrl: logoUrl,
+    };
+
     const updated = await prisma.company.update({
       where: { userId: userId },
-      data: req.body,
+      data: updateData,
     });
     res.json(updated);
   } catch (err) {

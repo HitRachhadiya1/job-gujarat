@@ -84,9 +84,10 @@ const CompanyDashboard = () => {
                 {company.logoUrl && (
                   <div className="flex-shrink-0">
                     <img
-                      src={company.logoUrl}
+                      src={`http://localhost:5000${company.logoUrl}`}
                       alt={`${company.name} logo`}
-                      className="w-20 h-20 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-600 shadow-md"
+                      className="rounded-xl object-contain border-2 border-slate-200 dark:border-slate-600 shadow-md bg-white"
+                      style={{ maxWidth: '80px', maxHeight: '80px' }}
                     />
                   </div>
                 )}
