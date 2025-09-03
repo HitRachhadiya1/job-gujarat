@@ -126,7 +126,8 @@ const getMyApplications = async (req, res) => {
       include: { JobSeeker: true },
     });
 
-    if (!user || user.role !== "JOB_SEEKER" || !user.JobSeeker) {
+    // Require that a job seeker profile exists; role is enforced by middleware
+    if (!user || !user.JobSeeker) {
       return res.status(403).json({ error: "Job seeker profile not found" });
     }
 
@@ -146,21 +147,24 @@ const getMyApplications = async (req, res) => {
         where,
         include: {
           job: {
-            include: {
+            select: {
+              title: true,
+              location: true,
+              jobType: true,
               company: {
                 select: {
                   name: true,
-                  logoUrl: true
-                }
-              }
-            }
-          }
+                  logoUrl: true,
+                },
+              },
+            },
+          },
         },
         orderBy: { appliedAt: "desc" },
         skip,
-        take: parseInt(limit)
+        take: parseInt(limit),
       }),
-      prisma.jobApplication.count({ where })
+      prisma.jobApplication.count({ where }),
     ]);
 
     res.json({
@@ -450,13 +454,13 @@ const withdrawApplication = async (req, res) => {
       return res.status(400).json({ error: "User email not found in token" });
     }
 
-    // Check if user is job seeker
+    // Check if user has a job seeker profile; role is enforced by middleware
     const user = await prisma.user.findFirst({
       where: { email: auth0User.email },
       include: { JobSeeker: true },
     });
 
-    if (!user || user.role !== "JOB_SEEKER" || !user.JobSeeker) {
+    if (!user || !user.JobSeeker) {
       return res.status(403).json({ error: "Job seeker profile not found" });
     }
 
