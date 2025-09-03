@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useAuth0 } from "@auth0/auth0-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,106 +10,53 @@ import {
   MapPin, 
   DollarSign, 
   Clock,
-  Search,
   Filter,
   Bookmark,
   BookmarkCheck,
   Building2,
   Users,
+  Search,
   TrendingUp,
   Star,
   ExternalLink,
   ChevronRight
 } from "lucide-react"
+import Spinner from "./Spinner"
 
 export default function JobSeekerDashboard() {
+  const { getAccessTokenSilently } = useAuth0()
   const [searchTerm, setSearchTerm] = useState("")
   const [locationFilter, setLocationFilter] = useState("")
   const [jobTypeFilter, setJobTypeFilter] = useState("")
   const [savedJobs, setSavedJobs] = useState(new Set([2, 5]))
+  const [jobs, setJobs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [visibleCount, setVisibleCount] = useState(1)
 
-  const jobs = [
-    {
-      id: 1,
-      title: "Senior Frontend Developer",
-      company: "TechCorp Inc.",
-      location: "San Francisco, CA",
-      salary: "₹12,00,000 - ₹18,00,000",
-      type: "Full-time",
-      posted: "2 days ago",
-      match: 95,
-      description: "Join our innovative team to build cutting-edge web applications using React, TypeScript, and modern development practices.",
-      skills: ["React", "TypeScript", "Node.js", "AWS"],
-      companySize: "500-1000",
-      experience: "5-7 years",
-      applicants: 23,
-      featured: true
-    },
-    {
-      id: 2,
-      title: "UX/UI Designer",
-      company: "Design Studio",
-      location: "Remote",
-      salary: "₹8,00,000 - ₹12,00,000",
-      type: "Full-time", 
-      posted: "1 day ago",
-      match: 88,
-      description: "Create beautiful and intuitive user experiences for our digital products. Work with cross-functional teams to deliver exceptional designs.",
-      skills: ["Figma", "Adobe XD", "Prototyping", "User Research"],
-      companySize: "50-200",
-      experience: "3-5 years",
-      applicants: 45,
-      featured: false
-    },
-    {
-      id: 3,
-      title: "Full Stack Developer",
-      company: "StartupXYZ",
-      location: "Ahmedabad, Gujarat",
-      salary: "₹10,00,000 - ₹15,00,000",
-      type: "Full-time",
-      posted: "3 days ago",
-      match: 92,
-      description: "Build scalable web applications from frontend to backend. Work with modern technologies in a fast-paced startup environment.",
-      skills: ["React", "Node.js", "MongoDB", "Docker"],
-      companySize: "10-50",
-      experience: "4-6 years",
-      applicants: 12,
-      featured: false
-    },
-    {
-      id: 4,
-      title: "Product Manager",
-      company: "InnovateCorp",
-      location: "Mumbai, Maharashtra",
-      salary: "₹15,00,000 - ₹25,00,000",
-      type: "Full-time",
-      posted: "1 week ago",
-      match: 85,
-      description: "Lead product strategy and development for our flagship products. Work closely with engineering and design teams.",
-      skills: ["Product Strategy", "Analytics", "Agile", "Leadership"],
-      companySize: "200-500",
-      experience: "6-8 years",
-      applicants: 67,
-      featured: true
-    },
-    {
-      id: 5,
-      title: "DevOps Engineer",
-      company: "CloudTech Solutions",
-      location: "Bangalore, Karnataka",
-      salary: "₹14,00,000 - ₹20,00,000",
-      type: "Full-time",
-      posted: "4 days ago",
-      match: 90,
-      description: "Manage cloud infrastructure and deployment pipelines. Ensure high availability and scalability of our systems.",
-      skills: ["AWS", "Kubernetes", "Docker", "Terraform"],
-      companySize: "100-500",
-      experience: "4-7 years",
-      applicants: 34,
-      featured: false
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const token = await getAccessTokenSilently()
+        const response = await fetch('http://localhost:5000/api/job-postings', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+        if (response.ok) {
+          const jobsData = await response.json()
+          setJobs(jobsData)
+        } else {
+          console.error('Failed to fetch jobs:', response.status, response.statusText)
+        }
+      } catch (err) {
+        console.error('Error fetching jobs:', err)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    fetchJobs()
+  }, [getAccessTokenSilently])
 
   const toggleSaveJob = (jobId) => {
     setSavedJobs(prev => {
@@ -123,18 +71,24 @@ export default function JobSeekerDashboard() {
   }
 
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.company.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesLocation = !locationFilter || locationFilter === "all" || job.location.toLowerCase().includes(locationFilter.toLowerCase())
-    const matchesType = !jobTypeFilter || jobTypeFilter === "all" || job.type === jobTypeFilter
+    const matchesSearch = job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         job.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesLocation = !locationFilter || locationFilter === "all" || (job.location && job.location.toLowerCase().includes(locationFilter.toLowerCase()))
+    const matchesType = !jobTypeFilter || jobTypeFilter === "all" || job.jobType === jobTypeFilter
     return matchesSearch && matchesLocation && matchesType
   })
+
+  const displayedJobs = filteredJobs.slice(0, visibleCount)
 
   const stats = {
     totalJobs: jobs.length,
     appliedJobs: 8,
     savedJobs: savedJobs.size,
     profileViews: 156
+  }
+
+  if (loading) {
+    return <Spinner />
   }
 
   return (
@@ -242,7 +196,7 @@ export default function JobSeekerDashboard() {
               </CardContent>
             </Card>
           ) : (
-            filteredJobs.map((job) => (
+            displayedJobs.map((job) => (
               <Card key={job.id} className={`group hover:shadow-xl transition-all duration-300 border-0 overflow-hidden ${
                 job.featured 
                   ? 'bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-blue-950/50 dark:to-indigo-950/50 ring-2 ring-blue-200/50 dark:ring-blue-800/30' 
@@ -262,7 +216,7 @@ export default function JobSeekerDashboard() {
                               </Badge>
                             )}
                             <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-0">
-                              {job.match}% Match
+                              {job.match ?? 90}% Match
                             </Badge>
                           </div>
                           <div>
@@ -271,9 +225,11 @@ export default function JobSeekerDashboard() {
                             </h3>
                             <div className="flex items-center gap-2 mt-1">
                               <Building2 className="w-4 h-4 text-slate-500" />
-                              <span className="text-slate-600 dark:text-slate-300 font-medium">{job.company}</span>
+                              <span className="text-slate-600 dark:text-slate-300 font-medium">{job.company?.name || 'Company'}</span>
                               <span className="text-slate-400 dark:text-slate-500">•</span>
-                              <span className="text-sm text-slate-500 dark:text-slate-400">{job.companySize} employees</span>
+                              {job.companySize && (
+                                <span className="text-sm text-slate-500 dark:text-slate-400">{job.companySize} employees</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -299,30 +255,34 @@ export default function JobSeekerDashboard() {
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 py-4">
                         <div className="flex items-center gap-2 text-sm">
                           <MapPin className="w-4 h-4 text-slate-400" />
-                          <span className="text-slate-600 dark:text-slate-300">{job.location}</span>
+                          <span className="text-slate-600 dark:text-slate-300">{job.location || 'Location not specified'}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <DollarSign className="w-4 h-4 text-slate-400" />
-                          <span className="text-slate-600 dark:text-slate-300 font-medium">{job.salary}</span>
+                          <span className="text-slate-600 dark:text-slate-300 font-medium">{job.salaryRange || '—'}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="w-4 h-4 text-slate-400" />
-                          <span className="text-slate-600 dark:text-slate-300">{job.posted}</span>
+                          <span className="text-slate-600 dark:text-slate-300">{job.posted || ''}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Users className="w-4 h-4 text-slate-400" />
-                          <span className="text-slate-600 dark:text-slate-300">{job.applicants} applicants</span>
+                          {typeof job.applicants === 'number' && (
+                            <span className="text-slate-600 dark:text-slate-300">{job.applicants} applicants</span>
+                          )}
                         </div>
                       </div>
 
                       {/* Skills */}
-                      <div className="flex flex-wrap gap-2">
-                        {job.skills.map((skill, index) => (
-                          <Badge key={index} variant="outline" className="text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
+                      {Array.isArray(job.skills) && job.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {job.skills.map((skill, index) => (
+                            <Badge key={index} variant="outline" className="text-xs bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
 
                       <Separator className="bg-slate-200 dark:bg-slate-700" />
 
@@ -330,9 +290,11 @@ export default function JobSeekerDashboard() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
-                            {job.type}
+                            {job.jobType || job.type || '—'}
                           </Badge>
-                          <span className="text-sm text-slate-500 dark:text-slate-400">{job.experience} experience</span>
+                          {job.experience && (
+                            <span className="text-sm text-slate-500 dark:text-slate-400">{job.experience} experience</span>
+                          )}
                         </div>
                         <div className="flex gap-3">
                           <Button variant="outline" className="border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
@@ -354,10 +316,10 @@ export default function JobSeekerDashboard() {
         </div>
 
         {/* Load More */}
-        {filteredJobs.length > 0 && (
+        {filteredJobs.length > visibleCount && (
           <div className="text-center mt-8">
-            <Button variant="outline" className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
-              Load More Jobs
+            <Button onClick={() => setVisibleCount(filteredJobs.length)} variant="outline" className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
+              Load More Jobs ({filteredJobs.length - visibleCount} more)
               <TrendingUp className="w-4 h-4 ml-2" />
             </Button>
           </div>
