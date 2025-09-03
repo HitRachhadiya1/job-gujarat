@@ -147,7 +147,6 @@ export default function JobPortalApp() {
   // Main app with routing - now using ProtectedRoute for each route
   return (
     <Router>
-      <Navbar />
       <div className="app-content">
         <Routes>
         {/* Home Route - Role-based redirect */}

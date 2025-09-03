@@ -113,22 +113,18 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
-      <div className="container mx-auto px-4 max-w-2xl">
-        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
+    <div className="max-w-3xl mx-auto px-4 py-4">
+      <Card className="bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <CardHeader className="py-4">
+          <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
               <User className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               <span>{existingProfile ? 'Update Your Profile' : 'Create Your Job Seeker Profile'}</span>
             </CardTitle>
-            <CardDescription className="text-slate-600 dark:text-slate-400">
-              Complete your profile to start applying for jobs and get personalized recommendations.
-            </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
+        <CardContent className="p-4">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2 space-y-2">
                 <label htmlFor="fullName" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
                   <User className="w-4 h-4" />
                   <span>Full Name *</span>
@@ -141,9 +137,9 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
                   required
                   className="bg-white dark:bg-slate-800"
                 />
-              </div>
+            </div>
 
-              <div className="space-y-2">
+            <div className="space-y-2">
                 <label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
                   <Phone className="w-4 h-4" />
                   <span>Phone Number</span>
@@ -155,9 +151,9 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   className="bg-white dark:bg-slate-800"
                 />
-              </div>
+            </div>
 
-              <div className="space-y-2">
+            <div className="space-y-2">
                 <label htmlFor="location" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
                   <MapPin className="w-4 h-4" />
                   <span>Location</span>
@@ -170,16 +166,16 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                   className="bg-white dark:bg-slate-800"
                 />
-              </div>
+            </div>
 
-              <div className="space-y-2">
+            <div className="space-y-2">
                 <label htmlFor="experienceYears" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
                   <Clock className="w-4 h-4" />
                   <span>Years of Experience</span>
                 </label>
                 <select
                   id="experienceYears"
-                  className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   value={formData.experienceYears}
                   onChange={(e) => setFormData(prev => ({ ...prev, experienceYears: e.target.value }))}
                 >
@@ -193,9 +189,9 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
                   <option value="10">5-10 years</option>
                   <option value="15">10+ years</option>
                 </select>
-              </div>
+            </div>
 
-              <div className="space-y-2">
+            <div className="md:col-span-2 space-y-2">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Skills</label>
                 <div className="flex gap-2">
                   <Input
@@ -224,9 +220,9 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
                     </Badge>
                   ))}
                 </div>
-              </div>
+            </div>
 
-              <div className="space-y-2">
+            <div className="md:col-span-2 space-y-2">
                 <label htmlFor="resumeUrl" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
                   <LinkIcon className="w-4 h-4" />
                   <span>Resume URL</span>
@@ -239,24 +235,20 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, resumeUrl: e.target.value }))}
                   className="bg-white dark:bg-slate-800"
                 />
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Upload your resume to a cloud service and paste the public link here
-                </p>
-              </div>
+            </div>
 
-              <div className="pt-4">
-                <Button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white font-semibold py-3"
-                >
-                  {loading ? 'Saving...' : existingProfile ? 'Update Profile' : 'Create Profile'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="md:col-span-2 flex justify-end pt-2">
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white font-semibold px-5"
+              >
+                {loading ? 'Saving...' : existingProfile ? 'Update Profile' : 'Create Profile'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
