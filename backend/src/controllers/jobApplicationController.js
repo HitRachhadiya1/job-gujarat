@@ -5,23 +5,36 @@ const prisma = new PrismaClient();
 const applyForJob = async (req, res) => {
   try {
     const { jobId, coverLetter } = req.body;
-    const { sub: userId } = req.user;
+    const auth0User = req.user;
 
     // Check if user has JOB_SEEKER role from Auth0 data
-    if (!req.user || req.user.role !== "JOB_SEEKER") {
-      return res.status(403).json({ 
-        error: "Only job seekers can apply for jobs. Please complete your role selection first." 
+    if (!auth0User || auth0User.role !== "JOB_SEEKER") {
+      return res.status(403).json({
+        error: "Only job seekers can apply for jobs. Please complete your role selection first.",
+      });
+    }
+
+    if (!auth0User.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    // Resolve internal DB user by email
+    let dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
+    if (!dbUser) {
+      // Ensure a user record exists for this email
+      dbUser = await prisma.user.create({
+        data: { email: auth0User.email, role: "JOB_SEEKER" },
       });
     }
 
     // Check if job seeker profile exists
     const jobSeekerProfile = await prisma.jobSeeker.findUnique({
-      where: { userId }
+      where: { userId: dbUser.id },
     });
 
     if (!jobSeekerProfile) {
-      return res.status(403).json({ 
-        error: "Please complete your job seeker profile before applying for jobs." 
+      return res.status(403).json({
+        error: "Please complete your job seeker profile before applying for jobs.",
       });
     }
 
@@ -100,13 +113,17 @@ const applyForJob = async (req, res) => {
 // Get job seeker's applications
 const getMyApplications = async (req, res) => {
   try {
-    const { sub: userId } = req.user;
+    const auth0User = req.user;
     const { status, page = 1, limit = 10 } = req.query;
 
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
     // Get job seeker info
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { JobSeeker: true }
+    const user = await prisma.user.findFirst({
+      where: { email: auth0User.email },
+      include: { JobSeeker: true },
     });
 
     if (!user || user.role !== "JOB_SEEKER" || !user.JobSeeker) {
@@ -427,12 +444,16 @@ const getCompanyApplications = async (req, res) => {
 const withdrawApplication = async (req, res) => {
   try {
     const { applicationId } = req.params;
-    const { sub: userId } = req.user;
+    const auth0User = req.user;
+
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
 
     // Check if user is job seeker
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { JobSeeker: true }
+    const user = await prisma.user.findFirst({
+      where: { email: auth0User.email },
+      include: { JobSeeker: true },
     });
 
     if (!user || user.role !== "JOB_SEEKER" || !user.JobSeeker) {
