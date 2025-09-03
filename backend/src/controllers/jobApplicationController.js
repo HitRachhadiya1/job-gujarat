@@ -188,15 +188,19 @@ const getJobApplications = async (req, res) => {
   try {
     const { jobId } = req.params;
     const { status, page = 1, limit = 10 } = req.query;
-    const { sub: userId } = req.user;
+    const auth0User = req.user;
 
-    // Check if user is company owner and job belongs to them
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { Company: true }
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    // Resolve internal user and ensure company profile exists
+    const user = await prisma.user.findFirst({
+      where: { email: auth0User.email },
+      include: { Company: true },
     });
 
-    if (!user || user.role !== "COMPANY" || !user.Company) {
+    if (!user || !user.Company) {
       return res.status(403).json({ error: "Company profile not found" });
     }
 
@@ -273,19 +277,23 @@ const updateApplicationStatus = async (req, res) => {
   try {
     const { applicationId } = req.params;
     const { status, notes } = req.body;
-    const { sub: userId } = req.user;
+    const auth0User = req.user;
 
     if (!["APPLIED", "INTERVIEW", "HIRED", "REJECTED"].includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
     }
 
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
     // Check if user is company owner
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { Company: true }
+    const user = await prisma.user.findFirst({
+      where: { email: auth0User.email },
+      include: { Company: true },
     });
 
-    if (!user || user.role !== "COMPANY" || !user.Company) {
+    if (!user || !user.Company) {
       return res.status(403).json({ error: "Company profile not found" });
     }
 
@@ -354,16 +362,20 @@ const updateApplicationStatus = async (req, res) => {
 // Get all applications for company's jobs (dashboard overview)
 const getCompanyApplications = async (req, res) => {
   try {
-    const { sub: userId } = req.user;
+    const auth0User = req.user;
     const { status, page = 1, limit = 20 } = req.query;
 
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
     // Check if user is company owner
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { Company: true }
+    const user = await prisma.user.findFirst({
+      where: { email: auth0User.email },
+      include: { Company: true },
     });
 
-    if (!user || user.role !== "COMPANY" || !user.Company) {
+    if (!user || !user.Company) {
       return res.status(403).json({ error: "Company profile not found" });
     }
 

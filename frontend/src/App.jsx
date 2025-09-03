@@ -16,6 +16,7 @@ import BrowseJobs from "./pages/BrowseJobs";
 import MyApplications from "./pages/MyApplications";
 import Profile from "./pages/Profile";
 import CompanySettings from "./pages/CompanySettings";
+import CompanyApplications from "./pages/CompanyApplications";
 import Navbar from "./components/Navbar";
 import { useAuthMeta } from "./context/AuthMetaContext";
 import Spinner from "./components/Spinner";
@@ -199,6 +200,15 @@ export default function JobPortalApp() {
           element={
             <ProtectedRoute roles={["COMPANY"]}>
               <JobManagement />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/company/applications" 
+          element={
+            <ProtectedRoute roles={["COMPANY"]}>
+              <CompanyApplications />
             </ProtectedRoute>
           } 
         />

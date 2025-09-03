@@ -189,13 +189,10 @@ const CompanyDashboard = () => {
             </CardHeader>
             <CardContent>
               <Button 
+                onClick={() => navigate('/company/applications')}
                 className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
-                disabled
               >
                 View Applications
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  Coming Soon
-                </Badge>
               </Button>
             </CardContent>
           </Card>
