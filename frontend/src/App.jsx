@@ -1,12 +1,34 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Users, Building2, ArrowRight, Briefcase, TrendingUp, UserCheck, Award, Globe, LogOut } from "lucide-react"
-import { useTheme } from "./context/ThemeContext"
-import ThemeToggle from "./components/ThemeToggle"
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Navbar from "./components/Navbar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Users,
+  Building2,
+  ArrowRight,
+  Briefcase,
+  TrendingUp,
+  UserCheck,
+  Award,
+  Globe,
+  LogOut,
+} from "lucide-react";
+import { useTheme } from "./context/ThemeContext";
+import ThemeToggle from "./components/ThemeToggle";
 
 // Import components from frontend for functionality
 import CompanyDetailsForm from "./components/CompanyDetailsForm";
@@ -17,7 +39,6 @@ import MyApplications from "./pages/MyApplications";
 import Profile from "./pages/Profile";
 import CompanySettings from "./pages/CompanySettings";
 import CompanyApplications from "./pages/CompanyApplications";
-import Navbar from "./components/Navbar";
 import { useAuthMeta } from "./context/AuthMetaContext";
 import Spinner from "./components/Spinner";
 import UnknownRole from "./components/UnknownRole";
@@ -31,7 +52,7 @@ import AdminDashboard from "./components/admin-dashboard";
 export default function JobPortalApp() {
   const { isAuthenticated, getAccessTokenSilently, user, logout } = useAuth0();
   const { role, companyStatus, loading, refreshAuthMeta } = useAuthMeta();
-  const [currentView, setCurrentView] = useState("landing")
+  const [currentView, setCurrentView] = useState("landing");
 
   // Helper function for role selection
   async function handleRoleSelected(selectedRole) {
@@ -39,7 +60,7 @@ export default function JobPortalApp() {
       console.log("handleRoleSelected called with role:", selectedRole);
       const token = await getAccessTokenSilently();
       const { sub: userId } = user;
-      
+
       const response = await fetch(
         "http://localhost:5000/api/auth/assign-role",
         {
@@ -59,11 +80,11 @@ export default function JobPortalApp() {
       }
 
       console.log("Role assigned successfully");
-      
+
       // Wait for Auth0 metadata to propagate before refreshing
       console.log("Waiting for Auth0 metadata to propagate...");
-      await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Reduced to 1 second
+
       // Try to refresh with retry logic
       await refreshAuthMetaWithRetry(selectedRole);
     } catch (error) {
@@ -72,42 +93,50 @@ export default function JobPortalApp() {
     }
   }
 
-  // Helper function to refresh auth meta with retry logic
-  async function refreshAuthMetaWithRetry(expectedRole, maxRetries = 5) {
+  // Helper function to refresh auth meta with optimized retry logic
+  async function refreshAuthMetaWithRetry(expectedRole, maxRetries = 3) {
+    console.log(`Starting auth refresh for expected role: ${expectedRole}`);
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      console.log(`Refresh attempt ${attempt}/${maxRetries} for expected role: ${expectedRole}`);
-      
+      console.log(`Refresh attempt ${attempt}/${maxRetries}`);
+
       try {
-        // Call refresh and wait for it to complete
-        await refreshAuthMeta();
-        
-        // Wait a bit for the context to update
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        console.log(`Current role after attempt ${attempt}:`, role);
-        
-        // Check if role was successfully fetched
-        if (role === expectedRole) {
+        // Call refresh and get the fresh data directly
+        const freshData = await refreshAuthMeta();
+
+        // Check the returned data instead of relying on stale state
+        const currentRole = freshData?.role || null;
+        console.log(`Fresh role from API:`, currentRole);
+
+        if (currentRole === expectedRole) {
           console.log(`✅ Role successfully updated to: ${expectedRole}`);
           return;
         }
-        
-        // If this isn't the last attempt, wait before retrying
+
+        // Only retry if this isn't the last attempt
         if (attempt < maxRetries) {
-          const delay = attempt * 1000; // Progressive delay: 1s, 2s, 3s, 4s
-          console.log(`Role still ${role || 'null'}, waiting ${delay}ms before retry ${attempt + 1}...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          const delay = 1500; // Fixed 1.5s delay instead of progressive
+          console.log(
+            `Role still ${
+              currentRole || "null"
+            }, waiting ${delay}ms before retry...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       } catch (error) {
         console.error(`Error on refresh attempt ${attempt}:`, error);
         if (attempt === maxRetries) {
-          throw error;
+          console.warn(`Max retries reached. Continuing with current state.`);
+          return; // Don't throw, let the app continue
         }
+        // Short delay before retry on error
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
-    
-    console.warn(`⚠️ Max retries (${maxRetries}) reached. Role is still: ${role || 'null'}, expected: ${expectedRole}`);
-    // Don't throw error, let the user try manually or wait for eventual consistency
+
+    console.warn(
+      `⚠️ Max retries (${maxRetries}) reached. Continuing with current state.`
+    );
   }
 
   const handleGetStarted = () => {
@@ -115,183 +144,191 @@ export default function JobPortalApp() {
       // This will be handled by PublicRoutes
       return;
     }
-    setCurrentView("roleSelection")
-  }
+    setCurrentView("roleSelection");
+  };
 
   const handleRoleSelect = async (selectedRole) => {
     try {
       await handleRoleSelected(selectedRole);
-      setCurrentView("dashboard")
+      setCurrentView("dashboard");
     } catch (error) {
       console.error("Failed to select role:", error);
     }
-  }
+  };
 
   const handleLogout = () => {
     logout({ returnTo: window.location.origin });
-  }
+  };
 
   const handleBackToLanding = () => {
-    setCurrentView("landing")
-  }
+    setCurrentView("landing");
+  };
 
   // Early returns for unauthenticated users or loading states
   if (!isAuthenticated) return <PublicRoutes onGetStarted={handleGetStarted} />;
   if (loading) return <Spinner />;
-  if (!role) return <RoleSelection onRoleSelected={handleRoleSelected} onBackToLanding={handleBackToLanding} />;
-  
+  if (!role)
+    return (
+      <RoleSelection
+        onRoleSelected={handleRoleSelected}
+        onBackToLanding={handleBackToLanding}
+      />
+    );
+
   // Debug logging
-  console.log('App rendering with role:', role);
-  console.log('Company status:', companyStatus);
+  console.log("App rendering with role:", role);
+  console.log("Company status:", companyStatus);
 
   // Main app with routing - now using ProtectedRoute for each route
   return (
     <Router>
-      <div className="app-content">
+      {/* Navbar for authenticated users */}
+      <Navbar />
+      <div className="app-content pt-16">
         <Routes>
-        {/* Home Route - Role-based redirect */}
-        <Route 
-          path="/" 
-          element={
-            (() => {
-              console.log('Home route rendering with role:', role);
+          {/* Home Route - Role-based redirect */}
+          <Route
+            path="/"
+            element={(() => {
+              console.log("Home route rendering with role:", role);
               if (role === "COMPANY") {
                 return (
                   <ProtectedRoute roles={["COMPANY"]}>
                     {companyStatus?.completed ? (
                       <CompanyDashboard />
                     ) : (
-                      <CompanyDetailsForm 
+                      <CompanyDetailsForm
                         refreshAuthMeta={refreshAuthMeta}
                         onSuccess={() => {
                           console.log("Company details saved successfully");
-                        }} 
+                        }}
                       />
                     )}
                   </ProtectedRoute>
                 );
               } else if (role === "JOB_SEEKER") {
-                console.log('Redirecting job seeker to dashboard');
+                console.log("Redirecting job seeker to dashboard");
                 return <JobSeekerDashboard onLogout={handleLogout} />;
               } else if (role === "ADMIN") {
                 return <AdminDashboard onLogout={handleLogout} />;
               } else {
-                console.log('Unknown role, showing UnknownRole component');
+                console.log("Unknown role, showing UnknownRole component");
                 return <UnknownRole />;
               }
-            })()
-          } 
-        />
-        
-        {/* Company Routes */}
-        
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute roles={["COMPANY"]}>
-              <CompanyDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/jobs" 
-          element={
-            <ProtectedRoute roles={["COMPANY"]}>
-              <JobManagement />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/company/applications" 
-          element={
-            <ProtectedRoute roles={["COMPANY"]}>
-              <CompanyApplications />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/company-setup" 
-          element={
-            <ProtectedRoute roles={["COMPANY"]}>
-              <CompanySettings />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Job Seeker Routes */}
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute roles={["JOB_SEEKER"]}>
-              <Profile />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/browse-jobs" 
-          element={
-            <ProtectedRoute roles={["JOB_SEEKER"]}>
-              <BrowseJobs />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/applications" 
-          element={
-            <ProtectedRoute roles={["JOB_SEEKER"]}>
-              <MyApplications />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/saved-jobs" 
-          element={
-            <ProtectedRoute roles={["JOB_SEEKER"]}>
-              <div className="page-container">Saved Jobs - Coming Soon!</div>
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/recommendations" 
-          element={
-            <ProtectedRoute roles={["JOB_SEEKER"]}>
-              <div className="page-container">Job Recommendations - Coming Soon!</div>
-            </ProtectedRoute>
-          } 
-        />
+            })()}
+          />
 
-        {/* Admin Routes */}
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute roles={["ADMIN"]}>
-              <AdminDashboard onLogout={handleLogout} />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Default redirect based on role */}
-        <Route 
-          path="*" 
-          element={
-            role === "COMPANY" ? (
-              <Navigate to="/" replace />
-            ) : role === "JOB_SEEKER" ? (
-              <Navigate to="/" replace />
-            ) : role === "ADMIN" ? (
-              <Navigate to="/" replace />
-            ) : (
-              <UnknownRole />
-            )
-        }
-        />
+          {/* Company Routes */}
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute roles={["COMPANY"]}>
+                <CompanyDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/jobs"
+            element={
+              <ProtectedRoute roles={["COMPANY"]}>
+                <JobManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/company/applications"
+            element={
+              <ProtectedRoute roles={["COMPANY"]}>
+                <CompanyApplications />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/company-setup"
+            element={
+              <ProtectedRoute roles={["COMPANY"]}>
+                <CompanySettings />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Job Seeker Routes */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute roles={["JOB_SEEKER"]}>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/browse-jobs"
+            element={
+              <ProtectedRoute roles={["JOB_SEEKER"]}>
+                <BrowseJobs />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/applications"
+            element={
+              <ProtectedRoute roles={["JOB_SEEKER"]}>
+                <MyApplications />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/saved-jobs"
+            element={
+              <ProtectedRoute roles={["JOB_SEEKER"]}>
+                <div className="page-container">Saved Jobs - Coming Soon!</div>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/recommendations"
+            element={
+              <ProtectedRoute roles={["JOB_SEEKER"]}>
+                <div className="page-container">
+                  Job Recommendations - Coming Soon!
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={["ADMIN"]}>
+                <AdminDashboard onLogout={handleLogout} />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Default redirect based on role */}
+          <Route
+            path="*"
+            element={
+              role === "COMPANY" ? (
+                <Navigate to="/" replace />
+              ) : role === "JOB_SEEKER" ? (
+                <Navigate to="/" replace />
+              ) : role === "ADMIN" ? (
+                <Navigate to="/" replace />
+              ) : (
+                <UnknownRole />
+              )
+            }
+          />
         </Routes>
       </div>
     </Router>
@@ -319,7 +356,9 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
                   Job Gujarat
                 </h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Connecting you to What's Next</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Connecting you to What's Next
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -361,7 +400,8 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
                   Job Seeker
                 </CardTitle>
                 <CardDescription className="text-slate-600 dark:text-slate-400 text-base">
-                  Discover your next career opportunity with intelligent matching
+                  Discover your next career opportunity with intelligent
+                  matching
                 </CardDescription>
               </CardHeader>
 
@@ -375,7 +415,9 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-slate-600 rounded-full"></div>
-                      <span className="text-slate-700 dark:text-slate-300 text-sm">{feature}</span>
+                      <span className="text-slate-700 dark:text-slate-300 text-sm">
+                        {feature}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -400,7 +442,9 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
                 <div className="w-16 h-16 bg-gradient-to-r from-slate-600 to-blue-500 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
                   <Building2 className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">Company</CardTitle>
+                <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">
+                  Company
+                </CardTitle>
                 <CardDescription className="text-slate-600 dark:text-slate-400 text-base">
                   Build exceptional teams with advanced recruitment tools
                 </CardDescription>
@@ -416,7 +460,9 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center space-x-3">
                       <div className="w-2 h-2 bg-gradient-to-r from-slate-600 to-blue-500 rounded-full"></div>
-                      <span className="text-slate-700 dark:text-slate-300 text-sm">{feature}</span>
+                      <span className="text-slate-700 dark:text-slate-300 text-sm">
+                        {feature}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -434,5 +480,5 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
         </div>
       </section>
     </div>
-  )
+  );
 }

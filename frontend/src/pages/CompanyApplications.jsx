@@ -3,7 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Filter, Calendar, MapPin, Briefcase } from 'lucide-react';
+import { Users, Filter, Calendar, MapPin, Briefcase, ChevronDown, CheckCircle, Clock, UserCheck, XCircle } from 'lucide-react';
 import Spinner from '@/components/Spinner';
 
 const CompanyApplications = () => {
@@ -12,6 +12,7 @@ const CompanyApplications = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 20, totalPages: 1 });
+  const [updatingStatus, setUpdatingStatus] = useState({});
 
   useEffect(() => {
     fetchApplications();
@@ -50,6 +51,62 @@ const CompanyApplications = () => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric', month: 'short', day: 'numeric'
     });
+  };
+
+  const updateApplicationStatus = async (applicationId, newStatus) => {
+    try {
+      setUpdatingStatus(prev => ({ ...prev, [applicationId]: true }));
+      const token = await getAccessTokenSilently();
+      
+      const response = await fetch(`http://localhost:5000/api/applications/${applicationId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.error || 'Failed to update status');
+      }
+
+      // Update the local state
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === applicationId 
+            ? { ...app, status: newStatus, updatedAt: new Date().toISOString() }
+            : app
+        )
+      );
+
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      alert('Failed to update application status. Please try again.');
+    } finally {
+      setUpdatingStatus(prev => ({ ...prev, [applicationId]: false }));
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'APPLIED': return <Clock className="w-4 h-4" />;
+      case 'INTERVIEW': return <UserCheck className="w-4 h-4" />;
+      case 'HIRED': return <CheckCircle className="w-4 h-4" />;
+      case 'REJECTED': return <XCircle className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'APPLIED': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'INTERVIEW': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'HIRED': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'REJECTED': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
   };
 
   if (loading) return <Spinner />;
@@ -118,8 +175,32 @@ const CompanyApplications = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex-shrink-0">
-                      <Badge className="uppercase">{app.status}</Badge>
+                    <div className="flex-shrink-0 flex items-center gap-3">
+                      <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(app.status)}`}>
+                        {getStatusIcon(app.status)}
+                        <span className="uppercase">{app.status}</span>
+                      </div>
+                      
+                      {/* Status Update Dropdown */}
+                      <div className="relative">
+                        <select
+                          value={app.status}
+                          onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
+                          disabled={updatingStatus[app.id]}
+                          className="appearance-none bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md px-3 py-1 text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                        >
+                          <option value="APPLIED">Applied</option>
+                          <option value="INTERVIEW">Interview</option>
+                          <option value="HIRED">Hired</option>
+                          <option value="REJECTED">Rejected</option>
+                        </select>
+                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        {updatingStatus[app.id] && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-700/80 rounded-md">
+                            <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 

@@ -105,7 +105,7 @@ export const AuthMetaProvider = ({ children }) => {
   // Function to refresh auth meta (useful after role assignment or company creation)
   const refreshAuthMeta = () => {
     console.log('Forcing auth metadata refresh...');
-    fetchAuthMeta(true); // Force refresh
+    return fetchAuthMeta(true); // Force refresh and return the promise
   };
 
   // Function to clear cache and refresh

@@ -279,25 +279,39 @@ const updateApplicationStatus = async (req, res) => {
     const { status, notes } = req.body;
     const auth0User = req.user;
 
+    console.log("Update application status request:", {
+      applicationId,
+      status,
+      userEmail: auth0User?.email,
+      userRole: auth0User?.role
+    });
+
     if (!["APPLIED", "INTERVIEW", "HIRED", "REJECTED"].includes(status)) {
+      console.log("Invalid status provided:", status);
       return res.status(400).json({ error: "Invalid status" });
     }
 
     if (!auth0User?.email) {
+      console.log("No user email found in token");
       return res.status(400).json({ error: "User email not found in token" });
     }
 
     // Check if user is company owner
+    console.log("Finding user by email:", auth0User.email);
     const user = await prisma.user.findFirst({
       where: { email: auth0User.email },
       include: { Company: true },
     });
 
+    console.log("Found user:", user ? { id: user.id, email: user.email, hasCompany: !!user.Company } : null);
+
     if (!user || !user.Company) {
+      console.log("Company profile not found for user");
       return res.status(403).json({ error: "Company profile not found" });
     }
 
     // Check if application belongs to company's job
+    console.log("Finding application by ID:", applicationId);
     const application = await prisma.jobApplication.findUnique({
       where: { id: applicationId },
       include: {
@@ -315,11 +329,25 @@ const updateApplicationStatus = async (req, res) => {
       }
     });
 
-    if (!application || application.job.companyId !== user.Company.id) {
-      return res.status(404).json({ error: "Application not found or not authorized" });
+    console.log("Found application:", application ? {
+      id: application.id,
+      jobId: application.jobId,
+      jobCompanyId: application.job?.companyId,
+      userCompanyId: user.Company.id
+    } : null);
+
+    if (!application) {
+      console.log("Application not found");
+      return res.status(404).json({ error: "Application not found" });
+    }
+
+    if (application.job.companyId !== user.Company.id) {
+      console.log("Application does not belong to user's company");
+      return res.status(403).json({ error: "Not authorized to update this application" });
     }
 
     // Update application status
+    console.log("Updating application status to:", status);
     const updatedApplication = await prisma.jobApplication.update({
       where: { id: applicationId },
       data: { 
@@ -345,8 +373,7 @@ const updateApplicationStatus = async (req, res) => {
       }
     });
 
-    // TODO: Here you can add notification logic
-    // Example: Send email/SMS notification to job seeker about status change
+    console.log("Application status updated successfully");
 
     res.json({
       message: "Application status updated successfully",
@@ -355,7 +382,8 @@ const updateApplicationStatus = async (req, res) => {
 
   } catch (error) {
     console.error("Error updating application status:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error stack:", error.stack);
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 };
 
