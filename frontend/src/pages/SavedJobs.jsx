@@ -91,22 +91,24 @@ const SavedJobs = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
-      <div className="container mx-auto px-4 max-w-7xl">
+    <div className="min-h-screen bg-stone-200/50 dark:bg-stone-950/50 py-8">
+      <div className="container mx-auto px-6 max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center space-x-3">
-            <Heart className="w-8 h-8 text-red-500 fill-red-500" />
+        <div className="mb-10">
+          <h1 className="text-5xl font-bold text-stone-900 dark:text-stone-100 mb-4 flex items-center space-x-4 tracking-tight">
+            <div className="w-16 h-16 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl flex items-center justify-center shadow-lg">
+              <Heart className="w-8 h-8 text-red-500 fill-red-500" />
+            </div>
             <span>Saved Jobs</span>
           </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400">
+          <p className="text-xl text-stone-800 dark:text-stone-400 font-medium">
             Your bookmarked job opportunities
           </p>
         </div>
 
         {/* Stats */}
-        <div className="mb-6">
-          <p className="text-slate-600 dark:text-slate-400">
+        <div className="mb-8">
+          <p className="text-stone-800 dark:text-stone-400 font-medium text-lg">
             {pagination.total} saved job{pagination.total !== 1 ? 's' : ''}
           </p>
         </div>
@@ -114,81 +116,80 @@ const SavedJobs = () => {
         {/* Saved Jobs List */}
         <div className="space-y-6">
           {savedJobs.length === 0 ? (
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
-              <CardContent className="p-12 text-center">
-                <Heart className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+              <CardContent className="p-16 text-center">
+                <Heart className="w-20 h-20 text-stone-500 mx-auto mb-6" />
+                <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-4">
                   No saved jobs yet
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                <p className="text-stone-800 dark:text-stone-400 mb-8 text-lg font-medium">
                   Start saving jobs you're interested in to keep track of them here.
                 </p>
                 <Button 
                   onClick={() => window.location.href = '/browse-jobs'}
-                  className="bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white"
+                  className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
-                  <Briefcase className="w-4 h-4 mr-2" />
+                  <Briefcase className="w-5 h-5 mr-3" />
                   Browse Jobs
                 </Button>
               </CardContent>
             </Card>
           ) : (
             savedJobs.map((savedJob) => (
-              <Card key={savedJob.id} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
+              <Card key={savedJob.id} className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 border-l-4 border-l-red-500">
+                <CardContent className="p-8">
+                  <div className="flex justify-between items-start mb-6">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                      <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-3 tracking-tight">
                         {savedJob.job.title}
                       </h3>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400 mb-3">
-                        <div className="flex items-center space-x-1">
-                          <Building2 className="w-4 h-4" />
-                          <span>{savedJob.job.company?.name || 'Company'}</span>
+                      <div className="flex flex-wrap items-center gap-6 text-sm text-stone-700 dark:text-stone-400 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Building2 className="w-5 h-5" />
+                          <span className="font-medium">{savedJob.job.company?.name || 'Company'}</span>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{savedJob.job.location || 'Location not specified'}</span>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-5 h-5" />
+                          <span className="font-medium">{savedJob.job.location || 'Location not specified'}</span>
                         </div>
-                        <Badge variant="outline" className="text-xs">
-                          <Clock className="w-3 h-3 mr-1" />
+                        <Badge className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50 font-semibold px-3 py-1 rounded-xl">
+                          <Clock className="w-4 h-4 mr-2" />
                           {savedJob.job.jobType || 'Not specified'}
                         </Badge>
                         {savedJob.job.salaryRange && (
-                          <div className="flex items-center space-x-1 text-green-600 dark:text-green-400 font-semibold">
-                            <DollarSign className="w-4 h-4" />
+                          <div className="flex items-center space-x-2 text-stone-800 dark:text-stone-300 font-bold">
+                            <DollarSign className="w-5 h-5" />
                             <span>{savedJob.job.salaryRange}</span>
                           </div>
                         )}
                       </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                      <div className="text-sm text-stone-600 dark:text-stone-500 mb-4 font-medium">
                         Saved on {formatDate(savedJob.savedAt)}
                       </div>
                     </div>
                   </div>
                   
-                  <div className="mb-4">
-                    <p className="text-slate-700 dark:text-slate-300 line-clamp-3">
+                  <div className="mb-6">
+                    <p className="text-stone-800 dark:text-stone-300 font-medium line-clamp-3 text-base">
                       {savedJob.job.description?.substring(0, 200)}...
                     </p>
                   </div>
 
-                  <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex space-x-2">
+                  <div className="flex justify-between items-center pt-6 border-t border-stone-400/30 dark:border-stone-700">
+                    <div className="flex space-x-4">
                       <Button 
                         onClick={() => window.location.href = '/browse-jobs'}
-                        className="bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white"
+                        className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
                       >
-                        <ExternalLink className="w-4 h-4 mr-2" />
+                        <ExternalLink className="w-5 h-5 mr-3" />
                         View Job
                       </Button>
                       <Button 
-                        variant="outline" 
-                        className="flex items-center space-x-1 border-red-200 text-red-600 hover:bg-red-50"
                         onClick={() => handleRemoveJob(savedJob.job.id)}
                         disabled={removingJobs.has(savedJob.job.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5" />
                         <span>Remove</span>
                       </Button>
                     </div>
@@ -201,21 +202,23 @@ const SavedJobs = () => {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="flex justify-center items-center space-x-4 mt-8">
+          <div className="flex justify-center items-center space-x-6 mt-12">
             <Button
               variant="outline"
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
               disabled={pagination.page === 1}
+              className="border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/30"
             >
               Previous
             </Button>
-            <span className="text-slate-600 dark:text-slate-400">
+            <span className="text-stone-800 dark:text-stone-400 font-medium text-lg">
               Page {pagination.page} of {pagination.totalPages}
             </span>
             <Button
               variant="outline"
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
               disabled={pagination.page === pagination.totalPages}
+              className="border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/30"
             >
               Next
             </Button>

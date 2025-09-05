@@ -44,6 +44,10 @@ import {
   Menu,
   X,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Sun,
+  Moon,
 } from "lucide-react";
 import Spinner from "./Spinner";
 import ThemeToggle from "./ThemeToggle";
@@ -152,24 +156,22 @@ export default function JobSeekerDashboard() {
   // Dashboard content as a separate function
   const renderDashboardContent = () => (
     <div className="max-w-7xl mx-auto">
-      {/* Top dashboard summary removed to keep header concise */}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Stats and Chart */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Stats and Content */}
+        <div className="lg:col-span-2 space-y-8">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700/50 shadow-sm hover:shadow-md transition-shadow">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-r from-blue-600 to-slate-700 rounded-full shadow-lg">
-                    <Briefcase className="w-6 h-6 text-white" />
+                  <div className="p-4 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                    <Briefcase className="w-6 h-6 text-stone-900 dark:text-stone-300" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                    <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
                       {stats.appliedJobs}
                     </div>
-                    <div className="text-sm text-blue-600 dark:text-blue-400">
+                    <div className="text-sm text-stone-800 dark:text-stone-400 font-medium">
                       Applied Jobs
                     </div>
                   </div>
@@ -177,17 +179,17 @@ export default function JobSeekerDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700/50 shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-lg">
-                    <Heart className="w-6 h-6 text-white" />
+                  <div className="p-4 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                    <Heart className="w-6 h-6 text-stone-900 dark:text-stone-300" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                    <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
                       {stats.savedJobs}
                     </div>
-                    <div className="text-sm text-purple-600 dark:text-purple-400">
+                    <div className="text-sm text-stone-800 dark:text-stone-400 font-medium">
                       Saved Jobs
                     </div>
                   </div>
@@ -195,17 +197,17 @@ export default function JobSeekerDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700/50 shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full shadow-lg">
-                    <Calendar className="w-6 h-6 text-white" />
+                  <div className="p-4 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                    <Calendar className="w-6 h-6 text-stone-900 dark:text-stone-300" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                    <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
                       {stats.interviewSchedule}
                     </div>
-                    <div className="text-sm text-green-600 dark:text-green-400">
+                    <div className="text-sm text-stone-800 dark:text-stone-400 font-medium">
                       Interviews
                     </div>
                   </div>
@@ -215,19 +217,19 @@ export default function JobSeekerDashboard() {
           </div>
 
           {/* My Applications Table */}
-          <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-sm">
+          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
+                <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
                   My Applications
                 </CardTitle>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-stone-800 dark:text-stone-400 font-medium">
                   Track your job application progress
                 </p>
               </div>
               <Button
                 variant="ghost"
-                className="text-blue-600 hover:text-blue-700"
+                className="text-stone-800 hover:text-stone-900 hover:bg-stone-200/50 rounded-xl font-semibold transition-all duration-200"
                 onClick={() => handleNavigation("applications")}
               >
                 View All
@@ -238,14 +240,14 @@ export default function JobSeekerDashboard() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-slate-200 dark:border-slate-700">
-                        <th className="text-left py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
+                      <tr className="border-b border-stone-400/50 dark:border-stone-700">
+                        <th className="text-left py-4 text-sm font-bold text-stone-800 dark:text-stone-300">
                           Company
                         </th>
-                        <th className="text-center py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
+                        <th className="text-center py-4 text-sm font-bold text-stone-800 dark:text-stone-300">
                           Status
                         </th>
-                        <th className="text-center py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
+                        <th className="text-center py-4 text-sm font-bold text-stone-800 dark:text-stone-300">
                           Applied Date
                         </th>
                         {/* <th className="text-center py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -257,20 +259,20 @@ export default function JobSeekerDashboard() {
                       {applications.slice(0, 3).map((app) => (
                         <tr
                           key={app.id}
-                          className="border-b border-slate-100 dark:border-slate-800"
+                          className="border-b border-stone-300/30 dark:border-stone-800 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors duration-200"
                         >
                           <td className="py-4">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-slate-700 rounded-full flex items-center justify-center">
-                                <Building2 className="w-5 h-5 text-white" />
+                            <div className="flex items-center space-x-4">
+                              <div className="w-12 h-12 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-2xl flex items-center justify-center shadow-md">
+                                <Building2 className="w-6 h-6 text-stone-900 dark:text-stone-300" />
                               </div>
                               <div>
-                                <div className="font-medium text-slate-900 dark:text-slate-100">
+                                <div className="font-bold text-stone-900 dark:text-stone-100">
                                   {typeof (app.job?.company ?? app.jobPosting?.company) === 'object'
                                     ? (app.job?.company?.name ?? app.jobPosting?.company?.name ?? 'Company')
                                     : ((app.job?.company ?? app.jobPosting?.company) || 'Company')}
                                 </div>
-                                <div className="text-sm text-slate-500 dark:text-slate-400">
+                                <div className="text-sm text-stone-700 dark:text-stone-400 font-medium">
                                   {app.job?.title || app.jobPosting?.title || "Job Title"}
                                 </div>
                               </div>
@@ -278,25 +280,13 @@ export default function JobSeekerDashboard() {
                           </td>
                           <td className="text-center py-4">
                             <Badge
-                              variant={
-                                app.status === "applied"
-                                  ? "secondary"
-                                  : app.status === "interview_scheduled"
-                                  ? "default"
-                                  : "outline"
-                              }
-                              className={
-                                app.status === "applied"
-                                  ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-                                  : app.status === "interview_scheduled"
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                                  : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400"
-                              }
+                              variant="outline"
+                              className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50 font-semibold px-3 py-1 rounded-xl"
                             >
                               {app.status.replace("_", " ").toUpperCase()}
                             </Badge>
                           </td>
-                          <td className="text-center py-4 text-sm text-slate-600 dark:text-slate-400">
+                          <td className="text-center py-4 text-sm text-stone-800 dark:text-stone-400 font-medium">
                             {app.createdAt || app.appliedAt || app.applicationDate
                               ? new Date(app.createdAt || app.appliedAt || app.applicationDate).toLocaleDateString()
                               : new Date().toLocaleDateString()}
@@ -316,14 +306,13 @@ export default function JobSeekerDashboard() {
                   </table>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-600 dark:text-slate-400">
+                <div className="text-center py-12">
+                  <FileText className="w-16 h-16 text-stone-500 mx-auto mb-6" />
+                  <p className="text-stone-800 dark:text-stone-400 text-lg font-medium mb-6">
                     No applications yet
                   </p>
                   <Button
-                    variant="outline"
-                    className="mt-4"
+                    className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
                     onClick={() => handleNavigation("browse-jobs")}
                   >
                     Browse Jobs
@@ -334,19 +323,19 @@ export default function JobSeekerDashboard() {
           </Card>
 
           {/* Recent Jobs Section */}
-          <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-sm">
+          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-semibold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
+                <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
                   Recent Jobs
                 </CardTitle>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-stone-800 dark:text-stone-400 font-medium">
                   Latest job opportunities for you
                 </p>
               </div>
               <Button
                 variant="ghost"
-                className="text-blue-600 hover:text-blue-700"
+                className="text-stone-800 hover:text-stone-900 hover:bg-stone-200/50 rounded-xl font-semibold transition-all duration-200"
                 onClick={() => handleNavigation("browse-jobs")}
               >
                 View All
@@ -358,24 +347,24 @@ export default function JobSeekerDashboard() {
                   {jobs.slice(0, 3).map((job) => (
                     <div
                       key={job.id}
-                      className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                      className="flex items-center justify-between p-6 border border-stone-400/50 dark:border-stone-700 rounded-2xl hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-all duration-200 shadow-sm hover:shadow-md"
                     >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-slate-700 rounded-lg flex items-center justify-center">
-                          <Briefcase className="w-6 h-6 text-white" />
+                      <div className="flex items-center space-x-5">
+                        <div className="w-14 h-14 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-2xl flex items-center justify-center shadow-md">
+                          <Briefcase className="w-7 h-7 text-stone-900 dark:text-stone-300" />
                         </div>
                         <div>
-                          <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                          <h3 className="font-bold text-stone-900 dark:text-stone-100 text-lg">
                             {job.title}
                           </h3>
-                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                          <p className="text-sm text-stone-700 dark:text-stone-400 font-medium">
                             {typeof job.company === "object"
                               ? job.company?.name
                               : job.company}
                           </p>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <MapPin className="w-3 h-3 text-slate-400" />
-                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                          <div className="flex items-center space-x-2 mt-2">
+                            <MapPin className="w-4 h-4 text-stone-600 dark:text-stone-500" />
+                            <span className="text-sm text-stone-600 dark:text-stone-500 font-medium">
                               {job.location}
                             </span>
                           </div>
@@ -397,14 +386,13 @@ export default function JobSeekerDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <Search className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-600 dark:text-slate-400">
+                <div className="text-center py-12">
+                  <Search className="w-16 h-16 text-stone-500 mx-auto mb-6" />
+                  <p className="text-stone-800 dark:text-stone-400 text-lg font-medium mb-6">
                     No jobs available
                   </p>
                   <Button
-                    variant="outline"
-                    className="mt-4"
+                    className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
                     onClick={() => handleNavigation("browse-jobs")}
                   >
                     Browse Jobs
@@ -416,58 +404,58 @@ export default function JobSeekerDashboard() {
         </div>
 
         {/* Right Sidebar - Profile Card */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Profile Card */}
-          <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-sm">
-            <CardContent className="p-6 text-center">
+          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+            <CardContent className="p-8 text-center">
               <img
                 src={
                   user?.picture ||
-                  "https://via.placeholder.com/80/6B7280/FFFFFF?text=U"
+                  "https://via.placeholder.com/96/78716c/FFFFFF?text=U"
                 }
                 alt="Profile"
-                className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-slate-200 dark:border-slate-600"
+                className="w-24 h-24 rounded-full mx-auto mb-6 border-4 border-stone-400/50 dark:border-stone-600 shadow-lg"
               />
-              <h3 className="font-semibold text-lg bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
+              <h3 className="font-bold text-xl text-stone-900 dark:text-stone-100 tracking-tight mb-2">
                 {user?.name || "User"}
               </h3>
-              <div className="mb-6" />
+              <p className="text-sm text-stone-700 dark:text-stone-400 font-medium mb-8">Job Seeker</p>
 
               {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                  <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="text-center p-4 bg-stone-200/50 dark:bg-stone-800/30 rounded-2xl">
+                  <div className="text-xl font-bold text-stone-900 dark:text-stone-100">
                     {stats.appliedJobs}
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                  <div className="text-sm text-stone-700 dark:text-stone-400 font-medium">
                     Applications
                   </div>
                 </div>
-                <div className="text-center p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                  <div className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                <div className="text-center p-4 bg-stone-200/50 dark:bg-stone-800/30 rounded-2xl">
+                  <div className="text-xl font-bold text-stone-900 dark:text-stone-100">
                     {stats.savedJobs}
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                  <div className="text-sm text-stone-700 dark:text-stone-400 font-medium">
                     Saved Jobs
                   </div>
                 </div>
               </div>
 
               {/* Quick Actions */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <Button
-                  className="w-full bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white shadow-md"
+                  className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
                   onClick={() => handleNavigation("profile")}
                 >
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="w-5 h-5 mr-3" />
                   Edit Profile
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300"
+                  className="w-full border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/30"
                   onClick={() => handleNavigation("browse-jobs")}
                 >
-                  <Search className="w-4 h-4 mr-2" />
+                  <Search className="w-5 h-5 mr-3" />
                   Find Jobs
                 </Button>
               </div>
@@ -725,37 +713,44 @@ export default function JobSeekerDashboard() {
   }
 
   return (
-    <div className="h-screen bg-white dark:bg-slate-900 flex transition-colors duration-300 overflow-hidden m-0 p-0">
+    <div className="h-screen bg-stone-300 dark:bg-stone-950 flex transition-colors duration-500 overflow-hidden m-0 p-0">
       {/* Sidebar */}
       <div
         className={`${
           sidebarCollapsed ? "w-16" : "w-64"
-        } bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-lg transition-all duration-300 flex flex-col h-full overflow-hidden`}
+        } bg-stone-800 dark:bg-stone-900/90 border-r border-stone-700 dark:border-stone-800/60 shadow-xl transition-all duration-200 flex flex-col h-full overflow-hidden backdrop-blur-md`}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-          <div
-            className="flex items-center space-x-3 cursor-pointer group"
-            onClick={() => navigate("/")}
-          >
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-slate-700 dark:from-blue-500 dark:to-slate-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-              <Briefcase className="w-5 h-5 text-white" />
+        <div className="p-6 border-b border-stone-700 dark:border-stone-800/60">
+          <div className="flex items-center space-x-4 cursor-pointer group">
+            <div className="w-12 h-12 bg-gradient-to-br from-stone-100 to-stone-50 dark:from-stone-200 dark:to-stone-100 rounded-3xl flex items-center justify-center shadow-xl border border-stone-200/20 group-hover:scale-105 transition-transform duration-200">
+              <Briefcase className="w-6 h-6 text-stone-800 dark:text-stone-800" />
             </div>
             {!sidebarCollapsed && (
               <div>
-                <h1 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold text-stone-100 dark:text-stone-100 tracking-tight">
                   Job Gujarat
                 </h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Connecting you to What's Next
+                <p className="text-sm text-stone-300 dark:text-stone-400 font-medium tracking-wide">
+                  Elite Career Solutions
                 </p>
               </div>
             )}
           </div>
+          
+          {/* Collapse Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="absolute top-6 right-2 text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 rounded-xl p-2 transition-all duration-200"
+          >
+            {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </Button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 bg-white dark:bg-slate-800 overflow-hidden">
+        <nav className="flex-1 p-4 space-y-2 overflow-hidden">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -766,61 +761,89 @@ export default function JobSeekerDashboard() {
                   sidebarCollapsed
                     ? "justify-center px-3"
                     : "justify-start px-4"
-                } py-3 text-left transition-all duration-200 ${
+                } py-3 text-left transition-all duration-200 rounded-xl font-semibold ${
                   activeView === item.id
-                    ? "bg-gradient-to-r from-blue-600 to-slate-700 text-white shadow-md hover:from-blue-700 hover:to-slate-800"
-                    : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    ? "bg-stone-100/20 text-stone-100 shadow-lg border border-stone-600/30 hover:bg-stone-100/30"
+                    : "text-stone-300 hover:text-stone-100 hover:bg-stone-700/50"
                 }`}
                 onClick={() => handleNavigation(item.id)}
               >
                 <Icon className="w-5 h-5" />
                 {!sidebarCollapsed && (
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-sm font-semibold ml-3">{item.label}</span>
                 )}
               </Button>
             );
           })}
         </nav>
+        
+        {/* Logout Button */}
+        <div className="p-4 border-t border-stone-700 dark:border-stone-800/60">
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className={`w-full ${
+              sidebarCollapsed ? "justify-center px-3" : "justify-start px-4"
+            } py-3 text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 transition-all duration-200 rounded-xl font-semibold`}
+          >
+            <LogOut className="w-5 h-5" />
+            {!sidebarCollapsed && (
+              <span className="text-sm font-semibold ml-3">Logout</span>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="lg:hidden"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-              <h2 className="text-xl font-semibold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
+        <header className="bg-stone-800/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-700 dark:border-stone-800/60 shadow-lg">
+          <div className="flex items-center justify-between px-8 py-5">
+            <div className="flex items-center space-x-6">
+              {activeView !== "dashboard" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBack}
+                  className="text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 rounded-xl p-2 transition-all duration-200"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </Button>
+              )}
+              <h2 className="text-2xl font-bold text-stone-100 dark:text-stone-100 tracking-tight">
                 {`Welcome, ${
                   user?.given_name || user?.name?.split(" ")[0] || "User"
                 }`}
               </h2>
             </div>
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm" className="relative">
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="relative text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 rounded-xl p-3 transition-all duration-200"
+              >
                 <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-stone-400 rounded-full"></span>
               </Button>
 
               {/* Theme Toggle */}
-              <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 rounded-xl p-3 transition-all duration-200"
+              >
+                <Sun className="w-5 h-5" />
+              </Button>
 
-              {/* User Profile Dropdown */}
-              <div className="flex items-center space-x-3 pl-3 border-l border-slate-200 dark:border-slate-700">
+              {/* User Profile */}
+              <div className="flex items-center space-x-3 pl-4 border-l border-stone-700 dark:border-stone-800/60">
                 <img
                   src={
                     user?.picture ||
-                    "https://via.placeholder.com/32/6B7280/FFFFFF?text=U"
+                    "https://via.placeholder.com/40/78716c/FFFFFF?text=U"
                   }
                   alt="Profile"
-                  className="w-8 h-8 rounded-full border-2 border-slate-200 dark:border-slate-600"
+                  className="w-10 h-10 rounded-full border-2 border-stone-600 shadow-md"
                 />
                 <div className="hidden sm:block">
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -840,8 +863,8 @@ export default function JobSeekerDashboard() {
           </div>
         </header>
 
-        {/* Dashboard Content */}
-        <main className="flex-1 p-6 overflow-auto bg-slate-50/50 dark:bg-slate-900/50">
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto bg-stone-200/50 dark:bg-stone-950/50 p-8">
           {activeView !== 'dashboard' && (
             <div className="mb-4 flex justify-end">
               <Button
