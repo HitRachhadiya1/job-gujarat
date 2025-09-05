@@ -43,6 +43,7 @@ import {
   Eye,
   Menu,
   X,
+  ArrowLeft,
 } from "lucide-react";
 import Spinner from "./Spinner";
 import ThemeToggle from "./ThemeToggle";
@@ -61,6 +62,8 @@ export default function JobSeekerDashboard() {
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeView, setActiveView] = useState("dashboard");
+  const [viewHistory, setViewHistory] = useState(["dashboard"]);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   // Dynamic data states
   const [stats, setStats] = useState({
@@ -94,6 +97,28 @@ export default function JobSeekerDashboard() {
 
   const handleNavigation = (viewId) => {
     setActiveView(viewId);
+  };
+
+  // Track internal view history to support Back behavior within SPA
+  useEffect(() => {
+    setViewHistory((hist) => {
+      if (hist[hist.length - 1] === activeView) return hist;
+      return [...hist, activeView];
+    });
+  }, [activeView]);
+
+  const handleBack = () => {
+    setViewHistory((hist) => {
+      if (hist.length > 1) {
+        const newHist = hist.slice(0, -1);
+        const prev = newHist[newHist.length - 1] || "dashboard";
+        setActiveView(prev);
+        return newHist;
+      }
+      // Fallback to dashboard if no history
+      setActiveView("dashboard");
+      return ["dashboard"];
+    });
   };
 
   // Render the active view component
@@ -241,12 +266,12 @@ export default function JobSeekerDashboard() {
                               </div>
                               <div>
                                 <div className="font-medium text-slate-900 dark:text-slate-100">
-                                  {typeof app.jobPosting?.company === "object"
-                                    ? app.jobPosting?.company?.name
-                                    : app.jobPosting?.company || "Company"}
+                                  {typeof (app.job?.company ?? app.jobPosting?.company) === 'object'
+                                    ? (app.job?.company?.name ?? app.jobPosting?.company?.name ?? 'Company')
+                                    : ((app.job?.company ?? app.jobPosting?.company) || 'Company')}
                                 </div>
                                 <div className="text-sm text-slate-500 dark:text-slate-400">
-                                  {app.jobPosting?.title || "Job Title"}
+                                  {app.job?.title || app.jobPosting?.title || "Job Title"}
                                 </div>
                               </div>
                             </div>
@@ -392,89 +417,6 @@ export default function JobSeekerDashboard() {
 
         {/* Right Sidebar - Profile Card */}
         <div className="space-y-6">
-          {/* Job Search Progress */}
-          {/* <Card className={`bg-gradient-to-br ${
-            profileStatus.isComplete 
-              ? 'from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-800/20 border-green-200 dark:border-green-700/50' 
-              : 'from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-800/20 border-orange-200 dark:border-orange-700/50'
-          } shadow-sm`}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className={`font-semibold ${
-                  profileStatus.isComplete 
-                    ? 'text-green-800 dark:text-green-300' 
-                    : 'text-orange-800 dark:text-orange-300'
-                }`}>
-                  {profileStatus.message}
-                </h3>
-                {profileStatus.isComplete ? (
-                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                )}
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className={`${
-                    profileStatus.isComplete 
-                      ? 'text-green-700 dark:text-green-300' 
-                      : 'text-orange-700 dark:text-orange-300'
-                  }`}>
-                    Profile Completion
-                  </span>
-                  <span className={`font-medium ${
-                    profileStatus.isComplete 
-                      ? 'text-green-800 dark:text-green-200' 
-                      : 'text-orange-800 dark:text-orange-200'
-                  }`}>
-                    {profileStatus.completionPercentage}%
-                  </span>
-                </div>
-                <div className={`w-full rounded-full h-2 ${
-                  profileStatus.isComplete 
-                    ? 'bg-green-200 dark:bg-green-800/30' 
-                    : 'bg-orange-200 dark:bg-orange-800/30'
-                }`}>
-                  <div
-                    className={`h-2 rounded-full ${
-                      profileStatus.isComplete 
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
-                        : 'bg-gradient-to-r from-orange-500 to-amber-600'
-                    }`}
-                    style={{ width: `${profileStatus.completionPercentage}%` }}
-                  ></div>
-                </div>
-                {!profileStatus.isComplete && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full mt-3 border-orange-300 dark:border-orange-600 text-orange-700 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                    onClick={() => handleNavigation("profile")}
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Complete Profile
-                  </Button>
-                )}
-                <div className="flex justify-between text-sm">
-                  <span className={`${
-                    profileStatus.isComplete 
-                      ? 'text-green-700 dark:text-green-300' 
-                      : 'text-orange-700 dark:text-orange-300'
-                  }`}>
-                    Applications This Week
-                  </span>
-                  <span className={`font-medium ${
-                    profileStatus.isComplete 
-                      ? 'text-green-800 dark:text-green-200' 
-                      : 'text-orange-800 dark:text-orange-200'
-                  }`}>
-                    {stats.appliedJobs}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card> */}
-
           {/* Profile Card */}
           <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-sm">
             <CardContent className="p-6 text-center">
@@ -489,9 +431,7 @@ export default function JobSeekerDashboard() {
               <h3 className="font-semibold text-lg bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
                 {user?.name || "User"}
               </h3>
-              <p className="text-slate-500 dark:text-slate-400 mb-6">
-                Job Seeker
-              </p>
+              <div className="mb-6" />
 
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-4 mb-6">
@@ -563,6 +503,7 @@ export default function JobSeekerDashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+
       try {
         const token = await getAccessTokenSilently();
 
@@ -737,7 +678,14 @@ export default function JobSeekerDashboard() {
     };
 
     fetchDashboardData();
-  }, [getAccessTokenSilently]);
+  }, [getAccessTokenSilently, refreshTick]);
+
+  // Listen for application updates to refresh dashboard
+  useEffect(() => {
+    const handler = () => setRefreshTick((t) => t + 1);
+    window.addEventListener('applicationsUpdated', handler);
+    return () => window.removeEventListener('applicationsUpdated', handler);
+  }, []);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -878,9 +826,6 @@ export default function JobSeekerDashboard() {
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {user?.given_name || user?.name?.split(" ")[0] || "User"}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Job Seeker
-                  </p>
                 </div>
                 <Button
                   variant="ghost"
@@ -897,6 +842,19 @@ export default function JobSeekerDashboard() {
 
         {/* Dashboard Content */}
         <main className="flex-1 p-6 overflow-auto bg-slate-50/50 dark:bg-slate-900/50">
+          {activeView !== 'dashboard' && (
+            <div className="mb-4 flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleBack}
+                className="flex items-center gap-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
+              </Button>
+            </div>
+          )}
           {renderActiveView()}
         </main>
       </div>
