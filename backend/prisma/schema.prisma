@@ -94,6 +94,7 @@ model JobSeeker {
 
   Applications JobApplication[]
   AadhaarVault AadhaarVault?
+  SavedJobs    SavedJob[]
 }
 
 model AadhaarVault {
@@ -143,6 +144,7 @@ model JobPosting {
 
   Applications JobApplication[]
   Payment      PaymentTransaction?
+  SavedJobs    SavedJob[]
 }
 
 model JobApplication {
@@ -210,4 +212,15 @@ model ConsentRecord {
   grantedAt   DateTime  @default(now())
   revokedAt   DateTime?
   version     Int       @default(1)
+}
+
+model SavedJob {
+  id          String     @id @default(uuid())
+  jobSeeker   JobSeeker  @relation(fields: [jobSeekerId], references: [id])
+  jobSeekerId String
+  job         JobPosting @relation(fields: [jobId], references: [id])
+  jobId       String
+  savedAt     DateTime   @default(now())
+
+  @@unique([jobSeekerId, jobId])
 }

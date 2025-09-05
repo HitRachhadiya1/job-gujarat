@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import JobApplicationModal from '../components/JobApplicationModal';
 import Spinner from '../components/Spinner';
+import { savedJobsAPI } from '../api/savedJobs';
 
 const BrowseJobs = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -27,9 +28,12 @@ const BrowseJobs = () => {
   const [filterType, setFilterType] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  const [savedJobs, setSavedJobs] = useState(new Set());
+  const [savingJobs, setSavingJobs] = useState(new Set());
 
   useEffect(() => {
     fetchJobs();
+    checkSavedJobs();
   }, []);
 
   const fetchJobs = async () => {
@@ -71,6 +75,49 @@ const BrowseJobs = () => {
   const handleApplicationSubmitted = (application) => {
     alert(`Application submitted successfully for "${application.job.title}"!`);
     // Optionally refresh jobs or update UI to show applied status
+  };
+
+  const checkSavedJobs = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await savedJobsAPI.getSavedJobs(token);
+      const savedJobIds = new Set(response.savedJobs.map(savedJob => savedJob.job.id));
+      setSavedJobs(savedJobIds);
+    } catch (error) {
+      console.error('Error checking saved jobs:', error);
+    }
+  };
+
+  const handleSaveJob = async (jobId) => {
+    try {
+      setSavingJobs(prev => new Set([...prev, jobId]));
+      const token = await getAccessTokenSilently();
+      
+      if (savedJobs.has(jobId)) {
+        // Unsave the job
+        await savedJobsAPI.unsaveJob(jobId, token);
+        setSavedJobs(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(jobId);
+          return newSet;
+        });
+        alert('Job removed from saved jobs!');
+      } else {
+        // Save the job
+        await savedJobsAPI.saveJob(jobId, token);
+        setSavedJobs(prev => new Set([...prev, jobId]));
+        alert('Job saved successfully!');
+      }
+    } catch (error) {
+      console.error('Error saving/unsaving job:', error);
+      alert(error.message || 'Failed to save job');
+    } finally {
+      setSavingJobs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(jobId);
+        return newSet;
+      });
+    }
   };
 
   const filteredJobs = jobs.filter(job => {
@@ -222,9 +269,18 @@ const BrowseJobs = () => {
                       >
                         Apply Now
                       </Button>
-                      <Button variant="outline" className="flex items-center space-x-1">
-                        <Heart className="w-4 h-4" />
-                        <span>Save</span>
+                      <Button 
+                        variant="outline" 
+                        className={`flex items-center space-x-1 ${
+                          savedJobs.has(job.id) 
+                            ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' 
+                            : 'hover:bg-slate-50'
+                        }`}
+                        onClick={() => handleSaveJob(job.id)}
+                        disabled={savingJobs.has(job.id)}
+                      >
+                        <Heart className={`w-4 h-4 ${savedJobs.has(job.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                        <span>{savedJobs.has(job.id) ? 'Saved' : 'Save'}</span>
                       </Button>
                     </div>
                   </div>

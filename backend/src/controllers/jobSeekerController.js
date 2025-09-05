@@ -146,7 +146,9 @@ const getJobSeekerStatus = async (req, res) => {
       jobSeekerProfile.fullName &&
       jobSeekerProfile.location &&
       jobSeekerProfile.skills &&
-      jobSeekerProfile.skills.length > 0;
+      jobSeekerProfile.skills.length > 0 &&
+      jobSeekerProfile.phone &&
+      jobSeekerProfile.experienceYears !== null;
 
     res.json({
       hasProfile,

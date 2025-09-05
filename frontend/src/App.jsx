@@ -184,7 +184,7 @@ export default function JobPortalApp() {
     <Router>
       {/* Navbar for authenticated users */}
       <Navbar />
-      <div className="app-content pt-16">
+      <div className="app-content pt-0 m-0 p-0">
         <Routes>
           {/* Home Route - Role-based redirect */}
           <Route
