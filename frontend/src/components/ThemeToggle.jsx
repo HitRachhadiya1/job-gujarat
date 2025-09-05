@@ -11,7 +11,7 @@ const ThemeToggle = ({ variant = "outline", size = "sm", className = "" }) => {
       onClick={toggleTheme}
       variant={variant}
       size={size}
-      className={`border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 ${className}`}
+      className={`border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 hover:bg-stone-200/50 dark:hover:bg-stone-800/30 transition-all duration-200 ${className}`}
       title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
       {theme === 'light' ? (

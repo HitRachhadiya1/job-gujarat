@@ -134,40 +134,42 @@ const BrowseJobs = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
-      <div className="container mx-auto px-4 max-w-7xl">
+    <div className="min-h-screen bg-stone-200/50 dark:bg-stone-950/50 py-8">
+      <div className="container mx-auto px-6 max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center space-x-3">
-            <Briefcase className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        <div className="mb-10">
+          <h1 className="text-5xl font-bold text-stone-900 dark:text-stone-100 mb-4 flex items-center space-x-4 tracking-tight">
+            <div className="w-16 h-16 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl flex items-center justify-center shadow-lg">
+              <Briefcase className="w-8 h-8 text-stone-900 dark:text-stone-300" />
+            </div>
             <span>Browse Jobs</span>
           </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400">
+          <p className="text-xl text-stone-800 dark:text-stone-400 font-medium">
             Discover your next career opportunity
           </p>
         </div>
         
         {/* Search and Filter Section */}
-        <Card className="mb-6 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
-          <CardContent className="p-6">
-            <div className="space-y-4">
+        <Card className="mb-8 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+          <CardContent className="p-8">
+            <div className="space-y-6">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-600 dark:text-stone-400" />
                 <Input
                   type="text"
-                  className="pl-10 bg-white dark:bg-slate-800"
+                  className="pl-12 bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-4 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
                   placeholder="Search jobs by title, company, or keywords..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-600 dark:text-stone-400" />
                   <Input
                     type="text"
-                    className="pl-10 bg-white dark:bg-slate-800"
+                    className="pl-12 bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-4 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
                     placeholder="Location"
                     value={filterLocation}
                     onChange={(e) => setFilterLocation(e.target.value)}
@@ -175,9 +177,9 @@ const BrowseJobs = () => {
                 </div>
                 
                 <div className="relative">
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-600 dark:text-stone-400" />
                   <select
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-12 pr-4 py-4 border border-stone-400/50 dark:border-stone-700 rounded-xl bg-stone-50 dark:bg-stone-800/50 text-stone-900 dark:text-stone-100 font-medium focus:outline-none focus:ring-2 focus:ring-stone-600 focus:border-transparent transition-all duration-200"
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
                   >
@@ -194,8 +196,8 @@ const BrowseJobs = () => {
         </Card>
 
         {/* Results Summary */}
-        <div className="mb-6">
-          <p className="text-slate-600 dark:text-slate-400">
+        <div className="mb-8">
+          <p className="text-stone-800 dark:text-stone-400 font-medium text-lg">
             {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''} found
           </p>
         </div>
@@ -203,42 +205,42 @@ const BrowseJobs = () => {
         {/* Jobs List */}
         <div className="space-y-6">
           {filteredJobs.length === 0 ? (
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
-              <CardContent className="p-12 text-center">
-                <Briefcase className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+              <CardContent className="p-16 text-center">
+                <Briefcase className="w-20 h-20 text-stone-500 mx-auto mb-6" />
+                <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-4">
                   No jobs found
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400">
+                <p className="text-stone-800 dark:text-stone-400 text-lg font-medium">
                   Try adjusting your search criteria or check back later for new opportunities.
                 </p>
               </CardContent>
             </Card>
           ) : (
             filteredJobs.map((job) => (
-              <Card key={job.id} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
+              <Card key={job.id} className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 border-l-4 border-l-stone-600">
+                <CardContent className="p-8">
+                  <div className="flex justify-between items-start mb-6">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                      <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-3 tracking-tight">
                         {job.title}
                       </h3>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400 mb-3">
-                        <div className="flex items-center space-x-1">
-                          <Building2 className="w-4 h-4" />
-                          <span>{job.company?.name || 'Company'}</span>
+                      <div className="flex flex-wrap items-center gap-6 text-sm text-stone-700 dark:text-stone-400 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Building2 className="w-5 h-5" />
+                          <span className="font-medium">{job.company?.name || 'Company'}</span>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{job.location || 'Location not specified'}</span>
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="w-5 h-5" />
+                          <span className="font-medium">{job.location || 'Location not specified'}</span>
                         </div>
-                        <Badge variant="outline" className="text-xs">
-                          <Clock className="w-3 h-3 mr-1" />
+                        <Badge className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50 font-semibold px-3 py-1 rounded-xl">
+                          <Clock className="w-4 h-4 mr-2" />
                           {job.jobType || 'Not specified'}
                         </Badge>
                         {job.salaryRange && (
-                          <div className="flex items-center space-x-1 text-green-600 dark:text-green-400 font-semibold">
-                            <DollarSign className="w-4 h-4" />
+                          <div className="flex items-center space-x-2 text-stone-800 dark:text-stone-300 font-bold">
+                            <DollarSign className="w-5 h-5" />
                             <span>{job.salaryRange}</span>
                           </div>
                         )}
@@ -246,40 +248,40 @@ const BrowseJobs = () => {
                     </div>
                   </div>
                   
-                  <div className="mb-4">
-                    <p className="text-slate-700 dark:text-slate-300 line-clamp-3">
+                  <div className="mb-6">
+                    <p className="text-stone-800 dark:text-stone-300 font-medium line-clamp-3 text-base">
                       {job.description?.substring(0, 200)}...
                     </p>
                   </div>
 
                   {job.requirements && job.requirements.length > 0 && (
-                    <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-md">
-                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Requirements:</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <div className="mb-6 p-4 bg-stone-200/50 dark:bg-stone-800/30 rounded-xl">
+                      <p className="text-sm font-bold text-stone-900 dark:text-stone-200 mb-2">Requirements:</p>
+                      <p className="text-sm text-stone-800 dark:text-stone-400 font-medium">
                         {Array.isArray(job.requirements) ? job.requirements.join(', ').substring(0, 150) : job.requirements.substring(0, 150)}...
                       </p>
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex space-x-2">
+                  <div className="flex justify-between items-center pt-6 border-t border-stone-400/30 dark:border-stone-700">
+                    <div className="flex space-x-4">
                       <Button 
                         onClick={() => handleApplyClick(job)}
-                        className="bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white"
+                        className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
                       >
                         Apply Now
                       </Button>
                       <Button 
                         variant="outline" 
-                        className={`flex items-center space-x-1 ${
+                        className={`flex items-center space-x-2 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 ${
                           savedJobs.has(job.id) 
-                            ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' 
-                            : 'hover:bg-slate-50'
+                            ? 'bg-red-50 border-red-300 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:border-red-700 dark:text-red-400' 
+                            : 'border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 hover:bg-stone-200/50 dark:hover:bg-stone-800/30'
                         }`}
                         onClick={() => handleSaveJob(job.id)}
                         disabled={savingJobs.has(job.id)}
                       >
-                        <Heart className={`w-4 h-4 ${savedJobs.has(job.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                        <Heart className={`w-5 h-5 ${savedJobs.has(job.id) ? 'fill-red-500 text-red-500' : ''}`} />
                         <span>{savedJobs.has(job.id) ? 'Saved' : 'Save'}</span>
                       </Button>
                     </div>
