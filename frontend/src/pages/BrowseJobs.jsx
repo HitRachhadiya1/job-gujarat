@@ -134,157 +134,135 @@ const BrowseJobs = () => {
   }
 
   return (
-    <div className="min-h-screen bg-stone-200/50 dark:bg-stone-950/50 py-8">
-      <div className="container mx-auto px-6 max-w-7xl">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-5xl font-bold text-stone-900 dark:text-stone-100 mb-4 flex items-center space-x-4 tracking-tight">
-            <div className="w-16 h-16 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl flex items-center justify-center shadow-lg">
-              <Briefcase className="w-8 h-8 text-stone-900 dark:text-stone-300" />
-            </div>
-            <span>Browse Jobs</span>
-          </h1>
-          <p className="text-xl text-stone-800 dark:text-stone-400 font-medium">
+    <div className="min-h-screen bg-transparent py-6">
+      <div className="container mx-auto px-4 max-w-none">
+        {/* Compact Header */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-3">
+            <Briefcase className="w-7 h-7 text-stone-700 dark:text-stone-300" />
+            <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
+              Browse Jobs
+            </h1>
+          </div>
+          <p className="text-lg text-stone-700 dark:text-stone-400 font-medium ml-10">
             Discover your next career opportunity
           </p>
         </div>
         
-        {/* Search and Filter Section */}
-        <Card className="mb-8 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
-          <CardContent className="p-8">
-            <div className="space-y-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-600 dark:text-stone-400" />
-                <Input
-                  type="text"
-                  className="pl-12 bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-4 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
-                  placeholder="Search jobs by title, company, or keywords..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-600 dark:text-stone-400" />
-                  <Input
-                    type="text"
-                    className="pl-12 bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-4 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
-                    placeholder="Location"
-                    value={filterLocation}
-                    onChange={(e) => setFilterLocation(e.target.value)}
-                  />
-                </div>
-                
-                <div className="relative">
-                  <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-stone-600 dark:text-stone-400" />
-                  <select
-                    className="w-full pl-12 pr-4 py-4 border border-stone-400/50 dark:border-stone-700 rounded-xl bg-stone-50 dark:bg-stone-800/50 text-stone-900 dark:text-stone-100 font-medium focus:outline-none focus:ring-2 focus:ring-stone-600 focus:border-transparent transition-all duration-200"
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                  >
-                    <option value="">All Job Types</option>
-                    <option value="FULL_TIME">Full Time</option>
-                    <option value="PART_TIME">Part Time</option>
-                    <option value="CONTRACT">Contract</option>
-                    <option value="INTERNSHIP">Internship</option>
-                  </select>
-                </div>
-              </div>
+        {/* Compact Search and Filter Section */}
+        <div className="mb-6 bg-transparent rounded-none border-0 shadow-none p-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="relative lg:col-span-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-500" />
+              <Input
+                type="text"
+                className="pl-10 h-10 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg shadow-sm focus:ring-2 focus:ring-stone-500 focus:border-stone-500"
+                placeholder="Search jobs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          </CardContent>
-        </Card>
+            
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-500" />
+              <Input
+                type="text"
+                className="pl-10 h-10 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg shadow-sm focus:ring-2 focus:ring-stone-500 focus:border-stone-500"
+                placeholder="Location"
+                value={filterLocation}
+                onChange={(e) => setFilterLocation(e.target.value)}
+              />
+            </div>
+            
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-500" />
+              <select
+                className="w-full pl-10 pr-4 h-10 border border-stone-300 dark:border-stone-700 rounded-lg bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-500 shadow-sm"
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+              >
+                <option value="">All Types</option>
+                <option value="FULL_TIME">Full Time</option>
+                <option value="PART_TIME">Part Time</option>
+                <option value="CONTRACT">Contract</option>
+                <option value="INTERNSHIP">Internship</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
         {/* Results Summary */}
-        <div className="mb-8">
-          <p className="text-stone-800 dark:text-stone-400 font-medium text-lg">
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-stone-700 dark:text-stone-400 font-medium">
             {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''} found
           </p>
         </div>
 
-        {/* Jobs List */}
-        <div className="space-y-6">
+        {/* Jobs Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filteredJobs.length === 0 ? (
-            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
-              <CardContent className="p-16 text-center">
-                <Briefcase className="w-20 h-20 text-stone-500 mx-auto mb-6" />
-                <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-4">
-                  No jobs found
-                </h3>
-                <p className="text-stone-800 dark:text-stone-400 text-lg font-medium">
-                  Try adjusting your search criteria or check back later for new opportunities.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="lg:col-span-2 bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-12 text-center">
+              <Briefcase className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
+                No jobs found
+              </h3>
+              <p className="text-stone-600 dark:text-stone-400">
+                Try adjusting your search criteria or check back later for new opportunities.
+              </p>
+            </div>
           ) : (
             filteredJobs.map((job) => (
-              <Card key={job.id} className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 border-l-4 border-l-stone-600">
-                <CardContent className="p-8">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-3 tracking-tight">
-                        {job.title}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-6 text-sm text-stone-700 dark:text-stone-400 mb-4">
-                        <div className="flex items-center space-x-2">
-                          <Building2 className="w-5 h-5" />
-                          <span className="font-medium">{job.company?.name || 'Company'}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <MapPin className="w-5 h-5" />
-                          <span className="font-medium">{job.location || 'Location not specified'}</span>
-                        </div>
-                        <Badge className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50 font-semibold px-3 py-1 rounded-xl">
-                          <Clock className="w-4 h-4 mr-2" />
-                          {job.jobType || 'Not specified'}
+              <Card key={job.id} className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 h-fit">
+                <CardContent className="p-5">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2 line-clamp-2">
+                      {job.title}
+                    </h3>
+                    <div className="flex items-center text-sm text-stone-600 dark:text-stone-400 mb-3">
+                      <Building2 className="w-4 h-4 mr-1" />
+                      <span className="mr-4">{job.company?.name || 'Company'}</span>
+                      <MapPin className="w-4 h-4 mr-1" />
+                      <span>{job.location || 'Remote'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge variant="secondary" className="text-xs px-2 py-1">
+                        {job.jobType || 'Full Time'}
+                      </Badge>
+                      {job.salaryRange && (
+                        <Badge variant="outline" className="text-xs px-2 py-1 text-green-700 border-green-300">
+                          {job.salaryRange}
                         </Badge>
-                        {job.salaryRange && (
-                          <div className="flex items-center space-x-2 text-stone-800 dark:text-stone-300 font-bold">
-                            <DollarSign className="w-5 h-5" />
-                            <span>{job.salaryRange}</span>
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                   
-                  <div className="mb-6">
-                    <p className="text-stone-800 dark:text-stone-300 font-medium line-clamp-3 text-base">
-                      {job.description?.substring(0, 200)}...
+                  <div className="mb-4">
+                    <p className="text-sm text-stone-700 dark:text-stone-300 line-clamp-3">
+                      {job.description?.substring(0, 120)}...
                     </p>
                   </div>
 
-                  {job.requirements && job.requirements.length > 0 && (
-                    <div className="mb-6 p-4 bg-stone-200/50 dark:bg-stone-800/30 rounded-xl">
-                      <p className="text-sm font-bold text-stone-900 dark:text-stone-200 mb-2">Requirements:</p>
-                      <p className="text-sm text-stone-800 dark:text-stone-400 font-medium">
-                        {Array.isArray(job.requirements) ? job.requirements.join(', ').substring(0, 150) : job.requirements.substring(0, 150)}...
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center pt-6 border-t border-stone-400/30 dark:border-stone-700">
-                    <div className="flex space-x-4">
-                      <Button 
-                        onClick={() => handleApplyClick(job)}
-                        className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                      >
-                        Apply Now
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className={`flex items-center space-x-2 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 ${
-                          savedJobs.has(job.id) 
-                            ? 'bg-red-50 border-red-300 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:border-red-700 dark:text-red-400' 
-                            : 'border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 hover:bg-stone-200/50 dark:hover:bg-stone-800/30'
-                        }`}
-                        onClick={() => handleSaveJob(job.id)}
-                        disabled={savingJobs.has(job.id)}
-                      >
-                        <Heart className={`w-5 h-5 ${savedJobs.has(job.id) ? 'fill-red-500 text-red-500' : ''}`} />
-                        <span>{savedJobs.has(job.id) ? 'Saved' : 'Save'}</span>
-                      </Button>
-                    </div>
+                  <div className="flex gap-2 pt-3 border-t border-stone-200 dark:border-stone-700">
+                    <Button 
+                      onClick={() => handleApplyClick(job)}
+                      size="sm"
+                      className="flex-1 bg-stone-900 hover:bg-stone-800 text-white h-8 text-xs"
+                    >
+                      Apply
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className={`px-3 h-8 ${
+                        savedJobs.has(job.id) 
+                          ? 'text-red-600 border-red-300 hover:bg-red-50' 
+                          : 'text-stone-600 border-stone-300 hover:bg-stone-50'
+                      }`}
+                      onClick={() => handleSaveJob(job.id)}
+                      disabled={savingJobs.has(job.id)}
+                    >
+                      <Heart className={`w-4 h-4 ${savedJobs.has(job.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

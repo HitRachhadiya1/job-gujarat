@@ -128,8 +128,8 @@ const Navbar = () => {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
-            {/* User Info */}
-            <div className="hidden md:flex items-center space-x-3">
+            {/* User Avatar Only */}
+            <div className="hidden md:flex items-center">
               {user?.picture && (
                 <img
                   src={user.picture}
@@ -137,16 +137,6 @@ const Navbar = () => {
                   className="w-8 h-8 rounded-full border-2 border-stone-400 dark:border-stone-600"
                 />
               )}
-              <div className="text-right">
-                <div className="text-sm font-medium text-stone-900 dark:text-stone-100 tracking-tight">
-                  {user?.name?.split(" ")[0] || "User"}
-                </div>
-                {role && (
-                  <Badge variant="secondary" className="text-xs bg-stone-200 text-stone-800 dark:bg-stone-800 dark:text-stone-200">
-                    {role.replace("_", " ")}
-                  </Badge>
-                )}
-              </div>
             </div>
 
             {/* Theme Toggle */}
@@ -184,7 +174,7 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-stone-100/95 dark:bg-stone-900/95 backdrop-blur-sm border-t border-stone-400 dark:border-stone-700">
           <div className="container mx-auto px-4 py-4 space-y-2">
-            {/* User Info Mobile */}
+            {/* Mobile Header */}
             <div className="flex items-center justify-between pb-4 border-b border-stone-400 dark:border-stone-700">
               <div className="flex items-center space-x-3">
                 {user?.picture && (
@@ -194,16 +184,6 @@ const Navbar = () => {
                     className="w-10 h-10 rounded-full border-2 border-stone-400 dark:border-stone-600"
                   />
                 )}
-                <div>
-                  <div className="text-sm font-medium text-stone-900 dark:text-stone-100 tracking-tight">
-                    {user?.name || "User"}
-                  </div>
-                  {role && (
-                    <Badge variant="secondary" className="text-xs bg-stone-200 text-stone-800 dark:bg-stone-800 dark:text-stone-200">
-                      {role.replace("_", " ")}
-                    </Badge>
-                  )}
-                </div>
               </div>
               <ThemeToggle />
             </div>

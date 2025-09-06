@@ -43,7 +43,6 @@ import {
   Eye,
   Menu,
   X,
-  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Sun,
@@ -111,19 +110,6 @@ export default function JobSeekerDashboard() {
     });
   }, [activeView]);
 
-  const handleBack = () => {
-    setViewHistory((hist) => {
-      if (hist.length > 1) {
-        const newHist = hist.slice(0, -1);
-        const prev = newHist[newHist.length - 1] || "dashboard";
-        setActiveView(prev);
-        return newHist;
-      }
-      // Fallback to dashboard if no history
-      setActiveView("dashboard");
-      return ["dashboard"];
-    });
-  };
 
   // Render the active view component
   const renderActiveView = () => {
@@ -716,24 +702,20 @@ export default function JobSeekerDashboard() {
     <div className="h-screen bg-stone-300 dark:bg-stone-950 flex transition-colors duration-500 overflow-hidden m-0 p-0">
       {/* Sidebar */}
       <div
-        className={`${
-          sidebarCollapsed ? "w-16" : "w-64"
-        } bg-stone-800 dark:bg-stone-900/90 border-r border-stone-700 dark:border-stone-800/60 shadow-xl transition-all duration-200 flex flex-col h-full overflow-hidden backdrop-blur-md`}
+        className={`${sidebarCollapsed ? "w-16" : "w-64"} bg-stone-800/95 dark:bg-stone-900/95 backdrop-blur-md border-r border-stone-700 dark:border-stone-800/60 shadow-xl flex flex-col transition-all duration-500 ease-out relative transform`}
       >
-        {/* Logo */}
-        <div className="p-6 border-b border-stone-700 dark:border-stone-800/60">
-          <div className="flex items-center space-x-4 cursor-pointer group">
-            <div className="w-12 h-12 bg-gradient-to-br from-stone-100 to-stone-50 dark:from-stone-200 dark:to-stone-100 rounded-3xl flex items-center justify-center shadow-xl border border-stone-200/20 group-hover:scale-105 transition-transform duration-200">
-              <Briefcase className="w-6 h-6 text-stone-800 dark:text-stone-800" />
+        {/* Logo/Brand - Match Navbar Style */}
+        <div className="py-5 px-6 border-b border-stone-700 dark:border-stone-800/60">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-stone-900 dark:bg-stone-700 rounded-lg flex items-center justify-center shadow-lg">
+              <Briefcase className="w-5 h-5 text-white" />
             </div>
             {!sidebarCollapsed && (
               <div>
-                <h1 className="text-xl font-bold text-stone-100 dark:text-stone-100 tracking-tight">
+                <h2 className="text-xl font-bold text-stone-100 dark:text-stone-100 tracking-tight">
                   Job Gujarat
-                </h1>
-                <p className="text-sm text-stone-300 dark:text-stone-400 font-medium tracking-wide">
-                  Elite Career Solutions
-                </p>
+                </h2>
+                
               </div>
             )}
           </div>
@@ -743,14 +725,15 @@ export default function JobSeekerDashboard() {
             variant="ghost"
             size="sm"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="absolute top-6 right-2 text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 rounded-xl p-2 transition-all duration-200"
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-stone-900 dark:bg-stone-700 border border-stone-600 dark:border-stone-600 text-white hover:text-white hover:bg-stone-800 dark:hover:bg-stone-600 rounded-full p-2 transition-all duration-300 shadow-xl z-20"
           >
             {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </Button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-hidden">
+        <nav className="flex-1 p-3 space-y-1 overflow-hidden">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -759,18 +742,18 @@ export default function JobSeekerDashboard() {
                 variant="ghost"
                 className={`w-full ${
                   sidebarCollapsed
-                    ? "justify-center px-3"
-                    : "justify-start px-4"
-                } py-3 text-left transition-all duration-200 rounded-xl font-semibold ${
+                    ? "justify-center px-2 h-12"
+                    : "justify-start px-3 h-11"
+                } text-left transition-all duration-300 ease-out rounded-lg font-medium group ${
                   activeView === item.id
-                    ? "bg-stone-100/20 text-stone-100 shadow-lg border border-stone-600/30 hover:bg-stone-100/30"
-                    : "text-stone-300 hover:text-stone-100 hover:bg-stone-700/50"
+                    ? "bg-stone-100/20 text-stone-100 shadow-md border border-stone-600/30 hover:bg-stone-100/30"
+                    : "text-stone-300 hover:text-stone-100 hover:bg-stone-700/40"
                 }`}
                 onClick={() => handleNavigation(item.id)}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4'} transition-all duration-300`} />
                 {!sidebarCollapsed && (
-                  <span className="text-sm font-semibold ml-3">{item.label}</span>
+                  <span className="text-sm font-medium ml-3 transition-all duration-300">{item.label}</span>
                 )}
               </Button>
             );
@@ -778,17 +761,17 @@ export default function JobSeekerDashboard() {
         </nav>
         
         {/* Logout Button */}
-        <div className="p-4 border-t border-stone-700 dark:border-stone-800/60">
+        <div className="p-3 border-t border-stone-700 dark:border-stone-800/60">
           <Button
             variant="ghost"
             onClick={handleLogout}
             className={`w-full ${
-              sidebarCollapsed ? "justify-center px-3" : "justify-start px-4"
-            } py-3 text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 transition-all duration-200 rounded-xl font-semibold`}
+              sidebarCollapsed ? "justify-center px-2 h-12" : "justify-start px-3 h-11"
+            } text-stone-300 hover:text-red-400 hover:bg-red-900/20 transition-all duration-300 rounded-lg font-medium group`}
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4'} transition-all duration-300`} />
             {!sidebarCollapsed && (
-              <span className="text-sm font-semibold ml-3">Logout</span>
+              <span className="text-sm font-medium ml-3 transition-all duration-300">Logout</span>
             )}
           </Button>
         </div>
@@ -797,19 +780,9 @@ export default function JobSeekerDashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-stone-800/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-700 dark:border-stone-800/60 shadow-lg">
-          <div className="flex items-center justify-between px-8 py-5">
+        <header className="bg-gradient-to-r from-stone-600/95 to-stone-700/95 dark:from-stone-800/95 dark:to-stone-900/95 backdrop-blur-md border-b border-stone-500/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
+          <div className="flex items-center justify-between px-8 py-4">
             <div className="flex items-center space-x-6">
-              {activeView !== "dashboard" && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBack}
-                  className="text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 rounded-xl p-2 transition-all duration-200"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-              )}
               <h2 className="text-2xl font-bold text-stone-100 dark:text-stone-100 tracking-tight">
                 {`Welcome, ${
                   user?.given_name || user?.name?.split(" ")[0] || "User"
@@ -817,67 +790,26 @@ export default function JobSeekerDashboard() {
               </h2>
             </div>
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="relative text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 rounded-xl p-3 transition-all duration-200"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-stone-400 rounded-full"></span>
-              </Button>
-
+              {/* User Profile Photo */}
+              <img
+                src={
+                  user?.picture ||
+                  "https://via.placeholder.com/40/78716c/FFFFFF?text=U"
+                }
+                alt="Profile"
+                className="w-10 h-10 rounded-full border-2 border-stone-400 dark:border-stone-500 shadow-md"
+              />
+              
               {/* Theme Toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-stone-300 hover:text-stone-100 hover:bg-stone-700/50 rounded-xl p-3 transition-all duration-200"
-              >
-                <Sun className="w-5 h-5" />
-              </Button>
-
-              {/* User Profile */}
-              <div className="flex items-center space-x-3 pl-4 border-l border-stone-700 dark:border-stone-800/60">
-                <img
-                  src={
-                    user?.picture ||
-                    "https://via.placeholder.com/40/78716c/FFFFFF?text=U"
-                  }
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full border-2 border-stone-600 shadow-md"
-                />
-                <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                    {user?.given_name || user?.name?.split(" ")[0] || "User"}
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
+              <div className="bg-stone-500/20 dark:bg-stone-700/30 rounded-lg p-1 border border-stone-400/30 dark:border-stone-600/30">
+                <ThemeToggle />
               </div>
             </div>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-stone-200/50 dark:bg-stone-950/50 p-8">
-          {activeView !== 'dashboard' && (
-            <div className="mb-4 flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleBack}
-                className="flex items-center gap-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back</span>
-              </Button>
-            </div>
-          )}
+        <main className="flex-1 overflow-y-auto bg-transparent p-8">
           {renderActiveView()}
         </main>
       </div>

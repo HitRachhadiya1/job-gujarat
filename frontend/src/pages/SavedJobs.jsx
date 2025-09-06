@@ -91,17 +91,17 @@ const SavedJobs = () => {
   }
 
   return (
-    <div className="min-h-screen bg-stone-200/50 dark:bg-stone-950/50 py-8">
-      <div className="container mx-auto px-6 max-w-7xl">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-5xl font-bold text-stone-900 dark:text-stone-100 mb-4 flex items-center space-x-4 tracking-tight">
-            <div className="w-16 h-16 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl flex items-center justify-center shadow-lg">
-              <Heart className="w-8 h-8 text-red-500 fill-red-500" />
-            </div>
-            <span>Saved Jobs</span>
-          </h1>
-          <p className="text-xl text-stone-800 dark:text-stone-400 font-medium">
+    <div className="min-h-screen bg-transparent py-6">
+      <div className="container mx-auto px-4 max-w-6xl">
+        {/* Compact Header */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-3">
+            <Heart className="w-7 h-7 text-red-500 fill-red-500" />
+            <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
+              Saved Jobs
+            </h1>
+          </div>
+          <p className="text-lg text-stone-700 dark:text-stone-400 font-medium ml-10">
             Your bookmarked job opportunities
           </p>
         </div>
