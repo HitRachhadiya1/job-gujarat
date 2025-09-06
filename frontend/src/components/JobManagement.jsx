@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ import { Loader2, Plus, Edit2, Trash2, MapPin, DollarSign, Calendar, Users } fro
 import { toast } from "sonner";
 
 const JobManagement = () => {
+  const navigate = useNavigate();
   const { getAccessTokenSilently } = useAuth0();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,30 +122,37 @@ const JobManagement = () => {
     }
 
     try {
-      const token = await getAccessTokenSilently();
-      const url = editingJob
-        ? `http://localhost:5000/api/job-postings/${editingJob.id}`
-        : "http://localhost:5000/api/job-postings";
+      if (editingJob) {
+        // Update existing job on server
+        const token = await getAccessTokenSilently();
+        const url = `http://localhost:5000/api/job-postings/${editingJob.id}`;
+        const response = await fetch(url, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        });
 
-      const method = editingJob ? "PUT" : "POST";
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to save job");
+        }
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save job");
+        await fetchJobs();
+        resetForm();
+        toast.success("Job updated successfully!");
+      } else {
+        // Create flow: do NOT post job yet. Go to payment first.
+        toast.message("Proceed to payment to publish your job.");
+        setShowAddForm(false);
+        navigate("/job-posting-payment", {
+          state: {
+            jobData: { ...formData },
+          },
+        });
       }
-
-      await fetchJobs();
-      resetForm();
-      toast.success(editingJob ? "Job updated successfully!" : "Job created successfully!");
     } catch (error) {
       console.error("Error saving job:", error);
       toast.error(error.message);

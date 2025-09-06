@@ -39,6 +39,7 @@ import MyApplications from "./pages/MyApplications";
 import Profile from "./pages/Profile";
 import CompanySettings from "./pages/CompanySettings";
 import CompanyApplications from "./pages/CompanyApplications";
+import JobPostingPayment from "./pages/JobPostingPayment";
 import { useAuthMeta } from "./context/AuthMetaContext";
 import Spinner from "./components/Spinner";
 import UnknownRole from "./components/UnknownRole";
@@ -252,6 +253,15 @@ export default function JobPortalApp() {
             element={
               <ProtectedRoute roles={["COMPANY"]}>
                 <CompanySettings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/job-posting-payment"
+            element={
+              <ProtectedRoute roles={["COMPANY"]}>
+                <JobPostingPayment />
               </ProtectedRoute>
             }
           />

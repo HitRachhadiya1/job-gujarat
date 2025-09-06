@@ -7,6 +7,7 @@ const { getManagementToken } = require("./services/auth0Service");
 const jobPostingRoutes = require("./routes/jobPostingRoutes");
 const companyRoutes = require("./routes/companyRoutes");
 const jobApplicationRoutes = require("./routes/jobApplicationRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 const jobSeekerRoutes = require("./routes/jobSeekerRoutes");
 const savedJobRoutes = require("./routes/savedJobRoutes");
 
@@ -23,6 +24,7 @@ app.use("/api/company", companyRoutes);
 app.use("/api/applications", jobApplicationRoutes);
 app.use("/api/job-seeker", jobSeekerRoutes);
 app.use("/api/saved-jobs", savedJobRoutes);
+app.use("/api/payment", paymentRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
