@@ -338,35 +338,37 @@ export default function JobPortalApp() {
 // Role Selection Component (extracted from the original landing page logic)
 function RoleSelection({ onRoleSelected, onBackToLanding }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300 dark:from-stone-900 dark:via-stone-900 dark:to-stone-950 relative overflow-hidden transition-colors duration-300">
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-blue-100/30 to-slate-200/30 dark:from-blue-900/20 dark:to-slate-700/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-slate-100/30 to-blue-200/30 dark:from-slate-800/20 dark:to-blue-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-stone-200/30 to-stone-300/30 dark:from-stone-800/20 dark:to-stone-700/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-stone-200/30 to-stone-300/30 dark:from-stone-800/20 dark:to-stone-900/20 rounded-full blur-3xl"></div>
       </div>
 
       {/* Header */}
-      <header className="relative z-10 backdrop-blur-sm bg-white/90 dark:bg-slate-900/90 border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm transition-colors duration-300">
+      <header className="relative z-10 backdrop-blur-sm bg-stone-100/90 dark:bg-stone-900/90 border-b border-stone-300/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-colors duration-300">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-slate-700 dark:from-blue-500 dark:to-slate-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-stone-900 dark:bg-stone-700 rounded-xl flex items-center justify-center shadow-lg">
                 <Briefcase className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold text-stone-800 dark:text-stone-200">
                   Job Gujarat
                 </h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
+                <p className="text-xs text-stone-600 dark:text-stone-400">
                   Connecting you to What's Next
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <ThemeToggle />
+              <div className="bg-stone-200/60 dark:bg-stone-700/40 rounded-lg p-1 border border-stone-300/60 dark:border-stone-700/60">
+                <ThemeToggle />
+              </div>
               <Button
                 onClick={onBackToLanding}
                 variant="outline"
-                className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 bg-transparent"
+                className="border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-800 bg-transparent"
               >
                 Back to Home
               </Button>
@@ -378,28 +380,28 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
       {/* Role Selection Section */}
       <section className="relative z-10 container mx-auto px-4 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-700 to-blue-700 dark:from-slate-200 dark:to-blue-400 mb-6">
+          <h2 className="text-5xl font-bold text-stone-800 dark:text-stone-200 mb-6">
             Choose Your Role
           </h2>
-          <p className="text-xl text-slate-700 dark:text-slate-300 max-w-2xl mx-auto">
+          <p className="text-xl text-stone-700 dark:text-stone-300 max-w-2xl mx-auto">
             Select your role to access the appropriate dashboard and features
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Job Seeker Card */}
-          <div className="group transform transition-all duration-300 hover:scale-105">
-            <Card className="relative overflow-hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-slate-600"></div>
+          <div className="group transform transition-all duration-300 hover:scale-[1.02]">
+            <Card className="relative overflow-hidden bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-stone-700 to-stone-500"></div>
 
               <CardHeader className="text-center pb-6 relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-slate-600 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
+                <div className="w-16 h-16 bg-stone-900 dark:bg-stone-700 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
                   <Users className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">
+                <CardTitle className="text-2xl font-bold text-stone-800 dark:text-stone-200 mb-3">
                   Job Seeker
                 </CardTitle>
-                <CardDescription className="text-slate-600 dark:text-slate-400 text-base">
+                <CardDescription className="text-stone-600 dark:text-stone-400 text-base">
                   Discover your next career opportunity with intelligent
                   matching
                 </CardDescription>
@@ -414,8 +416,8 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
                     "Career development tools",
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-slate-600 rounded-full"></div>
-                      <span className="text-slate-700 dark:text-slate-300 text-sm">
+                      <div className="w-2 h-2 bg-stone-700 rounded-full"></div>
+                      <span className="text-stone-700 dark:text-stone-300 text-sm">
                         {feature}
                       </span>
                     </div>
@@ -424,7 +426,7 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
 
                 <Button
                   onClick={() => onRoleSelected("JOB_SEEKER")}
-                  className="w-full bg-gradient-to-r from-blue-500 to-slate-600 hover:from-blue-600 hover:to-slate-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-stone-700 to-stone-600 hover:from-stone-800 hover:to-stone-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300"
                 >
                   <span className="mr-2">Start Your Journey</span>
                   <ArrowRight className="w-4 h-4" />
@@ -434,18 +436,18 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
           </div>
 
           {/* Company Card */}
-          <div className="group transform transition-all duration-300 hover:scale-105">
-            <Card className="relative overflow-hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-600 to-blue-500"></div>
+          <div className="group transform transition-all duration-300 hover:scale-[1.02]">
+            <Card className="relative overflow-hidden bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-stone-700 to-stone-500"></div>
 
               <CardHeader className="text-center pb-6 relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-r from-slate-600 to-blue-500 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
+                <div className="w-16 h-16 bg-stone-900 dark:bg-stone-700 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
                   <Building2 className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-3">
+                <CardTitle className="text-2xl font-bold text-stone-800 dark:text-stone-200 mb-3">
                   Company
                 </CardTitle>
-                <CardDescription className="text-slate-600 dark:text-slate-400 text-base">
+                <CardDescription className="text-stone-600 dark:text-stone-400 text-base">
                   Build exceptional teams with advanced recruitment tools
                 </CardDescription>
               </CardHeader>
@@ -459,8 +461,8 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
                     "Employer branding tools",
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-gradient-to-r from-slate-600 to-blue-500 rounded-full"></div>
-                      <span className="text-slate-700 dark:text-slate-300 text-sm">
+                      <div className="w-2 h-2 bg-stone-700 rounded-full"></div>
+                      <span className="text-stone-700 dark:text-stone-300 text-sm">
                         {feature}
                       </span>
                     </div>
@@ -469,7 +471,7 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
 
                 <Button
                   onClick={() => onRoleSelected("COMPANY")}
-                  className="w-full bg-gradient-to-r from-slate-600 to-blue-500 hover:from-slate-700 hover:to-blue-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-stone-700 to-stone-600 hover:from-stone-800 hover:to-stone-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300"
                 >
                   <span className="mr-2">Find Top Talent</span>
                   <ArrowRight className="w-4 h-4" />

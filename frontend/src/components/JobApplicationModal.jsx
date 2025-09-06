@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,17 +11,6 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
   const [coverLetter, setCoverLetter] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const MAX_CHARS = 1000;
-
-  // Close on ESC
-  useEffect(() => {
-    if (!isOpen) return;
-    const handler = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [isOpen, onClose]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,20 +51,11 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={(e) => {
-        // click-outside to close (ignore clicks inside the card)
-        if (e.target === e.currentTarget) onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="apply-modal-title"
-    >
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/40">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden bg-white dark:bg-slate-900">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-slate-200 dark:border-slate-700">
           <div>
-            <CardTitle id="apply-modal-title" className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
               Apply for {job.title}
             </CardTitle>
             <CardDescription className="text-slate-600 dark:text-slate-400">
@@ -130,20 +110,14 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
               </label>
               <textarea
                 id="coverLetter"
-                className="w-full min-h-[140px] p-3 border border-slate-300 dark:border-slate-600 rounded-lg resize-vertical text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                className="w-full min-h-[120px] p-3 border border-slate-300 dark:border-slate-600 rounded-md resize-vertical text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Write a brief cover letter explaining why you're interested in this position and what makes you a good fit..."
                 value={coverLetter}
-                onChange={(e) => setCoverLetter(e.target.value.slice(0, MAX_CHARS))}
-                maxLength={MAX_CHARS}
+                onChange={(e) => setCoverLetter(e.target.value)}
               />
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  This will help your application stand out to the employer.
-                </p>
-                <span className={`text-xs ${coverLetter.length > MAX_CHARS - 50 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`}>
-                  {coverLetter.length}/{MAX_CHARS}
-                </span>
-              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                This will help your application stand out to the employer.
+              </p>
             </div>
 
             {error && (
@@ -152,7 +126,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
               </div>
             )}
 
-            <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700 sticky bottom-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm py-4">
+            <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
               <Button
                 type="button"
                 variant="outline"
@@ -165,7 +139,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-sm"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Application'}
               </Button>
