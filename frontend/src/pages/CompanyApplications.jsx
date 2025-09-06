@@ -101,35 +101,44 @@ const CompanyApplications = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'APPLIED': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'INTERVIEW': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
-      case 'HIRED': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
-      case 'REJECTED': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+      case 'APPLIED': return 'bg-stone-200/80 text-stone-800 dark:bg-stone-800/50 dark:text-stone-300';
+      case 'INTERVIEW': return 'bg-stone-300/80 text-stone-800 dark:bg-stone-700/50 dark:text-stone-300';
+      case 'HIRED': return 'bg-stone-200/80 text-stone-900 dark:bg-stone-800/50 dark:text-stone-200';
+      case 'REJECTED': return 'bg-stone-300/80 text-stone-700 dark:bg-stone-700/50 dark:text-stone-400';
+      default: return 'bg-stone-200/80 text-stone-800 dark:bg-stone-800/50 dark:text-stone-300';
     }
   };
 
-  if (loading) return <Spinner />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-400 border-t-stone-700 dark:border-stone-600 dark:border-t-stone-200"></div>
+          <p className="text-stone-600 dark:text-stone-300 font-medium">Loading applications...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 py-8 transition-colors duration-500">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2 flex items-center gap-3">
-            <Users className="w-8 h-8 text-purple-600" />
+          <h1 className="text-4xl font-bold text-stone-900 dark:text-stone-100 mb-2 flex items-center gap-3 tracking-tight">
+            <Users className="w-8 h-8 text-stone-800 dark:text-stone-300" />
             <span>Applications for Your Jobs</span>
           </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400">Review and manage candidates who applied to your postings</p>
+          <p className="text-lg text-stone-700 dark:text-stone-400 font-medium">Review and manage candidates who applied to your postings</p>
         </div>
 
-        <Card className="mb-6 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
+        <Card className="mb-6 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <Filter className="w-5 h-5 text-slate-500" />
-              <label htmlFor="statusFilter" className="text-sm font-medium text-slate-700 dark:text-slate-300">Filter by Status:</label>
+              <Filter className="w-5 h-5 text-stone-600 dark:text-stone-400" />
+              <label htmlFor="statusFilter" className="text-sm font-medium text-stone-700 dark:text-stone-300">Filter by Status:</label>
               <select
                 id="statusFilter"
-                className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="px-3 py-2 border border-stone-400/70 dark:border-stone-700 rounded-md bg-stone-50 dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-600 focus:border-transparent"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
               >
@@ -139,7 +148,7 @@ const CompanyApplications = () => {
                 <option value="HIRED">Hired</option>
                 <option value="REJECTED">Rejected</option>
               </select>
-              <div className="ml-auto text-slate-600 dark:text-slate-400">
+              <div className="ml-auto text-stone-700 dark:text-stone-400 font-medium">
                 {pagination.total || 0} total
               </div>
             </div>
@@ -147,24 +156,24 @@ const CompanyApplications = () => {
         </Card>
 
         {applications.length === 0 ? (
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
+          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
             <CardContent className="p-12 text-center">
-              <Users className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">No applications</h3>
-              <p className="text-slate-600 dark:text-slate-400">No candidates found for the selected filter.</p>
+              <Users className="w-16 h-16 text-stone-500 dark:text-stone-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">No applications</h3>
+              <p className="text-stone-700 dark:text-stone-400 font-medium">No candidates found for the selected filter.</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             {applications.map((app) => (
-              <Card key={app.id} className="bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300">
+              <Card key={app.id} className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 hover:shadow-xl transition-all duration-200 shadow-lg">
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
-                      <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                      <div className="text-lg font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
                         {app.job?.title}
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400 mt-1">
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-stone-700 dark:text-stone-400 mt-1 font-medium">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-4 h-4" />
                           <span>{app.job?.location}</span>
@@ -187,17 +196,17 @@ const CompanyApplications = () => {
                           value={app.status}
                           onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
                           disabled={updatingStatus[app.id]}
-                          className="appearance-none bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-md px-3 py-1 text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                          className="appearance-none bg-stone-50 dark:bg-stone-800 border border-stone-400/70 dark:border-stone-700 rounded-md px-3 py-1 text-sm font-medium text-stone-700 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-600 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed pr-8"
                         >
                           <option value="APPLIED">Applied</option>
                           <option value="INTERVIEW">Interview</option>
                           <option value="HIRED">Hired</option>
                           <option value="REJECTED">Rejected</option>
                         </select>
-                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-500 dark:text-stone-400 pointer-events-none" />
                         {updatingStatus[app.id] && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-700/80 rounded-md">
-                            <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                          <div className="absolute inset-0 flex items-center justify-center bg-stone-50/80 dark:bg-stone-800/80 rounded-md">
+                            <div className="w-4 h-4 border-2 border-stone-600 border-t-transparent rounded-full animate-spin"></div>
                           </div>
                         )}
                       </div>
@@ -206,14 +215,14 @@ const CompanyApplications = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                      <div className="text-sm text-stone-600 dark:text-stone-400 flex items-center gap-2 font-medium">
                         <Calendar className="w-4 h-4" />
                         Applied: {formatDate(app.appliedAt)}
                       </div>
                     </div>
                     <div>
                       <div className="text-sm">
-                        <span className="font-medium text-slate-700 dark:text-slate-300">Candidate:</span>{' '}
+                        <span className="font-medium text-stone-700 dark:text-stone-300">Candidate:</span>{' '}
                         {app.jobSeeker?.fullName} · {app.jobSeeker?.location}
                       </div>
                       {app.jobSeeker?.skills?.length > 0 && (
@@ -241,7 +250,7 @@ const CompanyApplications = () => {
             >
               Previous
             </Button>
-            <span className="text-sm text-slate-600 dark:text-slate-400">
+            <span className="text-sm text-stone-700 dark:text-stone-400 font-medium">
               Page {pagination.page} of {pagination.totalPages}
             </span>
             <Button

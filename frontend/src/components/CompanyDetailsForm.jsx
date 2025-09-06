@@ -177,19 +177,19 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 py-8 transition-colors duration-500">
       <div className="container mx-auto px-4 max-w-2xl">
-        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl">
+        <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-400/70 dark:border-stone-800/50 shadow-xl rounded-2xl">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
-              <Building2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <CardTitle className="text-2xl font-bold text-stone-900 dark:text-stone-100 flex items-center space-x-2 tracking-tight">
+              <Building2 className="w-6 h-6 text-stone-700 dark:text-stone-400" />
               <span>
                 {existingCompany
                   ? "Update Company Details"
                   : "Complete Your Company Profile"}
               </span>
             </CardTitle>
-            <CardDescription className="text-slate-600 dark:text-slate-400">
+            <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
               Please fill in your company information to continue using the platform.
             </CardDescription>
           </CardHeader>
@@ -197,7 +197,7 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                <label htmlFor="name" className="text-sm font-medium text-stone-700 dark:text-stone-300 flex items-center space-x-2">
                   <Building2 className="w-4 h-4" />
                   <span>Company Name *</span>
                 </label>
@@ -207,7 +207,7 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`bg-white dark:bg-slate-800 ${errors.name ? 'border-red-500' : ''}`}
+                  className={`bg-stone-50 dark:bg-stone-800 border-stone-400 dark:border-stone-600 focus:ring-stone-500 focus:border-stone-500 rounded-xl ${errors.name ? 'border-red-500' : ''}`}
                   placeholder="Enter your company name"
                 />
                 {errors.name && (
@@ -219,14 +219,14 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="industry" className="text-sm font-medium text-slate-700 dark:text-slate-300">Industry *</label>
+                <label htmlFor="industry" className="text-sm font-medium text-stone-700 dark:text-stone-300">Industry *</label>
                 <select
                   id="industry"
                   name="industry"
                   value={formData.industry}
                   onChange={handleInputChange}
-                  className={`w-full p-3 border rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.industry ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'
+                  className={`w-full p-3 border rounded-xl bg-stone-50 dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent ${
+                    errors.industry ? 'border-red-500' : 'border-stone-400 dark:border-stone-600'
                   }`}
                 >
                   <option value="">Select an industry</option>
@@ -251,14 +251,14 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="description" className="text-sm font-medium text-slate-700 dark:text-slate-300">Company Description *</label>
+                <label htmlFor="description" className="text-sm font-medium text-stone-700 dark:text-stone-300">Company Description *</label>
                 <textarea
                   id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  className={`w-full min-h-[120px] p-3 border rounded-md resize-vertical bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.description ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'
+                  className={`w-full min-h-[120px] p-3 border rounded-xl resize-vertical bg-stone-50 dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder:text-stone-500 dark:placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent ${
+                    errors.description ? 'border-red-500' : 'border-stone-400 dark:border-stone-600'
                   }`}
                   placeholder="Describe your company, its mission, and what you do..."
                   rows="4"
@@ -272,7 +272,7 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="website" className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                <label htmlFor="website" className="text-sm font-medium text-stone-700 dark:text-stone-300 flex items-center space-x-2">
                   <Globe className="w-4 h-4" />
                   <span>Website</span>
                 </label>
@@ -282,7 +282,7 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                   name="website"
                   value={formData.website}
                   onChange={handleInputChange}
-                  className={`bg-white dark:bg-slate-800 ${errors.website ? 'border-red-500' : ''}`}
+                  className={`bg-stone-50 dark:bg-stone-800 border-stone-400 dark:border-stone-600 focus:ring-stone-500 focus:border-stone-500 rounded-xl ${errors.website ? 'border-red-500' : ''}`}
                   placeholder="https://www.yourcompany.com"
                 />
                 {errors.website && (
@@ -294,7 +294,7 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2">
+                <label className="text-sm font-medium text-stone-700 dark:text-stone-300 flex items-center space-x-2">
                   <Image className="w-4 h-4" />
                   <span>Company Logo</span>
                 </label>
@@ -304,7 +304,7 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                     <img
                       src={resolveLogoSrc(logoPreview)}
                       alt="Company logo preview"
-                      className="w-24 h-24 object-cover rounded-lg border-2 border-slate-200 dark:border-slate-600"
+                      className="w-24 h-24 object-cover rounded-lg border-2 border-stone-400 dark:border-stone-600"
                     />
                     <button
                       type="button"
@@ -315,9 +315,9 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                     </button>
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 text-center hover:border-slate-400 dark:hover:border-slate-500 transition-colors">
-                    <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Upload company logo</p>
+                  <div className="border-2 border-dashed border-stone-400 dark:border-stone-600 rounded-xl p-6 text-center hover:border-stone-500 dark:hover:border-stone-500 transition-colors">
+                    <Upload className="w-8 h-8 text-stone-500 mx-auto mb-2" />
+                    <p className="text-sm text-stone-600 dark:text-stone-400 mb-2 font-medium">Upload company logo</p>
                     <input
                       type="file"
                       accept="image/*"
@@ -327,11 +327,11 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                     />
                     <label
                       htmlFor="logo-upload"
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                      className="inline-flex items-center px-4 py-2 bg-stone-900 text-white text-sm font-medium rounded-xl hover:bg-stone-800 cursor-pointer transition-colors shadow-md"
                     >
                       Choose File
                     </label>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">PNG, JPG up to 5MB</p>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">PNG, JPG up to 5MB</p>
                   </div>
                 )}
                 
@@ -356,7 +356,7 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                 <Button 
                   type="submit" 
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white font-semibold py-3"
+                  className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   {loading
                     ? "Saving..."

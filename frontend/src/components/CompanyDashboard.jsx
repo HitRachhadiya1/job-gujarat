@@ -53,18 +53,25 @@ const CompanyDashboard = () => {
   };
 
   if (loading) {
-    return <Spinner />;
+    return (
+      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-400 border-t-stone-700 dark:border-stone-600 dark:border-t-stone-200"></div>
+          <p className="text-stone-600 dark:text-stone-300 font-medium">Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
-        <Card className="max-w-md mx-auto bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
+        <Card className="max-w-md mx-auto bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
           <CardContent className="p-8 text-center">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">Error Loading Dashboard</h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-4">{error}</p>
-            <Button onClick={fetchCompanyData} className="bg-blue-600 hover:bg-blue-700">
+            <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">Error Loading Dashboard</h2>
+            <p className="text-stone-800 dark:text-stone-400 mb-4 font-medium">{error}</p>
+            <Button onClick={fetchCompanyData} className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl">
               Try Again
             </Button>
           </CardContent>
@@ -74,7 +81,7 @@ const CompanyDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 py-8 transition-colors duration-500">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Company Header */}
         <Card className="mb-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl">
@@ -92,22 +99,22 @@ const CompanyDashboard = () => {
                   </div>
                 )}
                 <div>
-                  <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                  <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">
                     {company.name}
                   </h1>
                   <div className="flex items-center space-x-3 mb-3">
-                    <Badge variant="secondary" className="text-sm">
+                    <Badge variant="secondary" className="text-sm bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50">
                       <Building2 className="w-4 h-4 mr-1" />
                       {company.industry}
                     </Badge>
                     <div className="flex items-center space-x-1">
                       {company.verified ? (
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        <Badge className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Verified
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                        <Badge variant="secondary" className="bg-stone-300/80 text-stone-800 border-stone-500/50 dark:bg-stone-700/50 dark:text-stone-400 dark:border-stone-600/50">
                           <Clock className="w-3 h-3 mr-1" />
                           Unverified
                         </Badge>
@@ -119,7 +126,7 @@ const CompanyDashboard = () => {
                       href={company.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                      className="inline-flex items-center space-x-1 text-stone-800 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
                     >
                       <Globe className="w-4 h-4" />
                       <span>Visit Website</span>
@@ -130,7 +137,7 @@ const CompanyDashboard = () => {
               </div>
               <Button 
                 onClick={() => navigate('/company-setup')} 
-                className="bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white flex items-center space-x-2"
+                className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
               >
                 <Settings className="w-4 h-4" />
                 <span>Company Settings</span>
@@ -140,15 +147,15 @@ const CompanyDashboard = () => {
         </Card>
 
         {/* Company Description */}
-        <Card className="mb-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl">
+        <Card className="mb-8 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <CardTitle className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 tracking-tight">
+              <Building2 className="w-5 h-5 text-stone-800 dark:text-stone-300" />
               <span>About Us</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+            <p className="text-stone-800 dark:text-stone-400 leading-relaxed font-medium">
               {company.description}
             </p>
           </CardContent>
@@ -157,20 +164,20 @@ const CompanyDashboard = () => {
         {/* Dashboard Sections */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Job Postings */}
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Briefcase className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <CardTitle className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 tracking-tight">
+                <Briefcase className="w-5 h-5 text-stone-800 dark:text-stone-300" />
                 <span>Job Postings</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
                 Manage your job postings and view applications.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button 
                 onClick={() => navigate('/jobs')}
-                className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Manage Job Postings
               </Button>
@@ -178,20 +185,20 @@ const CompanyDashboard = () => {
           </Card>
 
           {/* Applications */}
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <CardTitle className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 tracking-tight">
+                <Users className="w-5 h-5 text-stone-800 dark:text-stone-300" />
                 <span>Applications</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
                 Review and manage job applications from candidates.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button 
                 onClick={() => navigate('/company/applications')}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 View Applications
               </Button>
@@ -199,23 +206,23 @@ const CompanyDashboard = () => {
           </Card>
 
           {/* Analytics */}
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105">
+          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <CardTitle className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 tracking-tight">
+                <BarChart3 className="w-5 h-5 text-stone-800 dark:text-stone-300" />
                 <span>Company Analytics</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
                 View insights about your job postings and company profile.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button 
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                className="w-full bg-stone-700 hover:bg-stone-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg"
                 disabled
               >
                 View Analytics
-                <Badge variant="secondary" className="ml-2 text-xs">
+                <Badge variant="secondary" className="ml-2 text-xs bg-stone-200/80 text-stone-700 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-400 dark:border-stone-600/50">
                   Coming Soon
                 </Badge>
               </Button>

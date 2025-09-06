@@ -82,7 +82,7 @@ const Navbar = () => {
   const navigationItems = getNavigationItems();
 
   return (
-    <nav className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 shadow-sm sticky top-0 z-50 transition-colors duration-300">
+    <nav className="bg-stone-100/95 dark:bg-stone-900/95 backdrop-blur-sm border-b border-stone-400/50 dark:border-stone-700/50 shadow-sm sticky top-0 z-50 transition-colors duration-500">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo/Brand */}
@@ -90,14 +90,14 @@ const Navbar = () => {
             className="flex items-center space-x-3 cursor-pointer group"
             onClick={() => navigate("/")}
           >
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-slate-700 dark:from-blue-500 dark:to-slate-600 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <div className="w-10 h-10 bg-stone-900 dark:bg-stone-700 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-all duration-300">
               <Briefcase className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-blue-700 dark:from-slate-200 dark:to-blue-400 bg-clip-text text-transparent">
+              <h1 className="text-lg font-bold text-stone-900 dark:text-stone-100 tracking-tight">
                 Job Gujarat
               </h1>
-              <p className="text-[10px] leading-tight text-slate-600 dark:text-slate-400">
+              <p className="text-[10px] leading-tight text-stone-700 dark:text-stone-400 font-medium">
                 Connecting you to What's Next
               </p>
             </div>
@@ -113,10 +113,10 @@ const Navbar = () => {
                   variant={isActive(item.path) ? "default" : "ghost"}
                   size="sm"
                   onClick={() => navigate(item.path)}
-                  className={`flex items-center space-x-2 transition-all duration-200 ${
+                  className={`flex items-center space-x-2 transition-all duration-200 font-medium rounded-xl ${
                     isActive(item.path)
-                      ? "bg-gradient-to-r from-blue-600 to-slate-700 text-white shadow-md"
-                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      ? "bg-stone-900 dark:bg-stone-700 text-white shadow-md"
+                      : "text-stone-700 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-800"
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -134,15 +134,15 @@ const Navbar = () => {
                 <img
                   src={user.picture}
                   alt="User Avatar"
-                  className="w-8 h-8 rounded-full border-2 border-slate-200 dark:border-slate-600"
+                  className="w-8 h-8 rounded-full border-2 border-stone-400 dark:border-stone-600"
                 />
               )}
               <div className="text-right">
-                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                <div className="text-sm font-medium text-stone-900 dark:text-stone-100 tracking-tight">
                   {user?.name?.split(" ")[0] || "User"}
                 </div>
                 {role && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs bg-stone-200 text-stone-800 dark:bg-stone-800 dark:text-stone-200">
                     {role.replace("_", " ")}
                   </Badge>
                 )}
@@ -157,7 +157,7 @@ const Navbar = () => {
               onClick={handleLogout}
               variant="outline"
               size="sm"
-              className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="border-stone-400 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-800 font-medium rounded-xl transition-all duration-200"
             >
               <LogOut className="w-4 h-4 md:mr-2" />
               <span className="hidden md:inline">Logout</span>
@@ -167,7 +167,7 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden text-slate-600 dark:text-slate-400"
+              className="md:hidden text-stone-600 dark:text-stone-400"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? (
@@ -182,24 +182,24 @@ const Navbar = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700">
+        <div className="md:hidden bg-stone-100/95 dark:bg-stone-900/95 backdrop-blur-sm border-t border-stone-400 dark:border-stone-700">
           <div className="container mx-auto px-4 py-4 space-y-2">
             {/* User Info Mobile */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center justify-between pb-4 border-b border-stone-400 dark:border-stone-700">
               <div className="flex items-center space-x-3">
                 {user?.picture && (
                   <img
                     src={user.picture}
                     alt="User Avatar"
-                    className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-600"
+                    className="w-10 h-10 rounded-full border-2 border-stone-400 dark:border-stone-600"
                   />
                 )}
                 <div>
-                  <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  <div className="text-sm font-medium text-stone-900 dark:text-stone-100 tracking-tight">
                     {user?.name || "User"}
                   </div>
                   {role && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs bg-stone-200 text-stone-800 dark:bg-stone-800 dark:text-stone-200">
                       {role.replace("_", " ")}
                     </Badge>
                   )}
@@ -215,10 +215,10 @@ const Navbar = () => {
                 <Button
                   key={item.path}
                   variant={isActive(item.path) ? "default" : "ghost"}
-                  className={`w-full justify-start space-x-3 ${
+                  className={`w-full justify-start space-x-3 font-medium rounded-xl transition-all duration-200 ${
                     isActive(item.path)
-                      ? "bg-gradient-to-r from-blue-600 to-slate-700 text-white"
-                      : "text-slate-600 dark:text-slate-400"
+                      ? "bg-stone-900 dark:bg-stone-700 text-white"
+                      : "text-stone-700 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-800"
                   }`}
                   onClick={() => {
                     navigate(item.path);

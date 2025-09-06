@@ -85,18 +85,25 @@ const CompanySettings = () => {
   };
 
   if (loading) {
-    return <Spinner />;
+    return (
+      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-400 border-t-stone-700 dark:border-stone-600 dark:border-t-stone-200"></div>
+          <p className="text-stone-600 dark:text-stone-300 font-medium">Loading company settings...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center p-4">
-        <Card className="max-w-md mx-auto bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center p-4 transition-colors duration-500">
+        <Card className="max-w-md mx-auto bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
           <CardContent className="p-8 text-center">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">Error Loading Company Settings</h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-4">{error}</p>
-            <Button onClick={fetchCompanyData} className="bg-blue-600 hover:bg-blue-700">
+            <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">Error Loading Company Settings</h2>
+            <p className="text-stone-700 dark:text-stone-400 mb-4 font-medium">{error}</p>
+            <Button onClick={fetchCompanyData} className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl">
               Try Again
             </Button>
           </CardContent>
@@ -107,7 +114,7 @@ const CompanySettings = () => {
 
   if (isEditing || !company) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 transition-colors duration-500">
         <CompanyDetailsForm
           existingCompany={company}
           onSuccess={company ? handleUpdateSuccess : handleCreateSuccess}
@@ -117,7 +124,7 @@ const CompanySettings = () => {
             <Button 
               onClick={() => setIsEditing(false)} 
               variant="outline"
-              className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm"
+              className="bg-stone-100/90 dark:bg-stone-900/90 backdrop-blur-sm border-stone-400/70 dark:border-stone-700 text-stone-800 dark:text-stone-200"
             >
               Cancel
             </Button>
@@ -128,29 +135,29 @@ const CompanySettings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 py-8 transition-colors duration-500">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Company Settings</h1>
-          <p className="text-slate-600 dark:text-slate-400">Manage your company profile and information</p>
+          <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">Company Settings</h1>
+          <p className="text-stone-700 dark:text-stone-400 font-medium">Manage your company profile and information</p>
         </div>
 
         {/* Company Profile Card */}
-        <Card className="mb-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl">
+        <Card className="mb-8 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-400/70 dark:border-stone-800/50 shadow-xl rounded-2xl">
           <CardHeader className="pb-6">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div>
-                <CardTitle className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                <CardTitle className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">
                   Company Profile
                 </CardTitle>
-                <CardDescription className="text-slate-600 dark:text-slate-400">
+                <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
                   Your company information as it appears to job seekers
                 </CardDescription>
               </div>
               <Button 
                 onClick={() => setIsEditing(true)} 
-                className="bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white flex items-center space-x-2"
+                className="bg-stone-900 hover:bg-stone-800 text-white flex items-center space-x-2 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <Edit3 className="w-4 h-4" />
                 <span>Edit Company Details</span>
@@ -166,17 +173,17 @@ const CompanySettings = () => {
                   <img
                     src={resolveLogoSrc(company.logoUrl)}
                     alt={`${company.name} logo`}
-                    className="rounded-xl object-contain border-2 border-slate-200 dark:border-slate-600 shadow-md bg-white"
+                    className="rounded-xl object-contain border-2 border-stone-400 dark:border-stone-600 shadow-md bg-white"
                     style={{ maxWidth: '80px', maxHeight: '80px' }}
                   />
                 </div>
               )}
               <div className="flex-grow">
                 <div className="flex flex-wrap items-center gap-3 mb-3">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                  <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
                     {company.name}
                   </h2>
-                  <Badge variant="secondary" className="text-sm">
+                  <Badge variant="secondary" className="text-sm bg-stone-200 text-stone-800 dark:bg-stone-800 dark:text-stone-200">
                     <Building2 className="w-4 h-4 mr-1" />
                     {company.industry}
                   </Badge>
@@ -197,7 +204,7 @@ const CompanySettings = () => {
                     href={company.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                    className="inline-flex items-center space-x-1 text-stone-800 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors font-medium"
                   >
                     <Globe className="w-4 h-4" />
                     <span>Visit Website</span>
@@ -211,11 +218,11 @@ const CompanySettings = () => {
 
             {/* Company Description */}
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3 flex items-center">
-                <FileText className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-3 flex items-center tracking-tight">
+                <FileText className="w-5 h-5 mr-2 text-stone-700 dark:text-stone-400" />
                 About Company
               </h3>
-              <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+              <p className="text-stone-800 dark:text-stone-300 leading-relaxed font-medium">
                 {company.description}
               </p>
             </div>
@@ -227,10 +234,10 @@ const CompanySettings = () => {
               {/* Location */}
               {company.location && (
                 <div className="flex items-start space-x-3">
-                  <MapPin className="w-5 h-5 text-slate-500 dark:text-slate-400 mt-0.5" />
+                  <MapPin className="w-5 h-5 text-stone-600 dark:text-stone-500 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100">Location</h4>
-                    <p className="text-slate-600 dark:text-slate-400">{company.location}</p>
+                    <h4 className="font-medium text-stone-900 dark:text-stone-100 tracking-tight">Location</h4>
+                    <p className="text-stone-700 dark:text-stone-400 font-medium">{company.location}</p>
                   </div>
                 </div>
               )}
@@ -238,10 +245,10 @@ const CompanySettings = () => {
               {/* Company Size */}
               {company.size && (
                 <div className="flex items-start space-x-3">
-                  <Users className="w-5 h-5 text-slate-500 dark:text-slate-400 mt-0.5" />
+                  <Users className="w-5 h-5 text-stone-600 dark:text-stone-500 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100">Company Size</h4>
-                    <p className="text-slate-600 dark:text-slate-400">{company.size}</p>
+                    <h4 className="font-medium text-stone-900 dark:text-stone-100 tracking-tight">Company Size</h4>
+                    <p className="text-stone-700 dark:text-stone-400 font-medium">{company.size}</p>
                   </div>
                 </div>
               )}
@@ -249,10 +256,10 @@ const CompanySettings = () => {
               {/* Founded */}
               {company.founded && (
                 <div className="flex items-start space-x-3">
-                  <Calendar className="w-5 h-5 text-slate-500 dark:text-slate-400 mt-0.5" />
+                  <Calendar className="w-5 h-5 text-stone-600 dark:text-stone-500 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100">Founded</h4>
-                    <p className="text-slate-600 dark:text-slate-400">{company.founded}</p>
+                    <h4 className="font-medium text-stone-900 dark:text-stone-100 tracking-tight">Founded</h4>
+                    <p className="text-stone-700 dark:text-stone-400 font-medium">{company.founded}</p>
                   </div>
                 </div>
               )}
@@ -260,10 +267,10 @@ const CompanySettings = () => {
               {/* Email */}
               {company.email && (
                 <div className="flex items-start space-x-3">
-                  <Mail className="w-5 h-5 text-slate-500 dark:text-slate-400 mt-0.5" />
+                  <Mail className="w-5 h-5 text-stone-600 dark:text-stone-500 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100">Email</h4>
-                    <p className="text-slate-600 dark:text-slate-400">{company.email}</p>
+                    <h4 className="font-medium text-stone-900 dark:text-stone-100 tracking-tight">Email</h4>
+                    <p className="text-stone-700 dark:text-stone-400 font-medium">{company.email}</p>
                   </div>
                 </div>
               )}
@@ -271,10 +278,10 @@ const CompanySettings = () => {
               {/* Phone */}
               {company.phone && (
                 <div className="flex items-start space-x-3">
-                  <Phone className="w-5 h-5 text-slate-500 dark:text-slate-400 mt-0.5" />
+                  <Phone className="w-5 h-5 text-stone-600 dark:text-stone-500 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-slate-900 dark:text-slate-100">Phone</h4>
-                    <p className="text-slate-600 dark:text-slate-400">{company.phone}</p>
+                    <h4 className="font-medium text-stone-900 dark:text-stone-100 tracking-tight">Phone</h4>
+                    <p className="text-stone-700 dark:text-stone-400 font-medium">{company.phone}</p>
                   </div>
                 </div>
               )}
@@ -283,12 +290,12 @@ const CompanySettings = () => {
         </Card>
 
         {/* Quick Actions */}
-        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl">
+        <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-400/70 dark:border-stone-800/50 shadow-xl rounded-2xl">
           <CardHeader>
-            <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
               Quick Actions
             </CardTitle>
-            <CardDescription className="text-slate-600 dark:text-slate-400">
+            <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
               Manage your company presence on the platform
             </CardDescription>
           </CardHeader>
@@ -297,7 +304,7 @@ const CompanySettings = () => {
               <Button 
                 onClick={() => navigate('/jobs')}
                 variant="outline"
-                className="justify-start space-x-2"
+                className="justify-start space-x-2 border-stone-400 dark:border-stone-700 text-stone-800 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 font-medium py-3 px-4 rounded-xl transition-all duration-200"
               >
                 <Building2 className="w-4 h-4" />
                 <span>Manage Job Postings</span>
@@ -305,7 +312,7 @@ const CompanySettings = () => {
               <Button 
                 onClick={() => navigate('/')}
                 variant="outline"
-                className="justify-start space-x-2"
+                className="justify-start space-x-2 border-stone-400 dark:border-stone-700 text-stone-800 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 font-medium py-3 px-4 rounded-xl transition-all duration-200"
               >
                 <FileText className="w-4 h-4" />
                 <span>View Dashboard</span>

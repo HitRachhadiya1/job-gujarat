@@ -211,10 +211,10 @@ const JobManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 flex items-center justify-center">
+      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
         <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-700 dark:text-slate-200" />
-          <p className="text-gray-600 dark:text-slate-300">Loading job postings...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-stone-700 dark:text-stone-200" />
+          <p className="text-stone-600 dark:text-stone-300 font-medium">Loading job postings...</p>
         </div>
       </div>
     );
@@ -222,14 +222,14 @@ const JobManagement = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 flex items-center justify-center p-6">
-        <Card className="w-full max-w-md bg-white/85 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700">
+      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center p-6 transition-colors duration-500">
+        <Card className="w-full max-w-md bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-red-600 dark:text-red-400">Error Loading Jobs</CardTitle>
+            <CardTitle className="text-red-600 dark:text-red-400 tracking-tight">Error Loading Jobs</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-600 dark:text-slate-300">{error}</p>
-            <Button onClick={fetchJobs} className="w-full">
+            <p className="text-stone-600 dark:text-stone-300 font-medium">{error}</p>
+            <Button onClick={fetchJobs} className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl">
               Try Again
             </Button>
           </CardContent>
@@ -239,59 +239,59 @@ const JobManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 p-6">
+    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 p-6 transition-colors duration-500">
       <div className="container mx-auto max-w-7xl space-y-8">
         {/* Enhanced Header Section */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-2xl"></div>
-          <Card className="relative border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-stone-400/10 to-stone-500/10 rounded-2xl"></div>
+          <Card className="relative border-0 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm shadow-lg">
             <CardContent className="p-8">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="space-y-2">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-800 to-blue-800 bg-clip-text text-transparent">
+                  <h1 className="text-4xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
                     Job Management
                   </h1>
-                  <p className="text-slate-600 dark:text-slate-300 text-lg">
+                  <p className="text-stone-700 dark:text-stone-400 text-lg font-medium">
                     Create, manage, and track your job postings to find the perfect candidates
                   </p>
                   <div className="flex items-center gap-6 pt-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-blue-600 dark:text-blue-300">{jobs.length}</span>
+                      <div className="w-8 h-8 bg-stone-200/80 dark:bg-stone-800/50 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-stone-800 dark:text-stone-300">{jobs.length}</span>
                       </div>
-                      <span className="text-sm text-slate-600 dark:text-slate-300">Active Jobs</span>
+                      <span className="text-sm text-stone-700 dark:text-stone-400 font-medium">Active Jobs</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-green-600 dark:text-green-300">
+                      <div className="w-8 h-8 bg-stone-200/80 dark:bg-stone-800/50 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-stone-800 dark:text-stone-300">
                           {jobs.reduce((acc, job) => acc + (job._count?.Applications || 0), 0)}
                         </span>
                       </div>
-                      <span className="text-sm text-slate-600 dark:text-slate-300">Total Applications</span>
+                      <span className="text-sm text-stone-700 dark:text-stone-400 font-medium">Total Applications</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
                     <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 h-12 px-6">
+                      <Button className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl h-12">
                         <Plus className="h-5 w-5 mr-2" />
                         Create New Job
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-white to-blue-50/30 dark:from-slate-900 dark:to-slate-800/40">
+                    <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto bg-stone-100/95 dark:bg-stone-900/90 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50">
               <DialogHeader className="text-center space-y-3 pb-6">
-                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-stone-700 to-stone-800 rounded-full flex items-center justify-center">
                   {editingJob ? (
                     <Edit2 className="h-8 w-8 text-white" />
                   ) : (
                     <Plus className="h-8 w-8 text-white" />
                   )}
                 </div>
-                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                <DialogTitle className="text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
                   {editingJob ? "Edit Job Posting" : "Create New Job Posting"}
                 </DialogTitle>
-                <DialogDescription className="text-slate-600 dark:text-slate-300 text-base">
+                <DialogDescription className="text-stone-700 dark:text-stone-400 text-base font-medium">
                   {editingJob ? "Update your job posting details to attract the right candidates" : "Fill in the details below to create an attractive job posting"}
                 </DialogDescription>
               </DialogHeader>
@@ -300,14 +300,14 @@ const JobManagement = () => {
                 {/* Basic Information Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-6 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-slate-800">Basic Information</h3>
+                    <div className="w-2 h-6 bg-gradient-to-b from-stone-600 to-stone-700 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-stone-800 dark:text-stone-200">Basic Information</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <Label htmlFor="title" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
+                      <Label htmlFor="title" className="text-stone-700 dark:text-stone-200 font-medium flex items-center gap-2">
                         Job Title *
-                        <span className="text-xs text-slate-500">(Be specific and descriptive)</span>
+                        <span className="text-xs text-stone-500 dark:text-stone-400">(Be specific and descriptive)</span>
                       </Label>
                       <Input
                         id="title"
