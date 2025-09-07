@@ -423,7 +423,13 @@ const getCompanyApplications = async (req, res) => {
     const [applications, total] = await Promise.all([
       prisma.jobApplication.findMany({
         where,
-        include: {
+        select: {
+          id: true,
+          status: true,
+          appliedAt: true,
+          updatedAt: true,
+          coverLetter: true,
+          resumeSnapshot: true,
           job: {
             select: {
               title: true,

@@ -3,7 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Filter, Calendar, MapPin, Briefcase, ChevronDown, CheckCircle, Clock, UserCheck, XCircle } from 'lucide-react';
+import { Users, Filter, Calendar, MapPin, Briefcase, ChevronDown, CheckCircle, Clock, UserCheck, XCircle, FileText } from 'lucide-react';
 import Spinner from '@/components/Spinner';
 
 const CompanyApplications = () => {
@@ -230,6 +230,19 @@ const CompanyApplications = () => {
                           {app.jobSeeker.skills.slice(0, 5).map((s, idx) => (
                             <Badge key={idx} variant="secondary">{s}</Badge>
                           ))}
+                        </div>
+                      )}
+                      {app.resumeSnapshot && (
+                        <div className="mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(app.resumeSnapshot, '_blank')}
+                            className="flex items-center gap-2 text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100"
+                          >
+                            <FileText className="w-4 h-4" />
+                            View Resume
+                          </Button>
                         </div>
                       )}
                     </div>
