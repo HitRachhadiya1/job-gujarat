@@ -1,23 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Search, 
-  MapPin, 
-  Building2, 
-  DollarSign, 
-  Clock, 
-  Heart, 
-  Briefcase,
-  Filter,
-  Users
-} from 'lucide-react';
-import JobApplicationModal from '../components/JobApplicationModal';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, MapPin, Briefcase, Clock, Building, Heart } from 'lucide-react';
+import JobApplicationModal from '@/components/JobApplicationModal';
 import Spinner from '../components/Spinner';
 import { savedJobsAPI } from '../api/savedJobs';
+import { API_BASE_URL } from '@/config/api';
 
 const BrowseJobs = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -42,7 +34,7 @@ const BrowseJobs = () => {
       const token = await getAccessTokenSilently();
       console.log('Token obtained, making API call...');
       
-      const response = await fetch('http://localhost:5000/api/job-postings', {
+      const response = await fetch(`${API_BASE_URL}/api/job-postings`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

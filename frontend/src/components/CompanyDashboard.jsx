@@ -17,6 +17,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import Spinner from "./Spinner";
+import { API_BASE_URL } from '@/config/api';
 
 const CompanyDashboard = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -32,7 +33,7 @@ const CompanyDashboard = () => {
   const fetchCompanyData = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:5000/api/company", {
+      const response = await fetch("${API_BASE_URL}/api/company", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -91,7 +92,7 @@ const CompanyDashboard = () => {
                 {company.logoUrl && (
                   <div className="flex-shrink-0">
                     <img
-                      src={`http://localhost:5000${company.logoUrl}`}
+                      src={`${API_BASE_URL}${company.logoUrl}`}
                       alt={`${company.name} logo`}
                       className="rounded-xl object-contain border-2 border-slate-200 dark:border-slate-600 shadow-md bg-white"
                       style={{ maxWidth: '80px', maxHeight: '80px' }}

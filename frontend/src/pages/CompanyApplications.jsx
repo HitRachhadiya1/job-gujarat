@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Filter, Calendar, MapPin, Briefcase, ChevronDown, CheckCircle, Clock, UserCheck, XCircle, FileText } from 'lucide-react';
 import Spinner from '@/components/Spinner';
+import { API_BASE_URL } from '@/config/api';
 
 const CompanyApplications = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -23,7 +24,7 @@ const CompanyApplications = () => {
     try {
       setLoading(true);
       const token = await getAccessTokenSilently();
-      const url = new URL('http://localhost:5000/api/applications/company/all');
+      const url = new URL(`${API_BASE_URL}/api/applications/company/all`);
       url.searchParams.set('page', page.toString());
       url.searchParams.set('limit', '20');
       if (filter) url.searchParams.set('status', filter);
@@ -58,7 +59,7 @@ const CompanyApplications = () => {
       setUpdatingStatus(prev => ({ ...prev, [applicationId]: true }));
       const token = await getAccessTokenSilently();
       
-      const response = await fetch(`http://localhost:5000/api/applications/${applicationId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/applications/${applicationId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

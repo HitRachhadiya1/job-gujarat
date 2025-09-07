@@ -23,6 +23,7 @@ import {
 import CompanyDetailsForm from "../components/CompanyDetailsForm";
 import Spinner from "../components/Spinner";
 import { useAuthMeta } from "../context/AuthMetaContext";
+import { API_BASE_URL } from '@/config/api';
 
 const CompanySettings = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -37,7 +38,7 @@ const CompanySettings = () => {
   const resolveLogoSrc = (value) => {
     if (!value) return "";
     if (value.startsWith("http") || value.startsWith("blob:")) return value;
-    return `http://localhost:5000${value}`;
+    return `${API_BASE_URL}${value}`;
   };
 
   useEffect(() => {
@@ -47,7 +48,7 @@ const CompanySettings = () => {
   const fetchCompanyData = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:5000/api/company", {
+      const response = await fetch("${API_BASE_URL}/api/company", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

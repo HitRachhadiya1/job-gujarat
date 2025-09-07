@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Loader2 } from 'lucide-react';
+import { API_BASE_URL } from '@/config/api';
 import { X, MapPin, Building2, DollarSign, Clock } from 'lucide-react';
 
 const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) => {
@@ -19,7 +21,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
 
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch('http://localhost:5000/api/applications/apply', {
+      const response = await fetch(`${API_BASE_URL}/api/applications/apply`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

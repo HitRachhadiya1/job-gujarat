@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   FileText, 
   Building2, 
@@ -19,6 +18,7 @@ import {
   Users
 } from 'lucide-react';
 import Spinner from '../components/Spinner';
+import { API_BASE_URL } from '@/config/api';
 
 const MyApplications = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -35,7 +35,7 @@ const MyApplications = () => {
     try {
       setLoading(true);
       const token = await getAccessTokenSilently();
-      const url = new URL('http://localhost:5000/api/applications/my-applications');
+      const url = new URL(`${API_BASE_URL}/api/applications/my-applications`);
       if (filter) url.searchParams.set('status', filter);
       
       const response = await fetch(url, {
@@ -65,7 +65,7 @@ const MyApplications = () => {
 
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch(`http://localhost:5000/api/applications/${applicationId}/withdraw`, {
+      const response = await fetch(`${API_BASE_URL}/api/applications/${applicationId}/withdraw`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

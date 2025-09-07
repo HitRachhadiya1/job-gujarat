@@ -18,14 +18,14 @@ import Navbar from "./components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import {
   Users,
+  Award,
+  Globe,
+  LogOut,
   Building2,
   ArrowRight,
   Briefcase,
   TrendingUp,
   UserCheck,
-  Award,
-  Globe,
-  LogOut,
 } from "lucide-react";
 import { useTheme } from "./context/ThemeContext";
 import ThemeToggle from "./components/ThemeToggle";
@@ -49,6 +49,7 @@ import PublicRoutes from "./components/PublicRoutes";
 // Import dashboard components with beautiful UI from job-portal(1)
 import JobSeekerDashboard from "./components/job-seeker-dashboard";
 import AdminDashboard from "./components/admin-dashboard";
+import { API_BASE_URL } from "@/config/api";
 
 export default function JobPortalApp() {
   const { isAuthenticated, getAccessTokenSilently, user, logout } = useAuth0();
@@ -62,17 +63,14 @@ export default function JobPortalApp() {
       const token = await getAccessTokenSilently();
       const { sub: userId } = user;
 
-      const response = await fetch(
-        "http://localhost:5000/api/auth/assign-role",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ role: selectedRole, userId }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/auth/assign-role`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ role: selectedRole, userId }),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();

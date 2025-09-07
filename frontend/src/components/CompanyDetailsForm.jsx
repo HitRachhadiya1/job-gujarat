@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Globe, Link as LinkIcon, Image, AlertCircle, Upload, X } from "lucide-react";
+import { API_BASE_URL } from '@/config/api';
 
 const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -22,7 +23,7 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
   function resolveLogoSrc(value) {
     if (!value) return "";
     if (value.startsWith('blob:') || value.startsWith('http')) return value;
-    return `http://localhost:5000${value}`;
+    return `${API_BASE_URL}${value}`;
   }
 
   // Pre-populate form if editing existing company
@@ -130,8 +131,8 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
     try {
       const token = await getAccessTokenSilently();
       const url = existingCompany
-        ? "http://localhost:5000/api/company"
-        : "http://localhost:5000/api/company";
+        ? "${API_BASE_URL}/api/company"
+        : "${API_BASE_URL}/api/company";
 
       const method = existingCompany ? "PUT" : "POST";
 

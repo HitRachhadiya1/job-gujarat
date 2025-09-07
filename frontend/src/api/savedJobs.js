@@ -1,11 +1,10 @@
 // API functions for saved jobs functionality
-
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_BASE_URL } from '../config/api';
 
 export const savedJobsAPI = {
   // Save a job
   saveJob: async (jobId, token) => {
-    const response = await fetch(`${API_BASE_URL}/saved-jobs`, {
+    const response = await fetch(`${API_BASE_URL}/api/saved-jobs`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -24,7 +23,7 @@ export const savedJobsAPI = {
 
   // Unsave a job
   unsaveJob: async (jobId, token) => {
-    const response = await fetch(`${API_BASE_URL}/saved-jobs/${jobId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/saved-jobs/${jobId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -41,7 +40,7 @@ export const savedJobsAPI = {
 
   // Get all saved jobs
   getSavedJobs: async (token, page = 1, limit = 10) => {
-    const response = await fetch(`${API_BASE_URL}/saved-jobs?page=${page}&limit=${limit}`, {
+    const response = await fetch(`${API_BASE_URL}/api/saved-jobs?page=${page}&limit=${limit}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -57,7 +56,7 @@ export const savedJobsAPI = {
 
   // Check if a job is saved
   checkJobSaved: async (jobId, token) => {
-    const response = await fetch(`${API_BASE_URL}/saved-jobs/check/${jobId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/saved-jobs/check/${jobId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

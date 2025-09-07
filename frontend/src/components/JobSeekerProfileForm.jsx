@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, User, Phone, MapPin, Clock, Link as LinkIcon } from 'lucide-react';
+import { API_BASE_URL } from '@/config/api';
 
 const JobSeekerProfileForm = ({ onSuccess }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -27,7 +28,7 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
   const fetchExistingProfile = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch('http://localhost:5000/api/job-seeker/', {
+      const response = await fetch('${API_BASE_URL}/api/job-seeker/', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -58,7 +59,7 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
       const token = await getAccessTokenSilently();
       const method = existingProfile ? 'PUT' : 'POST';
       
-      const response = await fetch('http://localhost:5000/api/job-seeker/', {
+      const response = await fetch('${API_BASE_URL}/api/job-seeker/', {
         method,
         headers: {
           Authorization: `Bearer ${token}`,

@@ -16,6 +16,7 @@ import {
   Star,
   Zap
 } from 'lucide-react';
+import { API_BASE_URL } from '@/config/api';
 
 const JobPostingPayment = () => {
   const navigate = useNavigate();
@@ -93,12 +94,12 @@ const JobPostingPayment = () => {
     setLoading(true);
     try {
       // 1) Get publishable key (no auth required)
-      const keyRes = await fetch("http://localhost:5000/api/payment/key");
+      const keyRes = await fetch(`${API_BASE_URL}/api/payment/key`);
       const { key } = await keyRes.json();
 
       // 2) Create order on backend (auth required)
       const token = await getAccessTokenSilently();
-      const orderRes = await fetch("http://localhost:5000/api/payment/create-order", {
+      const orderRes = await fetch(`${API_BASE_URL}/api/payment/create-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -125,7 +126,7 @@ const JobPostingPayment = () => {
         handler: async (response) => {
           try {
             // 4) Verify payment on backend
-            const verifyRes = await fetch("http://localhost:5000/api/payment/verify", {
+            const verifyRes = await fetch(`${API_BASE_URL}/api/payment/verify`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -140,7 +141,7 @@ const JobPostingPayment = () => {
             }
 
             // 5) Confirm and publish job atomically on backend
-            const confirmRes = await fetch("http://localhost:5000/api/payment/confirm-and-publish", {
+            const confirmRes = await fetch(`${API_BASE_URL}/api/payment/confirm-and-publish`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
