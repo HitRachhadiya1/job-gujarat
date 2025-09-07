@@ -116,9 +116,29 @@ const addUserRole = async (req, res, next) => {
 
       console.log("Fresh Auth0 user data fetched:", JSON.stringify(response.data, null, 2));
       
+      // Determine role: read app_metadata.role, but if Auth0 assigned role contains 'Admin', force ADMIN
+      let resolvedRole = response.data.app_metadata?.role || null;
+
+      try {
+        const rolesToken = await getManagementToken();
+        const rolesRes = await axios.get(
+          `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${req.user.sub}/roles`,
+          { headers: { Authorization: `Bearer ${rolesToken}` } }
+        );
+        const roles = rolesRes.data || [];
+        console.log('Auth0 assigned roles:', roles.map(r => r.name).join(', '));
+        const hasAdmin = roles.some(r => (r.name || '').toLowerCase() === 'admin');
+        if (hasAdmin) {
+          resolvedRole = 'ADMIN';
+          console.log('Resolved role overridden to ADMIN based on Auth0 roles.');
+        }
+      } catch (roleErr) {
+        console.log('Could not fetch Auth0 roles:', roleErr.message);
+      }
+
       // Cache the user data
       const userData = {
-        role: response.data.app_metadata?.role || null,
+        role: resolvedRole,
         email: response.data.email,
         name: response.data.name,
         timestamp: now

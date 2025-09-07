@@ -266,6 +266,16 @@ export default function JobPortalApp() {
             }
           />
 
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={["ADMIN"]}>
+                <AdminDashboard onLogout={handleLogout} />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Job Seeker Routes */}
           <Route
             path="/profile"
