@@ -10,6 +10,7 @@ const jobApplicationRoutes = require("./routes/jobApplicationRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const jobSeekerRoutes = require("./routes/jobSeekerRoutes");
 const savedJobRoutes = require("./routes/savedJobRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 app.use(cors({ origin: "http://localhost:5173" }));
@@ -25,6 +26,7 @@ app.use("/api/applications", jobApplicationRoutes);
 app.use("/api/job-seeker", jobSeekerRoutes);
 app.use("/api/saved-jobs", savedJobRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
