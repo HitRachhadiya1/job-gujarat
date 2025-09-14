@@ -1,11 +1,22 @@
 const { PrismaClient } = require("@prisma/client");
+const { uploadFile, supabase } = require("../services/supabaseService");
+const multer = require('multer');
 const prisma = new PrismaClient();
+
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB max file size
+  }
+});
 
 // Create or update job seeker profile
 const createOrUpdateJobSeeker = async (req, res) => {
   try {
     const auth0User = req.user;
-    const { fullName, phone, location, skills, experienceYears, resumeUrl } = req.body;
+    const { fullName, phone, location, skills, experienceYears, resumeUrl, profilePhotoUrl } = req.body;
 
     // Validate required fields
     if (!fullName) {
@@ -53,6 +64,7 @@ const createOrUpdateJobSeeker = async (req, res) => {
           skills: skills || [],
           experienceYears: experienceYears ? parseInt(experienceYears) : null,
           resumeUrl: resumeUrl || null,
+          profilePhotoUrl: profilePhotoUrl || null,
         },
       });
     } else {
@@ -66,6 +78,7 @@ const createOrUpdateJobSeeker = async (req, res) => {
           skills: skills || [],
           experienceYears: experienceYears ? parseInt(experienceYears) : null,
           resumeUrl: resumeUrl || null,
+          profilePhotoUrl: profilePhotoUrl || null,
         },
       });
     }
@@ -208,9 +221,175 @@ const deleteJobSeekerProfile = async (req, res) => {
   }
 };
 
+// Upload resume file
+const uploadResume = async (req, res) => {
+  try {
+    const auth0User = req.user;
+    
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Validate file type and size
+    if (req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({ error: "Resume must be a PDF file" });
+    }
+
+    if (req.file.size > 2 * 1024 * 1024) { // 2MB
+      return res.status(400).json({ error: "Resume file size must be less than 2MB" });
+    }
+
+    // Get user from database
+    const dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
+    if (!dbUser) {
+      return res.status(404).json({ error: "User record not found" });
+    }
+
+    // Get jobSeeker profile
+    const jobSeeker = await prisma.jobSeeker.findUnique({
+      where: { userId: dbUser.id }
+    });
+
+    if (!jobSeeker) {
+      return res.status(404).json({ error: "Job seeker profile not found" });
+    }
+
+    // Delete all existing resume files for this user
+    const { data: existingFiles } = await supabase.storage
+      .from('resumes')
+      .list(jobSeeker.id);
+    
+    if (existingFiles && existingFiles.length > 0) {
+      const filesToDelete = existingFiles.map(file => `${jobSeeker.id}/${file.name}`);
+      await supabase.storage
+        .from('resumes')
+        .remove(filesToDelete);
+    }
+
+    // Create file path using jobSeeker ID and preserve original filename
+    const originalName = req.file.originalname;
+    const filePath = `${jobSeeker.id}/${originalName}`;
+    
+    // Upload to Supabase
+    const uploadResult = await uploadFile(
+      'resumes',
+      filePath,
+      req.file.buffer,
+      req.file.mimetype
+    );
+
+    if (uploadResult.error) {
+      return res.status(500).json({ error: uploadResult.error });
+    }
+
+    // Update jobSeeker record with new resume URL
+    const updatedJobSeeker = await prisma.jobSeeker.update({
+      where: { id: jobSeeker.id },
+      data: { resumeUrl: uploadResult.url }
+    });
+
+    res.json({
+      message: "Resume uploaded successfully",
+      resumeUrl: uploadResult.url
+    });
+  } catch (error) {
+    console.error("Error uploading resume:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Upload profile photo
+const uploadProfilePhoto = async (req, res) => {
+  try {
+    const auth0User = req.user;
+    
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Validate file type and size
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({ error: "Profile photo must be PNG or JPG" });
+    }
+
+    if (req.file.size > 3 * 1024 * 1024) { // 3MB
+      return res.status(400).json({ error: "Profile photo size must be less than 3MB" });
+    }
+
+    // Get user from database
+    const dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
+    if (!dbUser) {
+      return res.status(404).json({ error: "User record not found" });
+    }
+
+    // Get jobSeeker profile
+    const jobSeeker = await prisma.jobSeeker.findUnique({
+      where: { userId: dbUser.id }
+    });
+
+    if (!jobSeeker) {
+      return res.status(404).json({ error: "Job seeker profile not found" });
+    }
+
+    // Delete all existing profile photos for this user
+    const { data: existingPhotos } = await supabase.storage
+      .from('images')
+      .list(jobSeeker.id);
+    
+    if (existingPhotos && existingPhotos.length > 0) {
+      const photosToDelete = existingPhotos.map(photo => `${jobSeeker.id}/${photo.name}`);
+      await supabase.storage
+        .from('images')
+        .remove(photosToDelete);
+    }
+    
+    // Create file path using jobSeeker ID and preserve original filename
+    const originalName = req.file.originalname;
+    const filePath = `${jobSeeker.id}/${originalName}`;
+    
+    // Upload to Supabase
+    const uploadResult = await uploadFile(
+      'images',
+      filePath,
+      req.file.buffer,
+      req.file.mimetype
+    );
+
+    if (uploadResult.error) {
+      return res.status(500).json({ error: uploadResult.error });
+    }
+
+    // Update jobSeeker record with new profile photo URL
+    const updatedJobSeeker = await prisma.jobSeeker.update({
+      where: { id: jobSeeker.id },
+      data: { profilePhotoUrl: uploadResult.url }
+    });
+
+    res.json({
+      message: "Profile photo uploaded successfully",
+      profilePhotoUrl: uploadResult.url
+    });
+  } catch (error) {
+    console.error("Error uploading profile photo:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   createOrUpdateJobSeeker,
   getMyJobSeekerProfile,
   getJobSeekerStatus,
-  deleteJobSeekerProfile
+  deleteJobSeekerProfile,
+  uploadResume,
+  uploadProfilePhoto,
+  upload // Export multer middleware
 };

@@ -23,7 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/job-postings", jobPostingRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/applications", jobApplicationRoutes);
-app.use("/api/job-seeker", jobSeekerRoutes);
+app.use("/api/jobseeker", jobSeekerRoutes);
 app.use("/api/saved-jobs", savedJobRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);

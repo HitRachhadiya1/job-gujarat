@@ -3,7 +3,10 @@ const {
   createOrUpdateJobSeeker,
   getMyJobSeekerProfile,
   getJobSeekerStatus,
-  deleteJobSeekerProfile
+  deleteJobSeekerProfile,
+  uploadResume,
+  uploadProfilePhoto,
+  upload
 } = require("../controllers/jobSeekerController");
 const { jwtWithRole } = require("../middleware/jwtAuth");
 const { requireRole } = require("../middleware/roleAuth");
@@ -15,5 +18,9 @@ router.post("/", jwtWithRole, requireRole("JOB_SEEKER"), createOrUpdateJobSeeker
 router.get("/", jwtWithRole, requireRole("JOB_SEEKER"), getMyJobSeekerProfile);
 router.put("/", jwtWithRole, requireRole("JOB_SEEKER"), createOrUpdateJobSeeker);
 router.delete("/", jwtWithRole, requireRole("JOB_SEEKER"), deleteJobSeekerProfile);
+
+// File upload routes
+router.post("/upload-resume", jwtWithRole, requireRole("JOB_SEEKER"), upload.single('resume'), uploadResume);
+router.post("/upload-photo", jwtWithRole, requireRole("JOB_SEEKER"), upload.single('photo'), uploadProfilePhoto);
 
 module.exports = router;
