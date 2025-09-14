@@ -261,10 +261,10 @@ const uploadResume = async (req, res) => {
     // Delete all existing resume files for this user
     const { data: existingFiles } = await supabase.storage
       .from('resumes')
-      .list(jobSeeker.id);
+      .list(`jobseeker/${jobSeeker.id}`);
     
     if (existingFiles && existingFiles.length > 0) {
-      const filesToDelete = existingFiles.map(file => `${jobSeeker.id}/${file.name}`);
+      const filesToDelete = existingFiles.map(file => `jobseeker/${jobSeeker.id}/${file.name}`);
       await supabase.storage
         .from('resumes')
         .remove(filesToDelete);
@@ -272,7 +272,7 @@ const uploadResume = async (req, res) => {
 
     // Create file path using jobSeeker ID and preserve original filename
     const originalName = req.file.originalname;
-    const filePath = `${jobSeeker.id}/${originalName}`;
+    const filePath = `jobseeker/${jobSeeker.id}/${originalName}`;
     
     // Upload to Supabase
     const uploadResult = await uploadFile(
@@ -343,10 +343,10 @@ const uploadProfilePhoto = async (req, res) => {
     // Delete all existing profile photos for this user
     const { data: existingPhotos } = await supabase.storage
       .from('images')
-      .list(jobSeeker.id);
+      .list(`jobseeker/${jobSeeker.id}`);
     
     if (existingPhotos && existingPhotos.length > 0) {
-      const photosToDelete = existingPhotos.map(photo => `${jobSeeker.id}/${photo.name}`);
+      const photosToDelete = existingPhotos.map(photo => `jobseeker/${jobSeeker.id}/${photo.name}`);
       await supabase.storage
         .from('images')
         .remove(photosToDelete);
@@ -354,7 +354,7 @@ const uploadProfilePhoto = async (req, res) => {
     
     // Create file path using jobSeeker ID and preserve original filename
     const originalName = req.file.originalname;
-    const filePath = `${jobSeeker.id}/${originalName}`;
+    const filePath = `jobseeker/${jobSeeker.id}/${originalName}`;
     
     // Upload to Supabase
     const uploadResult = await uploadFile(

@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const { uploadFile, supabase } = require("../services/supabaseService");
 const prisma = new PrismaClient({
   errorFormat: 'pretty',
 });
@@ -65,15 +66,7 @@ async function createCompany(req, res) {
       });
     }
 
-    // Handle logo file if uploaded (multer: req.file)
-    let logoUrl = null;
-    if (req.file && req.file.filename) {
-      logoUrl = `/uploads/${req.file.filename}`;
-    }
-    
-    console.log("Database connected, checking for existing company...");
-
-    // Validate required fields
+    // Validate required fields first
     if (!req.body.name || !req.body.industry || !req.body.description) {
       return res.status(400).json({ 
         error: "Missing required fields",
@@ -104,6 +97,41 @@ async function createCompany(req, res) {
       });
       console.log("User record created:", dbUser);
     }
+
+    // Handle logo file if uploaded
+    let logoUrl = null;
+    if (req.file) {
+      // Delete all existing logo files for this company
+      const { data: existingLogos } = await supabase.storage
+        .from('images')
+        .list(`company/${dbUser.id}`);
+      
+      if (existingLogos && existingLogos.length > 0) {
+        const logosToDelete = existingLogos.map(logo => `company/${dbUser.id}/${logo.name}`);
+        await supabase.storage
+          .from('images')
+          .remove(logosToDelete);
+      }
+
+      // Upload new logo to Supabase
+      const originalName = req.file.originalname;
+      const filePath = `company/${dbUser.id}/${originalName}`;
+      
+      const uploadResult = await uploadFile(
+        'images',
+        filePath,
+        req.file.buffer,
+        req.file.mimetype
+      );
+
+      if (uploadResult.error) {
+        return res.status(500).json({ error: uploadResult.error });
+      }
+
+      logoUrl = uploadResult.url;
+    }
+    
+    console.log("Database connected, checking for existing company...");
 
     // Prevent duplicate company for user
     const existing = await prisma.company.findUnique({
@@ -208,10 +236,37 @@ async function updateCompany(req, res) {
     });
     if (!company) return res.status(404).json({ error: "Company not found" });
 
-    // Handle logo file if uploaded (multer: req.file)
+    // Handle logo file if uploaded
     let logoUrl = company.logoUrl; // Keep existing logo by default
-    if (req.file && req.file.filename) {
-      logoUrl = `/uploads/${req.file.filename}`;
+    if (req.file) {
+      // Delete all existing logo files for this company
+      const { data: existingLogos } = await supabase.storage
+        .from('images')
+        .list(`company/${userId}`);
+      
+      if (existingLogos && existingLogos.length > 0) {
+        const logosToDelete = existingLogos.map(logo => `company/${userId}/${logo.name}`);
+        await supabase.storage
+          .from('images')
+          .remove(logosToDelete);
+      }
+
+      // Upload new logo to Supabase
+      const originalName = req.file.originalname;
+      const filePath = `company/${userId}/${originalName}`;
+      
+      const uploadResult = await uploadFile(
+        'images',
+        filePath,
+        req.file.buffer,
+        req.file.mimetype
+      );
+
+      if (uploadResult.error) {
+        return res.status(500).json({ error: uploadResult.error });
+      }
+
+      logoUrl = uploadResult.url;
     }
 
     const sanitized = sanitizeCompanyPayload(req.body);
