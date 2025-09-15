@@ -1,6 +1,13 @@
 const { PrismaClient } = require("@prisma/client");
 const { getManagementToken } = require("../services/auth0Service");
+const { uploadFile } = require("../services/supabaseService");
+const { createClient } = require('@supabase/supabase-js');
 const axios = require("axios");
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 const prisma = new PrismaClient();
 
@@ -251,6 +258,118 @@ async function getAuth0UserCount() {
   }
 }
 
+// Upload app logo
+async function uploadAppLogo(req, res) {
+  try {
+    if (req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No logo file provided" });
+    }
+
+    // Delete existing logo files in job-gujarat folder
+    const { data: existingLogos } = await supabase.storage
+      .from('images')
+      .list('job-gujarat');
+    
+    if (existingLogos && existingLogos.length > 0) {
+      const logosToDelete = existingLogos.map(logo => `job-gujarat/${logo.name}`);
+      await supabase.storage
+        .from('images')
+        .remove(logosToDelete);
+    }
+
+    const originalName = req.file.originalname;
+    const filePath = `job-gujarat/${originalName}`;
+    
+    const uploadResult = await uploadFile(
+      'images',
+      filePath,
+      req.file.buffer,
+      req.file.mimetype
+    );
+
+    if (uploadResult.error) {
+      return res.status(500).json({ error: uploadResult.error });
+    }
+
+    // Store logo URL in a simple way (you could use a settings table)
+    // For now, we'll return the URL and let frontend handle storage
+    res.json({ 
+      logoUrl: uploadResult.url,
+      message: "Logo uploaded successfully" 
+    });
+  } catch (error) {
+    console.error("Error uploading logo:", error);
+    res.status(500).json({ error: "Failed to upload logo" });
+  }
+}
+
+// Get current app logo (public endpoint)
+async function getAppLogo(req, res) {
+  try {
+    // List files in job-gujarat folder
+    const { data: logoFiles } = await supabase.storage
+      .from('images')
+      .list('job-gujarat');
+    
+    if (logoFiles && logoFiles.length > 0) {
+      // Get the first (and should be only) logo file
+      const logoFile = logoFiles[0];
+      const { data } = supabase.storage
+        .from('images')
+        .getPublicUrl(`job-gujarat/${logoFile.name}`);
+      
+      res.json({ logoUrl: data.publicUrl });
+    } else {
+      res.json({ logoUrl: null });
+    }
+  } catch (error) {
+    console.error("Error fetching logo:", error);
+    res.status(500).json({ error: "Failed to fetch logo" });
+  }
+}
+
+// Delete current app logo
+async function deleteAppLogo(req, res) {
+  try {
+    if (req.user?.role !== 'ADMIN') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    // List files in job-gujarat folder
+    const { data: logoFiles, error: listError } = await supabase.storage
+      .from('images')
+      .list('job-gujarat');
+
+    if (listError) {
+      console.error('Error listing logo files:', listError);
+      return res.status(500).json({ error: 'Failed to access storage' });
+    }
+
+    if (!logoFiles || logoFiles.length === 0) {
+      return res.json({ success: true, message: 'No logo to delete' });
+    }
+
+    const paths = logoFiles.map(f => `job-gujarat/${f.name}`);
+    const { error: removeError } = await supabase.storage
+      .from('images')
+      .remove(paths);
+
+    if (removeError) {
+      console.error('Error deleting logo files:', removeError);
+      return res.status(500).json({ error: 'Failed to delete logo' });
+    }
+
+    return res.json({ success: true, message: 'Logo deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting logo:', error);
+    res.status(500).json({ error: 'Failed to delete logo' });
+  }
+}
+
 module.exports = {
   getUsers,
   getCompanies,
@@ -259,5 +378,8 @@ module.exports = {
   toggleUserBlock,
   closeJob,
   verifyCompany,
-  getDashboardStats
+  getDashboardStats,
+  uploadAppLogo,
+  getAppLogo,
+  deleteAppLogo
 };

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@/context/ThemeContext";
+import { useLogo } from "@/context/LogoContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,8 +20,10 @@ import {
 } from "lucide-react";
 import Spinner from "./Spinner";
 
-const CompanyDashboard = () => {
-  const { getAccessTokenSilently } = useAuth0();
+function CompanyDashboard() {
+  const { isDark, toggleTheme } = useTheme();
+  const { getAccessTokenSilently, user } = useAuth0();
+  const { appLogo } = useLogo();
   const navigate = useNavigate();
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -116,7 +120,7 @@ const CompanyDashboard = () => {
                       ) : (
                         <Badge variant="secondary" className="bg-stone-300/80 text-stone-800 border-stone-500/50 dark:bg-stone-700/50 dark:text-stone-400 dark:border-stone-600/50">
                           <Clock className="w-3 h-3 mr-1" />
-                          Unverified
+                          Pending
                         </Badge>
                       )}
                     </div>
@@ -232,6 +236,6 @@ const CompanyDashboard = () => {
       </div>
     </div>
   );
-};
+}
 
 export default CompanyDashboard;

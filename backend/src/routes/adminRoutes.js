@@ -8,8 +8,12 @@ const {
   toggleUserBlock,
   closeJob,
   verifyCompany,
-  getDashboardStats
+  getDashboardStats,
+  uploadAppLogo,
+  getAppLogo,
+  deleteAppLogo
 } = require("../controllers/adminController");
+const { uploadSingleLogo } = require("../middleware/upload");
 
 const router = express.Router();
 
@@ -33,5 +37,9 @@ router.post("/jobs/:jobId/close", closeJob);
 
 // Payment management
 router.get("/payments", getPayments);
+
+// App logo management
+router.post("/upload-logo", uploadSingleLogo, uploadAppLogo);
+router.delete("/app-logo", deleteAppLogo);
 
 module.exports = router;

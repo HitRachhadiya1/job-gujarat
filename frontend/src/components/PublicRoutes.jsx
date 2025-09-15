@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react"
 import { useAuth0 } from "@auth0/auth0-react";
+import { useLogo } from "../context/LogoContext";
+import AppLogo from "./AppLogo";
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -32,6 +34,7 @@ import {
 
 export default function PublicRoutes({ onGetStarted }) {
   const { loginWithRedirect } = useAuth0();
+  const { appLogo } = useLogo();
   const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
@@ -117,9 +120,7 @@ export default function PublicRoutes({ onGetStarted }) {
         <div className="container mx-auto px-8 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-5">
-              <div className="w-14 h-14 bg-gradient-to-br from-stone-100 to-stone-50 dark:from-stone-200 dark:to-stone-100 rounded-3xl flex items-center justify-center shadow-xl border border-stone-200/20">
-                <Briefcase className="w-7 h-7 text-stone-800 dark:text-stone-800" />
-              </div>
+              <AppLogo size="w-14 h-14" rounded="rounded-3xl" mode="contain" className="shadow-xl border border-stone-200/20" />
               <div>
                 <h1 className="text-3xl font-bold text-stone-100 dark:text-stone-100 tracking-tight">
                   Job Gujarat
@@ -223,9 +224,7 @@ export default function PublicRoutes({ onGetStarted }) {
         <div className="container mx-auto px-8 py-16">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-4 mb-8">
-              <div className="w-14 h-14 bg-gradient-to-br from-stone-800 to-stone-900 dark:from-stone-200 dark:to-stone-100 rounded-3xl flex items-center justify-center shadow-xl">
-                <Briefcase className="w-7 h-7 text-white dark:text-stone-800" />
-              </div>
+              <AppLogo size="w-14 h-14" rounded="rounded-3xl" mode="contain" className="shadow-xl" />
               <span className="text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">Job Gujarat</span>
             </div>
             <p className="text-stone-800 dark:text-stone-400 mb-8 font-medium text-lg tracking-wide">

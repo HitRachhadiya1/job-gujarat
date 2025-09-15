@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthMeta } from "../context/AuthMetaContext";
+import { useLogo } from "../context/LogoContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,10 +22,12 @@ import {
   X,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import AppLogo from "./AppLogo";
 
 const Navbar = () => {
   const { logout, user, isAuthenticated } = useAuth0();
   const { role } = useAuthMeta();
+  const { appLogo } = useLogo();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -90,9 +93,7 @@ const Navbar = () => {
             className="flex items-center space-x-3 cursor-pointer group"
             onClick={() => navigate("/")}
           >
-            <div className="w-10 h-10 bg-stone-900 dark:bg-stone-700 rounded-lg flex items-center justify-center shadow-lg group-hover:scale-105 transition-all duration-300">
-              <Briefcase className="w-5 h-5 text-white" />
-            </div>
+            <AppLogo size="w-10 h-10" rounded="rounded-lg" mode="contain" />
             <div>
               <h1 className="text-lg font-bold text-stone-900 dark:text-stone-100 tracking-tight">
                 Job Gujarat

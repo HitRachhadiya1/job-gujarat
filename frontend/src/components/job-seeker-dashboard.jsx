@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useAuthMeta } from "../context/AuthMetaContext";
+import { useNavigate } from "react-router-dom";
+import { useTheme } from "@/context/ThemeContext";
+import { useLogo } from "@/context/LogoContext";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -55,10 +57,13 @@ import BrowseJobs from "../pages/BrowseJobs";
 import MyApplications from "../pages/MyApplications";
 import SavedJobs from "../pages/SavedJobs";
 import { savedJobsAPI } from "../api/savedJobs";
+import AppLogo from "./AppLogo";
 
-export default function JobSeekerDashboard() {
-  const { getAccessTokenSilently, user, logout } = useAuth0();
-  const { role } = useAuthMeta();
+export default function JobSeekerDashboard({ onLogout }) {
+  const { isDark, toggleTheme } = useTheme();
+  const { getAccessTokenSilently, user } = useAuth0();
+  const { appLogo } = useLogo();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [applications, setApplications] = useState([]);
   const [jobs, setJobs] = useState([]);
@@ -97,7 +102,7 @@ export default function JobSeekerDashboard() {
   ];
 
   const handleLogout = () => {
-    logout({ returnTo: window.location.origin });
+    onLogout();
   };
 
   const handleNavigation = (viewId) => {
@@ -111,7 +116,6 @@ export default function JobSeekerDashboard() {
       return [...hist, activeView];
     });
   }, [activeView]);
-
 
   // Render the active view component
   const renderActiveView = () => {
@@ -403,7 +407,7 @@ export default function JobSeekerDashboard() {
                   "https://via.placeholder.com/96/78716c/FFFFFF?text=U"
                 }
                 alt="Profile"
-                className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-stone-400/50 dark:border-stone-600 shadow-lg object-cover"
+                className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-stone-400 dark:border-stone-500 shadow-md"
               />
               <h3 className="font-bold text-xl text-stone-900 dark:text-stone-100 tracking-tight mb-2">
                 {profileFullName || user?.name || "User"}
@@ -480,7 +484,6 @@ export default function JobSeekerDashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-
       try {
         const token = await getAccessTokenSilently();
 
@@ -721,19 +724,15 @@ export default function JobSeekerDashboard() {
         {/* Logo/Brand - Match Navbar Style */}
         <div className="py-5 px-6 border-b border-stone-700 dark:border-stone-800/60">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-stone-900 dark:bg-stone-700 rounded-lg flex items-center justify-center shadow-lg">
-              <Briefcase className="w-5 h-5 text-white" />
-            </div>
+            <AppLogo size="w-12 h-12" rounded="rounded-xl" mode="contain" />
             {!sidebarCollapsed && (
               <div>
                 <h2 className="text-xl font-bold text-stone-100 dark:text-stone-100 tracking-tight">
                   Job Gujarat
                 </h2>
-                
               </div>
             )}
           </div>
-          
           {/* Collapse Toggle */}
           <Button
             variant="ghost"

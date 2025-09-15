@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import { useAuth0 } from "@auth0/auth0-react"
 import { useTheme } from "@/context/ThemeContext"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import AppLogo from "./AppLogo";
+import { useLogo } from "../context/LogoContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -52,6 +54,7 @@ import ThemeToggle from "./ThemeToggle"
 export default function AdminDashboard({ onLogout }) {
   const { isDark, toggleTheme } = useTheme()
   const { getAccessTokenSilently } = useAuth0()
+  const { appLogo } = useLogo()
   
   const [activeTab, setActiveTab] = useState("overview")
   const [stats, setStats] = useState({
@@ -75,6 +78,7 @@ export default function AdminDashboard({ onLogout }) {
   const [showAddPlanDialog, setShowAddPlanDialog] = useState(false)
   const [newCategory, setNewCategory] = useState({ name: "", description: "" })
   const [newPlan, setNewPlan] = useState({ name: "", price: "", duration: "", features: "" })
+  const [uploadingLogo, setUploadingLogo] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
@@ -148,6 +152,8 @@ export default function AdminDashboard({ onLogout }) {
         const plansData = await plansRes.json()
         setPricingPlans(plansData)
       }
+
+      // App logo is provided by LogoContext via public endpoint
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
       toast.error("Failed to load dashboard data")
@@ -298,6 +304,71 @@ export default function AdminDashboard({ onLogout }) {
     }
   }
 
+  const handleLogoUpload = async (file) => {
+    if (!file) return
+    
+    // Validate file
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      toast.error('Logo must be PNG or JPG format')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+      toast.error('Logo size must be less than 5MB')
+      return
+    }
+
+    setUploadingLogo(true)
+    try {
+      const token = await getAccessTokenSilently()
+      const formData = new FormData()
+      formData.append('logo', file)
+
+      const response = await fetch('http://localhost:5000/api/admin/upload-logo', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        toast.success('Logo uploaded successfully!')
+        // Notify all components to refresh logo
+        window.dispatchEvent(new Event('logoUpdated'))
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to upload logo')
+      }
+    } catch (error) {
+      console.error('Error uploading logo:', error)
+      toast.error('An error occurred while uploading logo')
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
+  const handleRemoveLogo = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch('http://localhost:5000/api/admin/app-logo', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        toast.success('Logo removed successfully');
+        window.dispatchEvent(new Event('logoUpdated'));
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.error || 'Failed to remove logo');
+      }
+    } catch (error) {
+      console.error('Error removing logo:', error);
+      toast.error('An error occurred while removing logo');
+    }
+  }
+
   const filteredUsers = users.filter(user => 
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -322,9 +393,7 @@ export default function AdminDashboard({ onLogout }) {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-stone-900 dark:bg-stone-700 rounded-xl flex items-center justify-center shadow-lg">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
+              <AppLogo size="w-12 h-12" rounded="rounded-xl" mode="contain" />
               <div>
                 <h1 className="text-3xl font-bold text-stone-800 dark:text-stone-200">
                   Admin Control Center
@@ -338,6 +407,15 @@ export default function AdminDashboard({ onLogout }) {
               <div className="bg-stone-200/60 dark:bg-stone-700/40 rounded-lg p-1 border border-stone-300/60 dark:border-stone-700/60">
                 <ThemeToggle />
               </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setActiveTab("settings")}
+                className="border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-800 bg-transparent"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -365,7 +443,7 @@ export default function AdminDashboard({ onLogout }) {
       {/* Main Content */}
       <main className="relative z-10 container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7 mb-8 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg rounded-xl p-2">
+          <TabsList className="grid w-full grid-cols-8 mb-8 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg rounded-xl p-2">
             <TabsTrigger value="overview" className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700">Overview</TabsTrigger>
             <TabsTrigger value="companies" className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700">Companies</TabsTrigger>
             <TabsTrigger value="jobs" className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700">Jobs</TabsTrigger>
@@ -373,6 +451,7 @@ export default function AdminDashboard({ onLogout }) {
             <TabsTrigger value="payments" className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700">Payments</TabsTrigger>
             <TabsTrigger value="categories" className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700">Categories</TabsTrigger>
             <TabsTrigger value="pricing" className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700">Pricing</TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -1194,6 +1273,69 @@ export default function AdminDashboard({ onLogout }) {
               ))}
             </div>
           </TabsContent>
+          <TabsContent value="settings" className="space-y-6">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold mb-2 text-stone-800 dark:text-white">
+                Application Settings
+              </h2>
+              <p className="text-stone-600 dark:text-stone-300">
+                Manage Job Gujarat application settings and branding
+              </p>
+            </div>
+
+            {/* Logo Management */}
+            <Card className="bg-white/80 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-stone-800 dark:text-white flex items-center">
+                  <Settings className="w-5 h-5 mr-2" />
+                  Application Logo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center space-x-6">
+                  {appLogo ? (
+                    <AppLogo size="w-12 h-12" rounded="rounded-xl" mode="contain" />
+                  ) : (
+                    <div className="w-12 h-12 bg-stone-200 dark:bg-stone-700 rounded-xl flex items-center justify-center border-2 border-dashed border-stone-300 dark:border-stone-600">
+                      <Briefcase className="w-6 h-6 text-stone-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="file"
+                        id="logoUpload"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) handleLogoUpload(file);
+                        }}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="logoUpload"
+                        className="inline-flex items-center px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-lg cursor-pointer transition-colors duration-200 font-medium"
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        {uploadingLogo ? 'Uploading...' : appLogo ? 'Change Logo' : 'Upload Logo'}
+                      </label>
+                      {appLogo && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRemoveLogo}
+                          className="border-stone-300 dark:border-stone-600"
+                        >
+                          Remove Logo
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
       </main>
     </div>

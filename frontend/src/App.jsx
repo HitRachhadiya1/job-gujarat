@@ -29,6 +29,9 @@ import {
 } from "lucide-react";
 import { useTheme } from "./context/ThemeContext";
 import ThemeToggle from "./components/ThemeToggle";
+import { AuthMetaProvider } from "./context/AuthMetaContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { LogoProvider } from "./context/LogoContext";
 
 // Import components from frontend for functionality
 import CompanyDetailsForm from "./components/CompanyDetailsForm";
@@ -166,14 +169,20 @@ export default function JobPortalApp() {
   };
 
   // Early returns for unauthenticated users or loading states
-  if (!isAuthenticated) return <PublicRoutes onGetStarted={handleGetStarted} />;
+  if (!isAuthenticated) return (
+    <LogoProvider>
+      <PublicRoutes onGetStarted={handleGetStarted} />
+    </LogoProvider>
+  );
   if (loading) return <Spinner />;
   if (!role)
     return (
-      <RoleSelection
-        onRoleSelected={handleRoleSelected}
-        onBackToLanding={handleBackToLanding}
-      />
+      <LogoProvider>
+        <RoleSelection
+          onRoleSelected={handleRoleSelected}
+          onBackToLanding={handleBackToLanding}
+        />
+      </LogoProvider>
     );
 
   // Debug logging
@@ -182,10 +191,11 @@ export default function JobPortalApp() {
 
   // Main app with routing - now using ProtectedRoute for each route
   return (
-    <Router>
-      {/* Navbar for authenticated users */}
-      <Navbar />
-      <div className="app-content pt-0 m-0 p-0">
+    <LogoProvider>
+      <Router>
+        {/* Navbar for authenticated users */}
+        <Navbar />
+        <div className="app-content pt-0 m-0 p-0">
         <Routes>
           {/* Home Route - Role-based redirect */}
           <Route
@@ -352,6 +362,7 @@ export default function JobPortalApp() {
         </Routes>
       </div>
     </Router>
+    </LogoProvider>
   );
 }
 
@@ -410,51 +421,6 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Job Seeker Card */}
-          <div className="group transform transition-all duration-300 hover:scale-[1.02]">
-            <Card className="relative overflow-hidden bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-stone-700 to-stone-500"></div>
-
-              <CardHeader className="text-center pb-6 relative z-10">
-                <div className="w-16 h-16 bg-stone-900 dark:bg-stone-700 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl font-bold text-stone-800 dark:text-stone-200 mb-3">
-                  Job Seeker
-                </CardTitle>
-                <CardDescription className="text-stone-600 dark:text-stone-400 text-base">
-                  Discover your next career opportunity with intelligent
-                  matching
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-6 relative z-10">
-                <div className="space-y-3">
-                  {[
-                    "Smart job recommendations",
-                    "Company culture insights",
-                    "Application tracking",
-                    "Career development tools",
-                  ].map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-stone-700 rounded-full"></div>
-                      <span className="text-stone-700 dark:text-stone-300 text-sm">
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <Button
-                  onClick={() => onRoleSelected("JOB_SEEKER")}
-                  className="w-full bg-gradient-to-r from-stone-700 to-stone-600 hover:from-stone-800 hover:to-stone-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300"
-                >
-                  <span className="mr-2">Start Your Journey</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Company Card */}
           <div className="group transform transition-all duration-300 hover:scale-[1.02]">
             <Card className="relative overflow-hidden bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
