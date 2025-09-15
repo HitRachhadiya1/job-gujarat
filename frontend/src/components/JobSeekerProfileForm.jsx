@@ -4,21 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, User, Phone, MapPin, Clock, Link as LinkIcon } from 'lucide-react';
+import { X, Plus, User, Phone, MapPin, Clock, Upload, FileText, Camera, Link } from 'lucide-react';
 
 const JobSeekerProfileForm = ({ onSuccess }) => {
   const { getAccessTokenSilently } = useAuth0();
   const [loading, setLoading] = useState(false);
   const [existingProfile, setExistingProfile] = useState(null);
+  const [resumeSuccess, setResumeSuccess] = useState(false);
+  const [resumeFileName, setResumeFileName] = useState("");
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     location: '',
     skills: [],
     experienceYears: '',
-    resumeUrl: ''
+    resumeUrl: '',
+    profilePhotoUrl: ''
   });
   const [skillInput, setSkillInput] = useState('');
+  const [resumeFile, setResumeFile] = useState(null);
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     fetchExistingProfile();
@@ -27,7 +34,7 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
   const fetchExistingProfile = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch('http://localhost:5000/api/job-seeker/', {
+      const response = await fetch('http://localhost:5000/api/jobseeker/', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -42,8 +49,21 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
           location: profile.location || '',
           skills: profile.skills || [],
           experienceYears: profile.experienceYears?.toString() || '',
-          resumeUrl: profile.resumeUrl || ''
+          resumeUrl: profile.resumeUrl || '',
+          profilePhotoUrl: profile.profilePhotoUrl || ''
         });
+        if (profile.resumeUrl) {
+          try {
+            const url = new URL(profile.resumeUrl);
+            const segments = url.pathname.split('/');
+            const last = segments[segments.length - 1];
+            setResumeFileName(decodeURIComponent(last) || 'resume.pdf');
+          } catch {
+            setResumeFileName('resume.pdf');
+          }
+        } else {
+          setResumeFileName('');
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -58,7 +78,7 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
       const token = await getAccessTokenSilently();
       const method = existingProfile ? 'PUT' : 'POST';
       
-      const response = await fetch('http://localhost:5000/api/job-seeker/', {
+      const response = await fetch('http://localhost:5000/api/jobseeker/', {
         method,
         headers: {
           Authorization: `Bearer ${token}`,
@@ -71,13 +91,13 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        alert(result.message);
-        setExistingProfile(result.jobSeeker);
-        if (onSuccess) onSuccess();
+        const saved = await response.json();
+        setExistingProfile(saved.jobSeeker || saved);
+        // Notify dashboard to refresh profile card
+        window.dispatchEvent(new Event('profileUpdated'));
       } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to save profile');
+        const err = await response.json();
+        alert(err.error || 'Failed to save profile');
       }
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -112,9 +132,136 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
     }
   };
 
+  const validateFile = (file, type) => {
+    if (type === 'resume') {
+      if (file.type !== 'application/pdf') {
+        alert('Resume must be a PDF file');
+        return false;
+      }
+      if (file.size > 2 * 1024 * 1024) { // 2MB
+        alert('Resume file size must be less than 2MB');
+        return false;
+      }
+    } else if (type === 'photo') {
+      if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+        alert('Profile photo must be PNG or JPG format');
+        return false;
+      }
+      if (file.size > 3 * 1024 * 1024) { // 3MB
+        alert('Profile photo size must be less than 3MB');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleResumeUpload = async (file) => {
+    if (!validateFile(file, 'resume')) return;
+    
+    setUploadingResume(true);
+    try {
+      const token = await getAccessTokenSilently();
+      const formData = new FormData();
+      formData.append('resume', file);
+
+      const response = await fetch('http://localhost:5000/api/jobseeker/upload-resume', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setFormData(prev => ({ ...prev, resumeUrl: result.resumeUrl }));
+        setResumeFileName(file.name || 'resume.pdf');
+        setResumeSuccess(true);
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => setResumeSuccess(false), 3000);
+        // Notify dashboard
+        window.dispatchEvent(new Event('profileUpdated'));
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to upload resume');
+      }
+    } catch (error) {
+      console.error('Error uploading resume:', error);
+      alert('An error occurred while uploading resume');
+    } finally {
+      setUploadingResume(false);
+    }
+  };
+
+  const handlePhotoUpload = async (file) => {
+    if (!validateFile(file, 'photo')) return;
+    
+    setUploadingPhoto(true);
+    try {
+      const token = await getAccessTokenSilently();
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      const response = await fetch('http://localhost:5000/api/jobseeker/upload-photo', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setFormData(prev => ({ ...prev, profilePhotoUrl: result.profilePhotoUrl }));
+        setProfilePhoto(file);
+        alert('Profile photo uploaded successfully!');
+        // Notify dashboard to refresh profile card
+        window.dispatchEvent(new Event('profileUpdated'));
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to upload photo');
+      }
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      alert('An error occurred while uploading photo');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const removeUploadedResume = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      // Persist clearing resumeUrl on backend
+      const response = await fetch('http://localhost:5000/api/jobseeker/', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          resumeUrl: null,
+          experienceYears: formData.experienceYears ? parseInt(formData.experienceYears) : null
+        }),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        console.error('Failed to clear resumeUrl:', err);
+      }
+    } catch (e) {
+      console.error('Error clearing resumeUrl:', e);
+    } finally {
+      setFormData(prev => ({ ...prev, resumeUrl: '' }));
+      setResumeFileName('');
+      setResumeSuccess(false);
+      window.dispatchEvent(new Event('profileUpdated'));
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
-      <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+      <Card className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 shadow-lg">
         <CardHeader className="py-8 px-8">
           <CardTitle className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight flex items-center space-x-4">
               <div className="w-12 h-12 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl flex items-center justify-center shadow-lg">
@@ -129,6 +276,47 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
 
         <CardContent className="p-8">
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Profile Photo Upload */}
+            <div className="md:col-span-2 space-y-3">
+              <label className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
+                <Camera className="w-5 h-5 text-stone-700 dark:text-stone-400" />
+                <span>Profile Photo</span>
+              </label>
+              <div className="flex items-center space-x-4">
+                {formData.profilePhotoUrl && (
+                  <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-stone-300 dark:border-stone-600">
+                    <img 
+                      src={formData.profilePhotoUrl} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    id="profilePhoto"
+                    accept="image/png,image/jpeg,image/jpg"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) handlePhotoUpload(file);
+                    }}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="profilePhoto"
+                    className="inline-flex items-center px-4 py-2 bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-stone-100 rounded-lg cursor-pointer hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors duration-200"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                  </label>
+                  <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
+                    PNG or JPG format, max 3MB
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="md:col-span-2 space-y-3">
                 <label htmlFor="fullName" className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
                   <User className="w-5 h-5 text-stone-700 dark:text-stone-400" />
@@ -232,18 +420,58 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
             </div>
 
             <div className="md:col-span-2 space-y-3">
-                <label htmlFor="resumeUrl" className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
-                  <LinkIcon className="w-5 h-5 text-stone-700 dark:text-stone-400" />
-                  <span>Resume URL</span>
+                <label className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
+                  <FileText className="w-5 h-5 text-stone-700 dark:text-stone-400" />
+                  <span>Resume Upload</span>
                 </label>
-                <Input
-                  type="url"
-                  id="resumeUrl"
-                  placeholder="Link to your resume (Google Drive, Dropbox, etc.)"
-                  value={formData.resumeUrl}
-                  onChange={(e) => setFormData(prev => ({ ...prev, resumeUrl: e.target.value }))}
-                  className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
-                />
+                <div className="space-y-2">
+                  {!formData.resumeUrl ? (
+                    <>
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) handleResumeUpload(file);
+                        }}
+                        className="hidden"
+                        id="resume-upload"
+                      />
+                      <label
+                        htmlFor="resume-upload"
+                        className="flex items-center justify-center w-full p-4 border-2 border-dashed border-stone-300 dark:border-stone-600 rounded-xl cursor-pointer hover:border-stone-400 dark:hover:border-stone-500 transition-colors"
+                      >
+                        <div className="text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-stone-400" />
+                          <p className="text-sm text-stone-600 dark:text-stone-400">
+                            {uploadingResume ? 'Uploading...' : 'Click to upload PDF resume (max 2MB)'}
+                          </p>
+                        </div>
+                      </label>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-stone-100 dark:bg-stone-800 rounded-xl border border-stone-300 dark:border-stone-700">
+                      <div className="flex items-center space-x-2">
+                        <FileText className="w-4 h-4 text-stone-700 dark:text-stone-300" />
+                        <span className="text-sm font-medium text-stone-900 dark:text-stone-100">{resumeFileName || 'resume.pdf'}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeUploadedResume}
+                        className="text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200"
+                        title="Remove resume"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  {resumeSuccess && (
+                    <div className="flex items-center space-x-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <FileText className="w-4 h-4 text-green-600" />
+                      <span className="text-sm text-green-700 dark:text-green-400">Resume uploaded successfully</span>
+                    </div>
+                  )}
+                </div>
             </div>
 
             <div className="md:col-span-2 flex justify-end pt-6">

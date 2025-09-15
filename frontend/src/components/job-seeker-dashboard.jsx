@@ -67,6 +67,8 @@ export default function JobSeekerDashboard() {
   const [activeView, setActiveView] = useState("dashboard");
   const [viewHistory, setViewHistory] = useState(["dashboard"]);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [profileImageUrl, setProfileImageUrl] = useState("");
+  const [profileFullName, setProfileFullName] = useState("");
 
   // Dynamic data states
   const [stats, setStats] = useState({
@@ -392,18 +394,19 @@ export default function JobSeekerDashboard() {
         {/* Right Sidebar - Profile Card */}
         <div className="space-y-8">
           {/* Profile Card */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+          <Card className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 shadow-lg">
             <CardContent className="p-8 text-center">
               <img
                 src={
+                  profileImageUrl ||
                   user?.picture ||
                   "https://via.placeholder.com/96/78716c/FFFFFF?text=U"
                 }
                 alt="Profile"
-                className="w-24 h-24 rounded-full mx-auto mb-6 border-4 border-stone-400/50 dark:border-stone-600 shadow-lg"
+                className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-stone-400/50 dark:border-stone-600 shadow-lg object-cover"
               />
               <h3 className="font-bold text-xl text-stone-900 dark:text-stone-100 tracking-tight mb-2">
-                {user?.name || "User"}
+                {profileFullName || user?.name || "User"}
               </h3>
               <p className="text-sm text-stone-700 dark:text-stone-400 font-medium mb-8">Job Seeker</p>
 
@@ -524,7 +527,7 @@ export default function JobSeekerDashboard() {
         // Fetch profile status
         try {
           const profileResponse = await fetch(
-            "http://localhost:5000/api/job-seekers/status",
+            "http://localhost:5000/api/jobseeker/status",
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -592,6 +595,12 @@ export default function JobSeekerDashboard() {
                 ? "Complete Your Profile"
                 : "Create Your Profile",
             });
+
+            // Update profile image and name for profile card
+            if (profileData.profile) {
+              setProfileImageUrl(profileData.profile.profilePhotoUrl || "");
+              setProfileFullName(profileData.profile.fullName || "");
+            }
           }
         } catch (error) {
           console.error("Error fetching profile status:", error);
@@ -658,7 +667,12 @@ export default function JobSeekerDashboard() {
   useEffect(() => {
     const handler = () => setRefreshTick((t) => t + 1);
     window.addEventListener('applicationsUpdated', handler);
-    return () => window.removeEventListener('applicationsUpdated', handler);
+    // Also refresh when profile is updated
+    window.addEventListener('profileUpdated', handler);
+    return () => {
+      window.removeEventListener('applicationsUpdated', handler);
+      window.removeEventListener('profileUpdated', handler);
+    };
   }, []);
 
   const getStatusIcon = (status) => {
