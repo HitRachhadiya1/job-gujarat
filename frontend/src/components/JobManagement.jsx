@@ -391,19 +391,32 @@ const JobManagement = () => {
                       />
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <Label htmlFor="salaryRange" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
                         <DollarSign className="h-4 w-4" />
-                        Salary Range
+                        Monthly Salary (INR)
                       </Label>
                       <Input
                         id="salaryRange"
                         name="salaryRange"
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        step={1}
                         value={formData.salaryRange}
-                        onChange={handleInputChange}
-                        placeholder="e.g. ₹5,00,000 - ₹8,00,000 per year"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          // Allow only digits (empty allowed to clear)
+                          if (val === '' || /^\d+$/.test(val)) {
+                            handleInputChange(e);
+                          }
+                        }}
+                        placeholder="e.g. 25000"
                         className="h-12 border-slate-300 focus:border-blue-500 focus:ring-blue-500 bg-white/80"
                       />
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        Enter monthly salary amount in INR (numbers only). Do not enter annual package.
+                      </div>
                     </div>
                   </div>
                 </div>

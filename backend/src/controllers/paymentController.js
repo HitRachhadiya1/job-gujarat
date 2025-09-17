@@ -61,8 +61,6 @@ function getPublicKey(req, res) {
   return res.json({ key: process.env.RAZORPAY_KEY_ID || "" });
 }
 
-module.exports = { createOrder, verifyPayment, getPublicKey };
-
 // Verify payment and publish job (atomic)
 async function confirmAndPublish(req, res) {
   try {
@@ -117,6 +115,7 @@ async function confirmAndPublish(req, res) {
         data: {
           companyId: user.Company.id,
           jobPostingId: job.id,
+          paymentType: "JOB_POSTING_FEE",
           gateway: "Razorpay",
           transactionId: payment.razorpay_payment_id,
           amount: new Prisma.Decimal(totalAmount),
@@ -135,4 +134,4 @@ async function confirmAndPublish(req, res) {
   }
 }
 
-module.exports.confirmAndPublish = confirmAndPublish;
+module.exports = { createOrder, verifyPayment, getPublicKey, confirmAndPublish };

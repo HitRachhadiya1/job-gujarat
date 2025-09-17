@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
 import { useLogo } from "@/context/LogoContext";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,7 @@ export default function JobSeekerDashboard({ onLogout }) {
   const { getAccessTokenSilently, user } = useAuth0();
   const { appLogo } = useLogo();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [applications, setApplications] = useState([]);
   const [jobs, setJobs] = useState([]);
@@ -116,6 +118,23 @@ export default function JobSeekerDashboard({ onLogout }) {
       return [...hist, activeView];
     });
   }, [activeView]);
+
+  // Sync active view with query parameter `view`, e.g., '/?view=profile'
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const view = params.get("view");
+    const validViews = [
+      "dashboard",
+      "profile",
+      "browse-jobs",
+      "applications",
+      "saved-jobs",
+      "recommendations",
+    ];
+    if (view && validViews.includes(view)) {
+      setActiveView(view);
+    }
+  }, [location.search]);
 
   // Render the active view component
   const renderActiveView = () => {

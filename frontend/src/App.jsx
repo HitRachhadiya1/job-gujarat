@@ -18,6 +18,7 @@ import Navbar from "./components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import {
   Users,
+  User,
   Building2,
   ArrowRight,
   Briefcase,
@@ -421,6 +422,50 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Job Seeker Card */}
+          <div className="group transform transition-all duration-300 hover:scale-[1.02]">
+            <Card className="relative overflow-hidden bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+
+              <CardHeader className="text-center pb-6 relative z-10">
+                <div className="w-16 h-16 bg-blue-600 dark:bg-blue-700 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
+                  <User className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-2xl font-bold text-stone-800 dark:text-stone-200 mb-3">
+                  Job Seeker
+                </CardTitle>
+                <CardDescription className="text-stone-600 dark:text-stone-400 text-base">
+                  Discover your dream career with personalized job matching
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-6 relative z-10">
+                <div className="space-y-3">
+                  {[
+                    "AI-powered job recommendations",
+                    "Career development resources",
+                    "Application tracking system",
+                    "Professional networking tools",
+                  ].map((feature, index) => (
+                    <div key={index} className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                      <span className="text-stone-700 dark:text-stone-300 text-sm">
+                        {feature}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={() => onRoleSelected("JOB_SEEKER")}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300"
+                >
+                  <span className="mr-2">Find Your Dream Job</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Company Card */}
           <div className="group transform transition-all duration-300 hover:scale-[1.02]">
             <Card className="relative overflow-hidden bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">

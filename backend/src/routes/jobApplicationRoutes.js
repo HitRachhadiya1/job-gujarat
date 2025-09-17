@@ -5,7 +5,10 @@ const {
   getJobApplications,
   updateApplicationStatus,
   getCompanyApplications,
-  withdrawApplication
+  withdrawApplication,
+  uploadApplicationResume,
+  checkApplicationResume,
+  upload
 } = require("../controllers/jobApplicationController");
 const { jwtWithRole } = require("../middleware/jwtAuth");
 const { requireRole } = require("../middleware/roleAuth");
@@ -13,6 +16,8 @@ const { requireRole } = require("../middleware/roleAuth");
 const router = express.Router();
 
 // Job seeker routes
+router.get("/check-resume/:jobId", jwtWithRole, requireRole("JOB_SEEKER"), checkApplicationResume);
+router.post("/upload-resume", jwtWithRole, requireRole("JOB_SEEKER"), upload.single('resume'), uploadApplicationResume);
 router.post("/apply", jwtWithRole, requireRole("JOB_SEEKER"), applyForJob);
 router.get("/my-applications", jwtWithRole, requireRole("JOB_SEEKER"), getMyApplications);
 router.delete("/:applicationId/withdraw", jwtWithRole, requireRole("JOB_SEEKER"), withdrawApplication);

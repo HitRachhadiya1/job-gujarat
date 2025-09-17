@@ -1,10 +1,182 @@
 const { PrismaClient } = require("@prisma/client");
+const { uploadFile, supabase } = require("../services/supabaseService");
+const multer = require('multer');
 const prisma = new PrismaClient();
+
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB max file size
+  }
+});
+
+// Check if resume exists for a specific job application
+const checkApplicationResume = async (req, res) => {
+  try {
+    const auth0User = req.user;
+    const { jobId } = req.params;
+    
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    // Get user from database
+    const dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
+    if (!dbUser) {
+      return res.status(404).json({ error: "User record not found" });
+    }
+
+    // Get jobSeeker profile
+    const jobSeeker = await prisma.jobSeeker.findUnique({
+      where: { userId: dbUser.id }
+    });
+
+    if (!jobSeeker) {
+      return res.json({ hasResume: false, resumeUrl: null });
+    }
+
+    // Check if resume file exists for this specific job
+    const fileExtension = 'pdf'; // We only accept PDFs
+    const fileName = `applications/${jobSeeker.id}_${jobId}.${fileExtension}`;
+    
+    console.log(`Checking for resume file: ${fileName} for jobSeeker: ${jobSeeker.id}, job: ${jobId}`);
+    
+    try {
+      // Check if file exists in Supabase storage
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .list('applications', {
+          search: `${jobSeeker.id}_${jobId}.${fileExtension}`
+        });
+
+      console.log('File search result:', { data, error });
+
+      if (error) {
+        console.error('Error checking file existence:', error);
+        return res.json({ hasResume: false, resumeUrl: null });
+      }
+
+      // If file exists, get its public URL
+      if (data && data.length > 0) {
+        const { data: urlData } = supabase.storage
+          .from('resumes')
+          .getPublicUrl(fileName);
+
+        return res.json({ 
+          hasResume: true, 
+          resumeUrl: urlData.publicUrl,
+          fileName: `resume_${jobId}.pdf`
+        });
+      }
+
+      res.json({ hasResume: false, resumeUrl: null });
+    } catch (storageError) {
+      console.error('Storage check error:', storageError);
+      res.json({ hasResume: false, resumeUrl: null });
+    }
+  } catch (error) {
+    console.error("Error checking application resume:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Upload resume for job application
+const uploadApplicationResume = async (req, res) => {
+  try {
+    const auth0User = req.user;
+    
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const { jobId } = req.body;
+    if (!jobId) {
+      return res.status(400).json({ error: "Job ID is required" });
+    }
+
+    // Validate file type and size
+    if (req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({ error: "Resume must be a PDF file" });
+    }
+
+    if (req.file.size > 2 * 1024 * 1024) { // 2MB
+      return res.status(400).json({ error: "Resume file size must be less than 2MB" });
+    }
+
+    // Get user from database
+    const dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
+    if (!dbUser) {
+      return res.status(404).json({ error: "User record not found" });
+    }
+
+    // Get or create jobSeeker profile
+    let jobSeeker = await prisma.jobSeeker.findUnique({
+      where: { userId: dbUser.id }
+    });
+
+    if (!jobSeeker) {
+      // Create a basic profile if it doesn't exist
+      jobSeeker = await prisma.jobSeeker.create({
+        data: {
+          userId: dbUser.id,
+          fullName: auth0User.name || auth0User.email || "User",
+          phone: null,
+          location: null,
+          skills: [],
+          experienceYears: null,
+          resumeUrl: null,
+          profilePhotoUrl: null,
+        },
+      });
+    }
+
+    // Create application-specific file path in resumes bucket
+    // Format: applications/{jobSeekerId}_{jobId}.pdf
+    const fileExtension = req.file.originalname.split('.').pop();
+    const fileName = `applications/${jobSeeker.id}_${jobId}.${fileExtension}`;
+    
+    // Delete existing file if it exists (to replace with new one)
+    try {
+      await supabase.storage
+        .from('resumes')
+        .remove([fileName]);
+    } catch (deleteError) {
+      // Ignore delete errors (file might not exist)
+      console.log('File deletion info:', deleteError.message);
+    }
+
+    // Upload to Supabase resumes bucket with applications subfolder
+    const uploadResult = await uploadFile(
+      'resumes',
+      fileName,
+      req.file.buffer,
+      req.file.mimetype
+    );
+
+    if (uploadResult.error) {
+      return res.status(500).json({ error: uploadResult.error });
+    }
+
+    res.json({
+      message: "Resume uploaded successfully",
+      resumeUrl: uploadResult.url
+    });
+  } catch (error) {
+    console.error("Error uploading application resume:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 // Apply for a job
 const applyForJob = async (req, res) => {
   try {
-    const { jobId, coverLetter } = req.body;
+    const { jobId, coverLetter, resumeUrl } = req.body;
     const auth0User = req.user;
 
     // Check if user has JOB_SEEKER role from Auth0 data
@@ -35,6 +207,8 @@ const applyForJob = async (req, res) => {
     if (!jobSeekerProfile) {
       return res.status(403).json({
         error: "Please complete your job seeker profile before applying for jobs.",
+        requiresProfile: true,
+        action: "CREATE_PROFILE"
       });
     }
 
@@ -64,16 +238,18 @@ const applyForJob = async (req, res) => {
       return res.status(400).json({ error: "You have already applied for this job" });
     }
 
-    // Create snapshot of current resume URL for this application
-    const resumeSnapshot = jobSeekerProfile.resumeUrl;
+    // Validate resume URL is provided
+    if (!resumeUrl) {
+      return res.status(400).json({ error: "Resume is required to apply for this job" });
+    }
 
-    // Create job application
+    // Create job application with application-specific resume
     const application = await prisma.jobApplication.create({
       data: {
         jobId,
         jobSeekerId: jobSeekerProfile.id,
         coverLetter: coverLetter || null,
-        resumeSnapshot,
+        resumeSnapshot: resumeUrl, // Use the application-specific resume URL
         status: "APPLIED"
       },
       include: {
@@ -554,5 +730,8 @@ module.exports = {
   getJobApplications,
   updateApplicationStatus,
   getCompanyApplications,
-  withdrawApplication
+  withdrawApplication,
+  uploadApplicationResume,
+  checkApplicationResume,
+  upload // Export multer middleware
 };

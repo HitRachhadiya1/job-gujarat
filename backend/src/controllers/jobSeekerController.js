@@ -249,13 +249,25 @@ const uploadResume = async (req, res) => {
       return res.status(404).json({ error: "User record not found" });
     }
 
-    // Get jobSeeker profile
-    const jobSeeker = await prisma.jobSeeker.findUnique({
+    // Get or create jobSeeker profile
+    let jobSeeker = await prisma.jobSeeker.findUnique({
       where: { userId: dbUser.id }
     });
 
     if (!jobSeeker) {
-      return res.status(404).json({ error: "Job seeker profile not found" });
+      // Create a basic profile if it doesn't exist
+      jobSeeker = await prisma.jobSeeker.create({
+        data: {
+          userId: dbUser.id,
+          fullName: auth0User.name || auth0User.email || "User", // Use Auth0 name or email as fallback
+          phone: null,
+          location: null,
+          skills: [],
+          experienceYears: null,
+          resumeUrl: null,
+          profilePhotoUrl: null,
+        },
+      });
     }
 
     // Delete all existing resume files for this user
@@ -331,13 +343,25 @@ const uploadProfilePhoto = async (req, res) => {
       return res.status(404).json({ error: "User record not found" });
     }
 
-    // Get jobSeeker profile
-    const jobSeeker = await prisma.jobSeeker.findUnique({
+    // Get or create jobSeeker profile
+    let jobSeeker = await prisma.jobSeeker.findUnique({
       where: { userId: dbUser.id }
     });
 
     if (!jobSeeker) {
-      return res.status(404).json({ error: "Job seeker profile not found" });
+      // Create a basic profile if it doesn't exist
+      jobSeeker = await prisma.jobSeeker.create({
+        data: {
+          userId: dbUser.id,
+          fullName: auth0User.name || auth0User.email || "User", // Use Auth0 name or email as fallback
+          phone: null,
+          location: null,
+          skills: [],
+          experienceYears: null,
+          resumeUrl: null,
+          profilePhotoUrl: null,
+        },
+      });
     }
 
     // Delete all existing profile photos for this user

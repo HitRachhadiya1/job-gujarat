@@ -39,6 +39,7 @@ model JobSeeker {
   Applications    JobApplication[]
   user            User             @relation(fields: [userId], references: [id])
   SavedJobs       SavedJob[]
+  PaymentTransactions PaymentTransaction[]
 }
 
 model AadhaarVault {
@@ -85,7 +86,7 @@ model JobPosting {
   expiresAt    DateTime?
   Applications JobApplication[]
   company      Company             @relation(fields: [companyId], references: [id])
-  Payment      PaymentTransaction?
+  PaymentTransactions PaymentTransaction[]
   SavedJobs    SavedJob[]
 }
 
@@ -100,12 +101,16 @@ model JobApplication {
   updatedAt      DateTime          @updatedAt
   job            JobPosting        @relation(fields: [jobId], references: [id])
   jobSeeker      JobSeeker         @relation(fields: [jobSeekerId], references: [id])
+  PaymentTransactions PaymentTransaction[]
 }
 
 model PaymentTransaction {
   id            String        @id @default(uuid())
-  companyId     String
-  jobPostingId  String?       @unique
+  companyId     String?
+  jobSeekerId   String?
+  jobPostingId  String?
+  applicationId String?
+  paymentType   PaymentType
   gateway       String
   transactionId String        @unique
   amount        Decimal
@@ -113,8 +118,10 @@ model PaymentTransaction {
   status        PaymentStatus @default(PENDING)
   createdAt     DateTime      @default(now())
   completedAt   DateTime?
-  company       Company       @relation(fields: [companyId], references: [id])
+  company       Company?      @relation(fields: [companyId], references: [id])
+  jobSeeker     JobSeeker?    @relation(fields: [jobSeekerId], references: [userId])
   jobPosting    JobPosting?   @relation(fields: [jobPostingId], references: [id])
+  application   JobApplication? @relation(fields: [applicationId], references: [id])
 }
 
 model Notification {
@@ -208,6 +215,13 @@ enum PaymentStatus {
   PENDING
   SUCCESS
   FAILED
+}
+
+enum PaymentType {
+  JOB_POSTING_FEE
+  APPLICATION_FEE
+  APPROVAL_FEE
+  SUBSCRIPTION_FEE
 }
 
 enum NotificationChannel {

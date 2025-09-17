@@ -4,27 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, User, Phone, MapPin, Clock, Upload, FileText, Camera, Link } from 'lucide-react';
+import { X, Plus, User, Phone, MapPin, Clock, Camera } from 'lucide-react';
 
 const JobSeekerProfileForm = ({ onSuccess }) => {
   const { getAccessTokenSilently } = useAuth0();
   const [loading, setLoading] = useState(false);
   const [existingProfile, setExistingProfile] = useState(null);
-  const [resumeSuccess, setResumeSuccess] = useState(false);
-  const [resumeFileName, setResumeFileName] = useState("");
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     location: '',
     skills: [],
     experienceYears: '',
-    resumeUrl: '',
     profilePhotoUrl: ''
   });
   const [skillInput, setSkillInput] = useState('');
-  const [resumeFile, setResumeFile] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
-  const [uploadingResume, setUploadingResume] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
@@ -49,21 +44,8 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
           location: profile.location || '',
           skills: profile.skills || [],
           experienceYears: profile.experienceYears?.toString() || '',
-          resumeUrl: profile.resumeUrl || '',
           profilePhotoUrl: profile.profilePhotoUrl || ''
         });
-        if (profile.resumeUrl) {
-          try {
-            const url = new URL(profile.resumeUrl);
-            const segments = url.pathname.split('/');
-            const last = segments[segments.length - 1];
-            setResumeFileName(decodeURIComponent(last) || 'resume.pdf');
-          } catch {
-            setResumeFileName('resume.pdf');
-          }
-        } else {
-          setResumeFileName('');
-        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -133,16 +115,7 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
   };
 
   const validateFile = (file, type) => {
-    if (type === 'resume') {
-      if (file.type !== 'application/pdf') {
-        alert('Resume must be a PDF file');
-        return false;
-      }
-      if (file.size > 2 * 1024 * 1024) { // 2MB
-        alert('Resume file size must be less than 2MB');
-        return false;
-      }
-    } else if (type === 'photo') {
+    if (type === 'photo') {
       if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
         alert('Profile photo must be PNG or JPG format');
         return false;
@@ -155,43 +128,6 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
     return true;
   };
 
-  const handleResumeUpload = async (file) => {
-    if (!validateFile(file, 'resume')) return;
-    
-    setUploadingResume(true);
-    try {
-      const token = await getAccessTokenSilently();
-      const formData = new FormData();
-      formData.append('resume', file);
-
-      const response = await fetch('http://localhost:5000/api/jobseeker/upload-resume', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setFormData(prev => ({ ...prev, resumeUrl: result.resumeUrl }));
-        setResumeFileName(file.name || 'resume.pdf');
-        setResumeSuccess(true);
-        // Auto-hide success message after 3 seconds
-        setTimeout(() => setResumeSuccess(false), 3000);
-        // Notify dashboard
-        window.dispatchEvent(new Event('profileUpdated'));
-      } else {
-        const error = await response.json();
-        alert(error.error || 'Failed to upload resume');
-      }
-    } catch (error) {
-      console.error('Error uploading resume:', error);
-      alert('An error occurred while uploading resume');
-    } finally {
-      setUploadingResume(false);
-    }
-  };
 
   const handlePhotoUpload = async (file) => {
     if (!validateFile(file, 'photo')) return;
@@ -229,35 +165,6 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
     }
   };
 
-  const removeUploadedResume = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-      // Persist clearing resumeUrl on backend
-      const response = await fetch('http://localhost:5000/api/jobseeker/', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          resumeUrl: null,
-          experienceYears: formData.experienceYears ? parseInt(formData.experienceYears) : null
-        }),
-      });
-      if (!response.ok) {
-        const err = await response.json();
-        console.error('Failed to clear resumeUrl:', err);
-      }
-    } catch (e) {
-      console.error('Error clearing resumeUrl:', e);
-    } finally {
-      setFormData(prev => ({ ...prev, resumeUrl: '' }));
-      setResumeFileName('');
-      setResumeSuccess(false);
-      window.dispatchEvent(new Event('profileUpdated'));
-    }
-  };
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
@@ -416,61 +323,6 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
                       </button>
                     </Badge>
                   ))}
-                </div>
-            </div>
-
-            <div className="md:col-span-2 space-y-3">
-                <label className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
-                  <FileText className="w-5 h-5 text-stone-700 dark:text-stone-400" />
-                  <span>Resume Upload</span>
-                </label>
-                <div className="space-y-2">
-                  {!formData.resumeUrl ? (
-                    <>
-                      <input
-                        type="file"
-                        accept=".pdf"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) handleResumeUpload(file);
-                        }}
-                        className="hidden"
-                        id="resume-upload"
-                      />
-                      <label
-                        htmlFor="resume-upload"
-                        className="flex items-center justify-center w-full p-4 border-2 border-dashed border-stone-300 dark:border-stone-600 rounded-xl cursor-pointer hover:border-stone-400 dark:hover:border-stone-500 transition-colors"
-                      >
-                        <div className="text-center">
-                          <Upload className="w-8 h-8 mx-auto mb-2 text-stone-400" />
-                          <p className="text-sm text-stone-600 dark:text-stone-400">
-                            {uploadingResume ? 'Uploading...' : 'Click to upload PDF resume (max 2MB)'}
-                          </p>
-                        </div>
-                      </label>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-between p-3 bg-stone-100 dark:bg-stone-800 rounded-xl border border-stone-300 dark:border-stone-700">
-                      <div className="flex items-center space-x-2">
-                        <FileText className="w-4 h-4 text-stone-700 dark:text-stone-300" />
-                        <span className="text-sm font-medium text-stone-900 dark:text-stone-100">{resumeFileName || 'resume.pdf'}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={removeUploadedResume}
-                        className="text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200"
-                        title="Remove resume"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                  {resumeSuccess && (
-                    <div className="flex items-center space-x-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <FileText className="w-4 h-4 text-green-600" />
-                      <span className="text-sm text-green-700 dark:text-green-400">Resume uploaded successfully</span>
-                    </div>
-                  )}
                 </div>
             </div>
 
