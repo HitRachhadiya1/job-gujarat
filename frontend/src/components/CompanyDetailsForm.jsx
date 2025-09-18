@@ -1,12 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Globe, Link as LinkIcon, Image, AlertCircle, Upload, X } from "lucide-react";
+import {
+  Building2,
+  Globe,
+  Link as LinkIcon,
+  Image,
+  AlertCircle,
+  Upload,
+  X,
+} from "lucide-react";
 
-const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta }) => {
+const CompanyDetailsForm = ({
+  onSuccess,
+  existingCompany = null,
+  refreshAuthMeta,
+}) => {
   const { getAccessTokenSilently } = useAuth0();
   const [formData, setFormData] = useState({
     name: "",
@@ -18,12 +36,64 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
   const [logoPreview, setLogoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   function resolveLogoSrc(value) {
     if (!value) return "";
-    if (value.startsWith('blob:') || value.startsWith('http')) return value;
+    if (value.startsWith("blob:") || value.startsWith("http")) return value;
     return `http://localhost:5000${value}`;
   }
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/public/categories"
+        );
+        if (response.ok) {
+          const categoriesData = await response.json();
+          setCategories(categoriesData);
+        } else {
+          console.error("Failed to fetch categories");
+          // Fallback to static categories if API fails
+          setCategories([
+            { id: "tech", name: "Technology" },
+            { id: "healthcare", name: "Healthcare" },
+            { id: "finance", name: "Finance" },
+            { id: "education", name: "Education" },
+            { id: "manufacturing", name: "Manufacturing" },
+            { id: "retail", name: "Retail" },
+            { id: "construction", name: "Construction" },
+            { id: "transportation", name: "Transportation" },
+            { id: "hospitality", name: "Hospitality" },
+            { id: "media", name: "Media" },
+          ]);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        // Fallback to static categories if API fails
+        setCategories([
+          { id: "tech", name: "Technology" },
+          { id: "healthcare", name: "Healthcare" },
+          { id: "finance", name: "Finance" },
+          { id: "education", name: "Education" },
+          { id: "manufacturing", name: "Manufacturing" },
+          { id: "retail", name: "Retail" },
+          { id: "construction", name: "Construction" },
+          { id: "transportation", name: "Transportation" },
+          { id: "hospitality", name: "Hospitality" },
+          { id: "media", name: "Media" },
+          { id: "other", name: "Other" },
+        ]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // Pre-populate form if editing existing company
   useEffect(() => {
@@ -96,24 +166,31 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setErrors(prev => ({ ...prev, logo: "Logo file size must be less than 5MB" }));
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        setErrors((prev) => ({
+          ...prev,
+          logo: "Logo file size must be less than 5MB",
+        }));
         return;
       }
-      if (!file.type.startsWith('image/')) {
-        setErrors(prev => ({ ...prev, logo: "Please select a valid image file" }));
+      if (!file.type.startsWith("image/")) {
+        setErrors((prev) => ({
+          ...prev,
+          logo: "Please select a valid image file",
+        }));
         return;
       }
       setLogoFile(file);
       setLogoPreview(URL.createObjectURL(file));
-      setErrors(prev => ({ ...prev, logo: "" }));
+      setErrors((prev) => ({ ...prev, logo: "" }));
     }
   };
 
   const removeLogo = () => {
     setLogoFile(null);
     setLogoPreview(null);
-    if (logoPreview && logoPreview.startsWith('blob:')) {
+    if (logoPreview && logoPreview.startsWith("blob:")) {
       URL.revokeObjectURL(logoPreview);
     }
   };
@@ -136,12 +213,12 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
       const method = existingCompany ? "PUT" : "POST";
 
       const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('industry', formData.industry);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('website', formData.website);
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("industry", formData.industry);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("website", formData.website);
       if (logoFile) {
-        formDataToSend.append('logo', logoFile);
+        formDataToSend.append("logo", logoFile);
       }
 
       const response = await fetch(url, {
@@ -158,12 +235,12 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
       }
 
       const company = await response.json();
-      
+
       // Refresh auth meta to update company status
       if (refreshAuthMeta) {
         refreshAuthMeta();
       }
-      
+
       // Call onSuccess callback if provided
       if (onSuccess) {
         onSuccess(company);
@@ -190,14 +267,18 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
               </span>
             </CardTitle>
             <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
-              Please fill in your company information to continue using the platform.
+              Please fill in your company information to continue using the
+              platform.
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium text-stone-700 dark:text-stone-300 flex items-center space-x-2">
+                <label
+                  htmlFor="name"
+                  className="text-sm font-medium text-stone-700 dark:text-stone-300 flex items-center space-x-2"
+                >
                   <Building2 className="w-4 h-4" />
                   <span>Company Name *</span>
                 </label>
@@ -207,7 +288,9 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={`bg-stone-50 dark:bg-stone-800 border-stone-400 dark:border-stone-600 focus:ring-stone-500 focus:border-stone-500 rounded-xl ${errors.name ? 'border-red-500' : ''}`}
+                  className={`bg-stone-50 dark:bg-stone-800 border-stone-400 dark:border-stone-600 focus:ring-stone-500 focus:border-stone-500 rounded-xl ${
+                    errors.name ? "border-red-500" : ""
+                  }`}
                   placeholder="Enter your company name"
                 />
                 {errors.name && (
@@ -219,27 +302,36 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="industry" className="text-sm font-medium text-stone-700 dark:text-stone-300">Industry *</label>
+                <label
+                  htmlFor="industry"
+                  className="text-sm font-medium text-stone-700 dark:text-stone-300"
+                >
+                  Industry *
+                </label>
                 <select
                   id="industry"
                   name="industry"
                   value={formData.industry}
                   onChange={handleInputChange}
+                  disabled={loadingCategories}
                   className={`w-full p-3 border rounded-xl bg-stone-50 dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent ${
-                    errors.industry ? 'border-red-500' : 'border-stone-400 dark:border-stone-600'
+                    errors.industry
+                      ? "border-red-500"
+                      : "border-stone-400 dark:border-stone-600"
+                  } ${
+                    loadingCategories ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  <option value="">Select an industry</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Education">Education</option>
-                  <option value="Manufacturing">Manufacturing</option>
-                  <option value="Retail">Retail</option>
-                  <option value="Construction">Construction</option>
-                  <option value="Transportation">Transportation</option>
-                  <option value="Hospitality">Hospitality</option>
-                  <option value="Media">Media</option>
+                  <option value="">
+                    {loadingCategories
+                      ? "Loading categories..."
+                      : "Select an industry"}
+                  </option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
                   <option value="Other">Other</option>
                 </select>
                 {errors.industry && (
@@ -251,14 +343,21 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="description" className="text-sm font-medium text-stone-700 dark:text-stone-300">Company Description *</label>
+                <label
+                  htmlFor="description"
+                  className="text-sm font-medium text-stone-700 dark:text-stone-300"
+                >
+                  Company Description *
+                </label>
                 <textarea
                   id="description"
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
                   className={`w-full min-h-[120px] p-3 border rounded-xl resize-vertical bg-stone-50 dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder:text-stone-500 dark:placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:border-transparent ${
-                    errors.description ? 'border-red-500' : 'border-stone-400 dark:border-stone-600'
+                    errors.description
+                      ? "border-red-500"
+                      : "border-stone-400 dark:border-stone-600"
                   }`}
                   placeholder="Describe your company, its mission, and what you do..."
                   rows="4"
@@ -272,7 +371,10 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="website" className="text-sm font-medium text-stone-700 dark:text-stone-300 flex items-center space-x-2">
+                <label
+                  htmlFor="website"
+                  className="text-sm font-medium text-stone-700 dark:text-stone-300 flex items-center space-x-2"
+                >
                   <Globe className="w-4 h-4" />
                   <span>Website</span>
                 </label>
@@ -282,7 +384,9 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                   name="website"
                   value={formData.website}
                   onChange={handleInputChange}
-                  className={`bg-stone-50 dark:bg-stone-800 border-stone-400 dark:border-stone-600 focus:ring-stone-500 focus:border-stone-500 rounded-xl ${errors.website ? 'border-red-500' : ''}`}
+                  className={`bg-stone-50 dark:bg-stone-800 border-stone-400 dark:border-stone-600 focus:ring-stone-500 focus:border-stone-500 rounded-xl ${
+                    errors.website ? "border-red-500" : ""
+                  }`}
                   placeholder="https://www.yourcompany.com"
                 />
                 {errors.website && (
@@ -298,7 +402,7 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                   <Image className="w-4 h-4" />
                   <span>Company Logo</span>
                 </label>
-                
+
                 {logoPreview ? (
                   <div className="relative inline-block">
                     <img
@@ -317,7 +421,9 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                 ) : (
                   <div className="border-2 border-dashed border-stone-400 dark:border-stone-600 rounded-xl p-6 text-center hover:border-stone-500 dark:hover:border-stone-500 transition-colors">
                     <Upload className="w-8 h-8 text-stone-500 mx-auto mb-2" />
-                    <p className="text-sm text-stone-600 dark:text-stone-400 mb-2 font-medium">Upload company logo</p>
+                    <p className="text-sm text-stone-600 dark:text-stone-400 mb-2 font-medium">
+                      Upload company logo
+                    </p>
                     <input
                       type="file"
                       accept="image/*"
@@ -331,10 +437,12 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                     >
                       Choose File
                     </label>
-                    <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">PNG, JPG up to 5MB</p>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 mt-2">
+                      PNG, JPG up to 5MB
+                    </p>
                   </div>
                 )}
-                
+
                 {errors.logo && (
                   <div className="flex items-center space-x-1 text-sm text-red-600 dark:text-red-400">
                     <AlertCircle className="w-4 h-4" />
@@ -347,14 +455,16 @@ const CompanyDetailsForm = ({ onSuccess, existingCompany = null, refreshAuthMeta
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
                   <div className="flex items-center space-x-2">
                     <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                    <p className="text-sm text-red-700 dark:text-red-400">{errors.submit}</p>
+                    <p className="text-sm text-red-700 dark:text-red-400">
+                      {errors.submit}
+                    </p>
                   </div>
                 </div>
               )}
 
               <div className="pt-4">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={loading}
                   className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                 >

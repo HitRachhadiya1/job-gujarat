@@ -74,6 +74,7 @@ model Company {
 model JobPosting {
   id           String              @id @default(uuid())
   companyId    String
+  categoryId   String?
   title        String
   description  String
   requirements String[]
@@ -86,6 +87,7 @@ model JobPosting {
   expiresAt    DateTime?
   Applications JobApplication[]
   company      Company             @relation(fields: [companyId], references: [id])
+  category     Category?           @relation("JobCategory", fields: [categoryId], references: [id])
   PaymentTransactions PaymentTransaction[]
   SavedJobs    SavedJob[]
 }
@@ -110,6 +112,7 @@ model PaymentTransaction {
   jobSeekerId   String?
   jobPostingId  String?
   applicationId String?
+  pricingPlanId String?
   paymentType   PaymentType
   gateway       String
   transactionId String        @unique
@@ -122,6 +125,7 @@ model PaymentTransaction {
   jobSeeker     JobSeeker?    @relation(fields: [jobSeekerId], references: [userId])
   jobPosting    JobPosting?   @relation(fields: [jobPostingId], references: [id])
   application   JobApplication? @relation(fields: [applicationId], references: [id])
+  pricingPlan   PricingPlan?  @relation("PlanPurchases", fields: [pricingPlanId], references: [id])
 }
 
 model Notification {
@@ -174,6 +178,29 @@ model SavedJob {
   @@unique([jobSeekerId, jobId])
 }
 
+model Category {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  description String?
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  jobs        JobPosting[] @relation("JobCategory")
+}
+
+model PricingPlan {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  price       Decimal
+  duration    Int       // Duration in days
+  features    String[]  // Array of features
+  active      Boolean   @default(true)
+  popular     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  purchases   PaymentTransaction[] @relation("PlanPurchases")
+}
+
 enum UserRole {
   JOB_SEEKER
   COMPANY
@@ -202,6 +229,8 @@ enum JobStatus {
   DRAFT
   PUBLISHED
   CLOSED
+  REJECTED
+  FLAGGED
 }
 
 enum ApplicationStatus {
@@ -215,6 +244,7 @@ enum PaymentStatus {
   PENDING
   SUCCESS
   FAILED
+  REFUNDED
 }
 
 enum PaymentType {

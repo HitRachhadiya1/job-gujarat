@@ -22,7 +22,9 @@ const JobPostingPayment = () => {
   const location = useLocation();
   const { getAccessTokenSilently } = useAuth0();
   const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState('standard');
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const [pricingPlans, setPricingPlans] = useState([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
   
   // Get job posting data from navigation state
   const jobData = location.state?.jobData || null;
@@ -33,61 +35,135 @@ const JobPostingPayment = () => {
     }
   }, [jobData, navigate]);
 
-  const pricingPlans = [
-    {
-      id: 'basic',
-      name: 'Basic Posting',
-      price: 499,
-      originalPrice: 699,
-      duration: '30 days',
-      features: [
-        'Job visible for 30 days',
-        'Up to 50 applications',
-        'Basic applicant filtering',
-        'Email notifications',
-        'Standard support'
-      ],
-      badge: null,
-      popular: false
-    },
-    {
-      id: 'standard',
-      name: 'Standard Posting',
-      price: 999,
-      originalPrice: 1299,
-      duration: '45 days',
-      features: [
-        'Job visible for 45 days',
-        'Up to 150 applications',
-        'Advanced applicant filtering',
-        'Priority listing',
-        'Email & SMS notifications',
-        'Dedicated support',
-        'Application analytics'
-      ],
-      badge: 'Most Popular',
-      popular: true
-    },
-    {
-      id: 'premium',
-      name: 'Premium Posting',
-      price: 1999,
-      originalPrice: 2499,
-      duration: '60 days',
-      features: [
-        'Job visible for 60 days',
-        'Unlimited applications',
-        'AI-powered candidate matching',
-        'Featured listing',
-        'Multi-channel notifications',
-        'Priority support',
-        'Detailed analytics & insights',
-        'Company branding options'
-      ],
-      badge: 'Best Value',
-      popular: false
-    }
-  ];
+  // Fetch pricing plans from API
+  useEffect(() => {
+    const fetchPricingPlans = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/public/pricing-plans');
+        if (response.ok) {
+          const plans = await response.json();
+          setPricingPlans(plans);
+          // Set the first plan as default, or the popular one if available
+          const defaultPlan = plans.find(plan => plan.popular) || plans[0];
+          if (defaultPlan) {
+            setSelectedPlan(defaultPlan.id);
+          }
+        } else {
+          console.error('Failed to fetch pricing plans');
+          // Fallback to static plans if API fails
+          const fallbackPlans = [
+            {
+              id: 'basic',
+              name: 'Basic Posting',
+              price: 499,
+              duration: 30,
+              features: [
+                'Job visible for 30 days',
+                'Up to 50 applications',
+                'Basic applicant filtering',
+                'Email notifications',
+                'Standard support'
+              ],
+              popular: false
+            },
+            {
+              id: 'standard',
+              name: 'Standard Posting',
+              price: 999,
+              duration: 45,
+              features: [
+                'Job visible for 45 days',
+                'Up to 150 applications',
+                'Advanced applicant filtering',
+                'Priority listing',
+                'Email & SMS notifications',
+                'Dedicated support',
+                'Application analytics'
+              ],
+              popular: true
+            },
+            {
+              id: 'premium',
+              name: 'Premium Posting',
+              price: 1999,
+              duration: 60,
+              features: [
+                'Job visible for 60 days',
+                'Unlimited applications',
+                'AI-powered candidate matching',
+                'Featured listing',
+                'Multi-channel notifications',
+                'Priority support',
+                'Detailed analytics & insights',
+                'Company branding options'
+              ],
+              popular: false
+            }
+          ];
+          setPricingPlans(fallbackPlans);
+          setSelectedPlan('standard');
+        }
+      } catch (error) {
+        console.error('Error fetching pricing plans:', error);
+        // Fallback to static plans if API fails
+        const fallbackPlans = [
+          {
+            id: 'basic',
+            name: 'Basic Posting',
+            price: 499,
+            duration: 30,
+            features: [
+              'Job visible for 30 days',
+              'Up to 50 applications',
+              'Basic applicant filtering',
+              'Email notifications',
+              'Standard support'
+            ],
+            popular: false
+          },
+          {
+            id: 'standard',
+            name: 'Standard Posting',
+            price: 999,
+            duration: 45,
+            features: [
+              'Job visible for 45 days',
+              'Up to 150 applications',
+              'Advanced applicant filtering',
+              'Priority listing',
+              'Email & SMS notifications',
+              'Dedicated support',
+              'Application analytics'
+            ],
+            popular: true
+          },
+          {
+            id: 'premium',
+            name: 'Premium Posting',
+            price: 1999,
+            duration: 60,
+            features: [
+              'Job visible for 60 days',
+              'Unlimited applications',
+              'AI-powered candidate matching',
+              'Featured listing',
+              'Multi-channel notifications',
+              'Priority support',
+              'Detailed analytics & insights',
+              'Company branding options'
+            ],
+            popular: false
+          }
+        ];
+        setPricingPlans(fallbackPlans);
+        setSelectedPlan('standard');
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
+
+    fetchPricingPlans();
+  }, []);
 
   const handlePayment = async () => {
     setLoading(true);
@@ -225,7 +301,26 @@ const JobPostingPayment = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {pricingPlans.map((plan) => (
+              {loadingPlans ? (
+                // Loading skeleton
+                [...Array(3)].map((_, index) => (
+                  <Card key={index} className="animate-pulse">
+                    <CardHeader className="text-center pb-4">
+                      <div className="h-6 bg-stone-200 dark:bg-stone-700 rounded mb-4"></div>
+                      <div className="h-8 bg-stone-200 dark:bg-stone-700 rounded mb-2"></div>
+                      <div className="h-4 bg-stone-200 dark:bg-stone-700 rounded"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {[...Array(4)].map((_, i) => (
+                          <div key={i} className="h-4 bg-stone-200 dark:bg-stone-700 rounded"></div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                pricingPlans.map((plan) => (
                 <Card
                   key={plan.id}
                   className={`relative cursor-pointer transition-all duration-300 hover:shadow-lg ${
@@ -235,10 +330,10 @@ const JobPostingPayment = () => {
                   } ${plan.popular ? 'border-stone-600 dark:border-stone-400' : ''}`}
                   onClick={() => setSelectedPlan(plan.id)}
                 >
-                  {plan.badge && (
+                  {plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                       <Badge className="bg-stone-900 dark:bg-stone-700 text-white px-3 py-1">
-                        {plan.badge}
+                        Most Popular
                       </Badge>
                     </div>
                   )}
@@ -252,12 +347,9 @@ const JobPostingPayment = () => {
                         <span className="text-3xl font-bold text-stone-900 dark:text-stone-100">
                           ₹{plan.price}
                         </span>
-                        <span className="text-lg text-stone-500 dark:text-stone-400 line-through">
-                          ₹{plan.originalPrice}
-                        </span>
                       </div>
                       <p className="text-sm text-stone-600 dark:text-stone-400 mt-1">
-                        Valid for {plan.duration}
+                        Valid for {plan.duration} days
                       </p>
                     </div>
                   </CardHeader>
@@ -275,7 +367,8 @@ const JobPostingPayment = () => {
                     </ul>
                   </CardContent>
                 </Card>
-              ))}
+                ))
+              )}
             </div>
 
             {/* Features Highlight */}
@@ -361,7 +454,7 @@ const JobPostingPayment = () => {
                         Duration
                       </span>
                       <span className="text-stone-700 dark:text-stone-300">
-                        {selectedPlanData?.duration}
+                        {selectedPlanData?.duration} days
                       </span>
                     </div>
                   </div>
@@ -395,14 +488,21 @@ const JobPostingPayment = () => {
                 {/* Payment Button */}
                 <Button
                   onClick={handlePayment}
-                  disabled={loading}
-                  className="w-full bg-stone-900 dark:bg-stone-700 hover:bg-stone-800 dark:hover:bg-stone-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                  disabled={loading || loadingPlans || !selectedPlan}
+                  className="w-full bg-stone-900 dark:bg-stone-700 hover:bg-stone-800 dark:hover:bg-stone-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       <span>Processing...</span>
                     </div>
+                  ) : loadingPlans ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Loading Plans...</span>
+                    </div>
+                  ) : !selectedPlan ? (
+                    <span>Select a Plan</span>
                   ) : (
                     <div className="flex items-center space-x-2">
                       <CreditCard className="w-4 h-4" />
