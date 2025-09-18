@@ -172,8 +172,17 @@ const getSavedJobs = async (req, res) => {
       include: { JobSeeker: true },
     });
 
+    // If no job seeker profile exists yet, return empty results
     if (!user || !user.JobSeeker) {
-      return res.status(403).json({ error: "Job seeker profile not found" });
+      return res.json({
+        savedJobs: [],
+        pagination: {
+          total: 0,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: 0
+        }
+      });
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);

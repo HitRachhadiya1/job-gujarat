@@ -102,9 +102,15 @@ const getMyJobSeekerProfile = async (req, res) => {
       return res.status(400).json({ error: "User email not found in token" });
     }
 
-    const dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
+    let dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
     if (!dbUser) {
-      return res.status(404).json({ error: "User record not found" });
+      // Create user record if it doesn't exist
+      dbUser = await prisma.user.create({
+        data: {
+          email: auth0User.email,
+          role: "JOB_SEEKER",
+        },
+      });
     }
 
     const jobSeeker = await prisma.jobSeeker.findUnique({
@@ -112,7 +118,10 @@ const getMyJobSeekerProfile = async (req, res) => {
     });
 
     if (!jobSeeker) {
-      return res.status(404).json({ error: "Job seeker profile not found" });
+      return res.status(404).json({ 
+        error: "Job seeker profile not found",
+        profileExists: false 
+      });
     }
 
     // Add Auth0 user data to the response

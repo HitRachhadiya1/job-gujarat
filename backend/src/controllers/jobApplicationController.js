@@ -302,9 +302,17 @@ const getMyApplications = async (req, res) => {
       include: { JobSeeker: true },
     });
 
-    // Require that a job seeker profile exists; role is enforced by middleware
+    // If no job seeker profile exists yet, return empty results
     if (!user || !user.JobSeeker) {
-      return res.status(403).json({ error: "Job seeker profile not found" });
+      return res.json({
+        applications: [],
+        pagination: {
+          total: 0,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: 0
+        }
+      });
     }
 
     // Build where clause

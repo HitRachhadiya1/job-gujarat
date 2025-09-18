@@ -507,30 +507,43 @@ export default function JobSeekerDashboard({ onLogout }) {
         const token = await getAccessTokenSilently();
 
         // Fetch applications
-        const appsResponse = await fetch(
-          "http://localhost:5000/api/applications/my-applications",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
         let appliedJobsCount = 0;
         let interviewCount = 0;
+        
+        try {
+          const appsResponse = await fetch(
+            "http://localhost:5000/api/applications/my-applications",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-        if (appsResponse.ok) {
-          const appsData = await appsResponse.json();
-          console.log("Applications data:", appsData);
-          setApplications(appsData.applications || appsData);
+          if (appsResponse.ok) {
+            const appsData = await appsResponse.json();
+            console.log("Applications data:", appsData);
+            setApplications(appsData.applications || appsData);
 
-          // Calculate stats from real data
-          const applications = appsData.applications || appsData;
-          appliedJobsCount = applications.length;
-          interviewCount = applications.filter(
-            (app) =>
-              app.status === "INTERVIEW" || app.status === "interview_scheduled"
-          ).length;
+            // Calculate stats from real data
+            const applications = appsData.applications || appsData;
+            appliedJobsCount = applications.length;
+            interviewCount = applications.filter(
+              (app) =>
+                app.status === "INTERVIEW" || app.status === "interview_scheduled"
+            ).length;
+          } else if (appsResponse.status === 403) {
+            // No profile exists yet, set empty applications
+            console.log("No job seeker profile found, setting empty applications");
+            setApplications([]);
+            appliedJobsCount = 0;
+            interviewCount = 0;
+          }
+        } catch (error) {
+          console.error("Error fetching applications:", error);
+          setApplications([]);
+          appliedJobsCount = 0;
+          interviewCount = 0;
         }
 
         // Fetch saved jobs count

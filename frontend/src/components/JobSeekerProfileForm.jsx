@@ -1,24 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import React, { useState, useEffect } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, User, Phone, MapPin, Clock, Camera } from 'lucide-react';
+import {
+  X,
+  Plus,
+  User,
+  Phone,
+  MapPin,
+  Clock,
+  Camera,
+  Upload,
+} from "lucide-react";
 
 const JobSeekerProfileForm = ({ onSuccess }) => {
   const { getAccessTokenSilently } = useAuth0();
   const [loading, setLoading] = useState(false);
   const [existingProfile, setExistingProfile] = useState(null);
   const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    location: '',
+    fullName: "",
+    phone: "",
+    location: "",
     skills: [],
-    experienceYears: '',
-    profilePhotoUrl: ''
+    experienceYears: "",
+    profilePhotoUrl: "",
   });
-  const [skillInput, setSkillInput] = useState('');
+  const [skillInput, setSkillInput] = useState("");
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -29,7 +44,7 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
   const fetchExistingProfile = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch('http://localhost:5000/api/jobseeker/', {
+      const response = await fetch("http://localhost:5000/api/jobseeker/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -39,16 +54,20 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
         const profile = await response.json();
         setExistingProfile(profile);
         setFormData({
-          fullName: profile.fullName || '',
-          phone: profile.phone || '',
-          location: profile.location || '',
+          fullName: profile.fullName || "",
+          phone: profile.phone || "",
+          location: profile.location || "",
           skills: profile.skills || [],
-          experienceYears: profile.experienceYears?.toString() || '',
-          profilePhotoUrl: profile.profilePhotoUrl || ''
+          experienceYears: profile.experienceYears?.toString() || "",
+          profilePhotoUrl: profile.profilePhotoUrl || "",
         });
+      } else if (response.status === 404) {
+        // Profile doesn't exist yet, this is expected for new users
+        console.log("No existing profile found, user will create a new one");
+        setExistingProfile(null);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
     }
   };
 
@@ -58,17 +77,19 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
 
     try {
       const token = await getAccessTokenSilently();
-      const method = existingProfile ? 'PUT' : 'POST';
-      
-      const response = await fetch('http://localhost:5000/api/jobseeker/', {
+      const method = existingProfile ? "PUT" : "POST";
+
+      const response = await fetch("http://localhost:5000/api/jobseeker/", {
         method,
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
-          experienceYears: formData.experienceYears ? parseInt(formData.experienceYears) : null
+          experienceYears: formData.experienceYears
+            ? parseInt(formData.experienceYears)
+            : null,
         }),
       });
 
@@ -76,14 +97,14 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
         const saved = await response.json();
         setExistingProfile(saved.jobSeeker || saved);
         // Notify dashboard to refresh profile card
-        window.dispatchEvent(new Event('profileUpdated'));
+        window.dispatchEvent(new Event("profileUpdated"));
       } else {
         const err = await response.json();
-        alert(err.error || 'Failed to save profile');
+        alert(err.error || "Failed to save profile");
       }
     } catch (error) {
-      console.error('Error saving profile:', error);
-      alert('An error occurred while saving your profile');
+      console.error("Error saving profile:", error);
+      alert("An error occurred while saving your profile");
     } finally {
       setLoading(false);
     }
@@ -92,97 +113,109 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
   const handleSkillAdd = () => {
     const skill = skillInput.trim();
     if (skill && !formData.skills.includes(skill)) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        skills: [...prev.skills, skill]
+        skills: [...prev.skills, skill],
       }));
-      setSkillInput('');
+      setSkillInput("");
     }
   };
 
   const handleSkillRemove = (skillToRemove) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      skills: prev.skills.filter(skill => skill !== skillToRemove)
+      skills: prev.skills.filter((skill) => skill !== skillToRemove),
     }));
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleSkillAdd();
     }
   };
 
   const validateFile = (file, type) => {
-    if (type === 'photo') {
-      if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-        alert('Profile photo must be PNG or JPG format');
+    if (type === "photo") {
+      if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
+        alert("Profile photo must be PNG or JPG format");
         return false;
       }
-      if (file.size > 3 * 1024 * 1024) { // 3MB
-        alert('Profile photo size must be less than 3MB');
+      if (file.size > 3 * 1024 * 1024) {
+        // 3MB
+        alert("Profile photo size must be less than 3MB");
         return false;
       }
     }
     return true;
   };
 
-
   const handlePhotoUpload = async (file) => {
-    if (!validateFile(file, 'photo')) return;
-    
+    if (!validateFile(file, "photo")) return;
+
     setUploadingPhoto(true);
     try {
       const token = await getAccessTokenSilently();
       const formData = new FormData();
-      formData.append('photo', file);
+      formData.append("photo", file);
 
-      const response = await fetch('http://localhost:5000/api/jobseeker/upload-photo', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        "http://localhost:5000/api/jobseeker/upload-photo",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
-        setFormData(prev => ({ ...prev, profilePhotoUrl: result.profilePhotoUrl }));
+        setFormData((prev) => ({
+          ...prev,
+          profilePhotoUrl: result.profilePhotoUrl,
+        }));
         setProfilePhoto(file);
-        alert('Profile photo uploaded successfully!');
+        alert("Profile photo uploaded successfully!");
         // Notify dashboard to refresh profile card
-        window.dispatchEvent(new Event('profileUpdated'));
+        window.dispatchEvent(new Event("profileUpdated"));
       } else {
         const error = await response.json();
-        alert(error.error || 'Failed to upload photo');
+        alert(error.error || "Failed to upload photo");
       }
     } catch (error) {
-      console.error('Error uploading photo:', error);
-      alert('An error occurred while uploading photo');
+      console.error("Error uploading photo:", error);
+      alert("An error occurred while uploading photo");
     } finally {
       setUploadingPhoto(false);
     }
   };
-
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       <Card className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 shadow-lg">
         <CardHeader className="py-8 px-8">
           <CardTitle className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl flex items-center justify-center shadow-lg">
-                <User className="w-6 h-6 text-stone-900 dark:text-stone-300" />
-              </div>
-              <span>{existingProfile ? 'Update Your Profile' : 'Create Your Professional Profile'}</span>
-            </CardTitle>
-            <CardDescription className="text-stone-800 dark:text-stone-400 font-medium text-lg mt-2">
-              Build your professional presence and connect with top employers
-            </CardDescription>
-          </CardHeader>
+            <div className="w-12 h-12 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl flex items-center justify-center shadow-lg">
+              <User className="w-6 h-6 text-stone-900 dark:text-stone-300" />
+            </div>
+            <span>
+              {existingProfile
+                ? "Update Your Profile"
+                : "Create Your Professional Profile"}
+            </span>
+          </CardTitle>
+          <CardDescription className="text-stone-800 dark:text-stone-400 font-medium text-lg mt-2">
+            Build your professional presence and connect with top employers
+          </CardDescription>
+        </CardHeader>
 
         <CardContent className="p-8">
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
             {/* Profile Photo Upload */}
             <div className="md:col-span-2 space-y-3">
               <label className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
@@ -192,9 +225,9 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
               <div className="flex items-center space-x-4">
                 {formData.profilePhotoUrl && (
                   <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-stone-300 dark:border-stone-600">
-                    <img 
-                      src={formData.profilePhotoUrl} 
-                      alt="Profile" 
+                    <img
+                      src={formData.profilePhotoUrl}
+                      alt="Profile"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -215,7 +248,7 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
                     className="inline-flex items-center px-4 py-2 bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-stone-100 rounded-lg cursor-pointer hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors duration-200"
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                    {uploadingPhoto ? "Uploading..." : "Upload Photo"}
                   </label>
                   <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
                     PNG or JPG format, max 3MB
@@ -225,114 +258,146 @@ const JobSeekerProfileForm = ({ onSuccess }) => {
             </div>
 
             <div className="md:col-span-2 space-y-3">
-                <label htmlFor="fullName" className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
-                  <User className="w-5 h-5 text-stone-700 dark:text-stone-400" />
-                  <span>Full Name *</span>
-                </label>
-                <Input
-                  type="text"
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                  required
-                  className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
-                />
+              <label
+                htmlFor="fullName"
+                className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3"
+              >
+                <User className="w-5 h-5 text-stone-700 dark:text-stone-400" />
+                <span>Full Name *</span>
+              </label>
+              <Input
+                type="text"
+                id="fullName"
+                value={formData.fullName}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, fullName: e.target.value }))
+                }
+                required
+                className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
+              />
             </div>
 
             <div className="space-y-3">
-                <label htmlFor="phone" className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
-                  <Phone className="w-5 h-5 text-stone-700 dark:text-stone-400" />
-                  <span>Phone Number</span>
-                </label>
-                <Input
-                  type="tel"
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
-                />
+              <label
+                htmlFor="phone"
+                className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3"
+              >
+                <Phone className="w-5 h-5 text-stone-700 dark:text-stone-400" />
+                <span>Phone Number</span>
+              </label>
+              <Input
+                type="tel"
+                id="phone"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                }
+                className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
+              />
             </div>
 
             <div className="space-y-3">
-                <label htmlFor="location" className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
-                  <MapPin className="w-5 h-5 text-stone-700 dark:text-stone-400" />
-                  <span>Location</span>
-                </label>
-                <Input
-                  type="text"
-                  id="location"
-                  placeholder="City, State"
-                  value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                  className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
-                />
+              <label
+                htmlFor="location"
+                className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3"
+              >
+                <MapPin className="w-5 h-5 text-stone-700 dark:text-stone-400" />
+                <span>Location</span>
+              </label>
+              <Input
+                type="text"
+                id="location"
+                placeholder="City, State"
+                value={formData.location}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, location: e.target.value }))
+                }
+                className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
+              />
             </div>
 
             <div className="space-y-3">
-                <label htmlFor="experienceYears" className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
-                  <Clock className="w-5 h-5 text-stone-700 dark:text-stone-400" />
-                  <span>Years of Experience</span>
-                </label>
-                <select
-                  id="experienceYears"
-                  className="w-full py-3 px-4 border border-stone-400/50 dark:border-stone-700 rounded-xl bg-stone-50 dark:bg-stone-800/50 text-stone-900 dark:text-stone-100 font-medium focus:outline-none focus:ring-2 focus:ring-stone-600 focus:border-transparent transition-all duration-200"
-                  value={formData.experienceYears}
-                  onChange={(e) => setFormData(prev => ({ ...prev, experienceYears: e.target.value }))}
-                >
-                  <option value="">Select experience level</option>
-                  <option value="0">Entry Level (0 years)</option>
-                  <option value="1">1 year</option>
-                  <option value="2">2 years</option>
-                  <option value="3">3 years</option>
-                  <option value="4">4 years</option>
-                  <option value="5">5 years</option>
-                  <option value="10">5-10 years</option>
-                  <option value="15">10+ years</option>
-                </select>
+              <label
+                htmlFor="experienceYears"
+                className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3"
+              >
+                <Clock className="w-5 h-5 text-stone-700 dark:text-stone-400" />
+                <span>Years of Experience</span>
+              </label>
+              <select
+                id="experienceYears"
+                className="w-full py-3 px-4 border border-stone-400/50 dark:border-stone-700 rounded-xl bg-stone-50 dark:bg-stone-800/50 text-stone-900 dark:text-stone-100 font-medium focus:outline-none focus:ring-2 focus:ring-stone-600 focus:border-transparent transition-all duration-200"
+                value={formData.experienceYears}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    experienceYears: e.target.value,
+                  }))
+                }
+              >
+                <option value="">Select experience level</option>
+                <option value="0">Entry Level (0 years)</option>
+                <option value="1">1 year</option>
+                <option value="2">2 years</option>
+                <option value="3">3 years</option>
+                <option value="4">4 years</option>
+                <option value="5">5 years</option>
+                <option value="10">5-10 years</option>
+                <option value="15">10+ years</option>
+              </select>
             </div>
 
             <div className="md:col-span-2 space-y-3">
-                <label className="text-sm font-bold text-stone-900 dark:text-stone-200">Skills</label>
-                <div className="flex gap-3">
-                  <Input
-                    type="text"
-                    placeholder="Add a skill and press Enter"
-                    value={skillInput}
-                    onChange={(e) => setSkillInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="flex-1 bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
-                  />
-                  <Button 
-                    type="button" 
-                    onClick={handleSkillAdd} 
-                    className="bg-stone-900 hover:bg-stone-800 text-white font-semibold px-4 py-3 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
+              <label className="text-sm font-bold text-stone-900 dark:text-stone-200">
+                Skills
+              </label>
+              <div className="flex gap-3">
+                <Input
+                  type="text"
+                  placeholder="Add a skill and press Enter"
+                  value={skillInput}
+                  onChange={(e) => setSkillInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1 bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
+                />
+                <Button
+                  type="button"
+                  onClick={handleSkillAdd}
+                  className="bg-stone-900 hover:bg-stone-800 text-white font-semibold px-4 py-3 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="flex gap-3 flex-wrap">
+                {formData.skills.map((skill, index) => (
+                  <Badge
+                    key={index}
+                    className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50 font-semibold px-3 py-2 rounded-xl flex items-center gap-2"
                   >
-                    <Plus className="w-5 h-5" />
-                  </Button>
-                </div>
-                <div className="flex gap-3 flex-wrap">
-                  {formData.skills.map((skill, index) => (
-                    <Badge key={index} className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50 font-semibold px-3 py-2 rounded-xl flex items-center gap-2">
-                      {skill}
-                      <button
-                        type="button"
-                        onClick={() => handleSkillRemove(skill)}
-                        className="text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200 transition-colors duration-200"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => handleSkillRemove(skill)}
+                      className="text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200 transition-colors duration-200"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
             </div>
 
             <div className="md:col-span-2 flex justify-end pt-6">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={loading}
                 className="bg-stone-900 hover:bg-stone-800 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Saving...' : existingProfile ? 'Update Profile' : 'Create Profile'}
+                {loading
+                  ? "Saving..."
+                  : existingProfile
+                  ? "Update Profile"
+                  : "Create Profile"}
               </Button>
             </div>
           </form>

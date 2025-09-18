@@ -48,6 +48,18 @@ export const savedJobsAPI = {
     });
 
     if (!response.ok) {
+      if (response.status === 403) {
+        // No profile exists yet, return empty results
+        return {
+          savedJobs: [],
+          pagination: {
+            total: 0,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalPages: 0
+          }
+        };
+      }
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch saved jobs');
     }
