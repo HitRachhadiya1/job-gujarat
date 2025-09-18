@@ -137,9 +137,11 @@ const uploadApplicationResume = async (req, res) => {
     }
 
     // Create application-specific file path in resumes bucket
-    // Format: applications/{jobSeekerId}_{jobId}.pdf
-    const fileExtension = req.file.originalname.split('.').pop();
-    const fileName = `applications/${jobSeeker.id}_${jobId}.${fileExtension}`;
+    // Format: applications/{jobSeekerId}_{jobId}_{originalName}
+    const originalName = req.file.originalname;
+    const fileExtension = originalName.split('.').pop();
+    const baseName = originalName.replace(`.${fileExtension}`, '');
+    const fileName = `applications/${jobSeeker.id}_${jobId}_${baseName}.${fileExtension}`;
     
     // Delete existing file if it exists (to replace with new one)
     try {
@@ -717,6 +719,67 @@ const withdrawApplication = async (req, res) => {
       });
     }
 
+    // Delete resume file from Supabase storage if it exists
+    if (application.resumeSnapshot) {
+      try {
+        console.log('=== RESUME DELETION DEBUG ===');
+        console.log('Resume URL:', application.resumeSnapshot);
+        
+        // Extract file path from URL - handle multiple formats
+        let filePath = '';
+        
+        if (application.resumeSnapshot.includes('supabase.co/storage/v1/object/public/resumes/')) {
+          // Full Supabase URL: https://xxx.supabase.co/storage/v1/object/public/resumes/applications/123_456_resume.pdf
+          const url = new URL(application.resumeSnapshot);
+          const pathParts = url.pathname.split('/');
+          console.log('URL path parts:', pathParts);
+          
+          const resumesIndex = pathParts.indexOf('resumes');
+          if (resumesIndex >= 0 && resumesIndex < pathParts.length - 1) {
+            filePath = pathParts.slice(resumesIndex + 1).join('/');
+          }
+        } else if (application.resumeSnapshot.startsWith('applications/')) {
+          // Direct path: applications/123_456_resume.pdf
+          filePath = application.resumeSnapshot;
+        } else {
+          // Try to extract from any URL format
+          const parts = application.resumeSnapshot.split('/');
+          const applicationsIndex = parts.indexOf('applications');
+          if (applicationsIndex >= 0) {
+            filePath = parts.slice(applicationsIndex).join('/');
+          }
+        }
+        
+        console.log('Extracted file path:', filePath);
+        
+        if (filePath) {
+          console.log('Attempting to delete from resumes bucket:', filePath);
+          
+          const { data, error: deleteError } = await supabase.storage
+            .from('resumes')
+            .remove([filePath]);
+          
+          console.log('Delete response data:', data);
+          
+          if (deleteError) {
+            console.error('Error deleting resume file:', deleteError);
+            console.error('Delete error details:', JSON.stringify(deleteError, null, 2));
+          } else {
+            console.log('Successfully deleted resume file:', filePath);
+          }
+        } else {
+          console.log('No valid file path found for deletion');
+        }
+        
+        console.log('=== END RESUME DELETION DEBUG ===');
+      } catch (fileError) {
+        console.error('Error processing resume file deletion:', fileError);
+        // Don't fail the withdrawal if file deletion fails
+      }
+    } else {
+      console.log('No resume snapshot found on application');
+    }
+
     // Delete the application
     await prisma.jobApplication.delete({
       where: { id: applicationId }
@@ -732,6 +795,77 @@ const withdrawApplication = async (req, res) => {
   }
 };
 
+// Upload Aadhaar document for hired applications
+const uploadAadhaarDocument = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const authUser = req.user;
+
+    if (!authUser?.email) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No Aadhaar document provided" });
+    }
+
+    // Get user and jobseeker
+    const user = await prisma.user.findFirst({
+      where: { email: authUser.email },
+      include: { JobSeeker: true }
+    });
+
+    if (!user || !user.JobSeeker) {
+      return res.status(403).json({ error: "JobSeeker profile not found" });
+    }
+
+    // Check if application exists and belongs to this jobseeker
+    const application = await prisma.jobApplication.findFirst({
+      where: {
+        id: applicationId,
+        jobSeekerId: user.JobSeeker.id,
+        status: "HIRED" // Only allow upload for hired applications
+      }
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "Hired application not found" });
+    }
+
+    // Upload to Supabase in "Aadhar Card" bucket
+    const { uploadFile } = require("../services/supabaseService");
+    const fileExtension = req.file.originalname.split('.').pop();
+    const fileName = `aadhaar_${applicationId}.${fileExtension}`;
+    const filePath = `applications/${applicationId}/${fileName}`;
+
+    const uploadResult = await uploadFile(
+      'Aadhar Card', // bucket name as specified
+      filePath,
+      req.file.buffer,
+      req.file.mimetype
+    );
+
+    if (uploadResult.error) {
+      return res.status(500).json({ error: uploadResult.error });
+    }
+
+    // Update application with Aadhaar document URL
+    const updatedApplication = await prisma.jobApplication.update({
+      where: { id: applicationId },
+      data: { aadhaarDocumentUrl: uploadResult.url }
+    });
+
+    res.json({
+      message: "Aadhaar document uploaded successfully",
+      aadhaarDocumentUrl: uploadResult.url,
+      application: updatedApplication
+    });
+  } catch (error) {
+    console.error("Error uploading Aadhaar document:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   applyForJob,
   getMyApplications,
@@ -741,5 +875,6 @@ module.exports = {
   withdrawApplication,
   uploadApplicationResume,
   checkApplicationResume,
+  uploadAadhaarDocument,
   upload // Export multer middleware
 };

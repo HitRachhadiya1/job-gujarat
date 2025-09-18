@@ -1,5 +1,5 @@
 const express = require("express");
-const { createOrder, verifyPayment, getPublicKey, confirmAndPublish } = require("../controllers/paymentController");
+const { createOrder, verifyPayment, getPublicKey, confirmAndPublish, createApplicationFeePayment, confirmApplicationPayment } = require("../controllers/paymentController");
 const { jwtWithRole } = require("../middleware/jwtAuth");
 
 const router = express.Router();
@@ -15,5 +15,11 @@ router.post("/verify", jwtWithRole, verifyPayment);
 
 // Verify + publish job + record payment (company only)
 router.post("/confirm-and-publish", jwtWithRole, confirmAndPublish);
+
+// Create application fee payment order (jobseeker only)
+router.post("/create-application-fee", jwtWithRole, createApplicationFeePayment);
+
+// Confirm application fee payment and create job application (jobseeker only)
+router.post("/confirm-application", jwtWithRole, confirmApplicationPayment);
 
 module.exports = router;

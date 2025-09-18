@@ -134,4 +134,160 @@ async function confirmAndPublish(req, res) {
   }
 }
 
-module.exports = { createOrder, verifyPayment, getPublicKey, confirmAndPublish };
+// Create application fee payment (₹9)
+async function createApplicationFeePayment(req, res) {
+  try {
+    const authUser = req.user;
+    if (!authUser?.email) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { jobId } = req.body;
+    if (!jobId) {
+      return res.status(400).json({ error: "Job ID is required" });
+    }
+
+    // Check if job exists
+    const job = await prisma.jobPosting.findUnique({
+      where: { id: jobId }
+    });
+
+    if (!job) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+
+    // Get jobseeker profile
+    const user = await prisma.user.findFirst({ 
+      where: { email: authUser.email }, 
+      include: { JobSeeker: true } 
+    });
+
+    if (!user || !user.JobSeeker) {
+      return res.status(403).json({ error: "JobSeeker profile not found" });
+    }
+
+    // Check if already applied
+    const existingApplication = await prisma.jobApplication.findFirst({
+      where: {
+        jobId: jobId,
+        jobSeekerId: user.JobSeeker.id
+      }
+    });
+
+    if (existingApplication) {
+      return res.status(400).json({ error: "Already applied to this job" });
+    }
+
+    // Create Razorpay order for ₹9
+    const options = {
+      amount: 900, // ₹9 in paise
+      currency: "INR",
+      receipt: `app_fee_${Date.now()}`,
+    };
+
+    const order = await razorpay.orders.create(options);
+    return res.json(order);
+  } catch (err) {
+    console.error("Error creating application fee payment:", err);
+    return res.status(500).json({ error: "Error creating payment" });
+  }
+}
+
+// Confirm application fee payment and create job application
+async function confirmApplicationPayment(req, res) {
+  try {
+    const authUser = req.user;
+    if (!authUser?.email) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { payment, jobId, coverLetter, resumeUrl } = req.body || {};
+    if (!payment?.razorpay_order_id || !payment?.razorpay_payment_id || !payment?.razorpay_signature) {
+      return res.status(400).json({ error: "Missing payment fields" });
+    }
+    if (!jobId) {
+      return res.status(400).json({ error: "Job ID is required" });
+    }
+
+    // Verify signature
+    const body = `${payment.razorpay_order_id}|${payment.razorpay_payment_id}`;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest("hex");
+
+    if (expectedSignature !== payment.razorpay_signature) {
+      return res.status(400).json({ error: "Payment verification failed" });
+    }
+
+    // Get user and jobseeker
+    const user = await prisma.user.findFirst({ 
+      where: { email: authUser.email }, 
+      include: { JobSeeker: true } 
+    });
+
+    if (!user || !user.JobSeeker) {
+      return res.status(403).json({ error: "JobSeeker profile not found" });
+    }
+
+    // Check if job exists
+    const job = await prisma.jobPosting.findUnique({
+      where: { id: jobId }
+    });
+
+    if (!job) {
+      return res.status(404).json({ error: "Job not found" });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      // Create job application
+      const application = await tx.jobApplication.create({
+        data: {
+          jobId: jobId,
+          jobSeekerId: user.JobSeeker.id,
+          status: "APPLIED",
+          coverLetter: coverLetter || null,
+          // Prefer the per-application resume URL if provided
+          resumeSnapshot: resumeUrl || user.JobSeeker.resumeUrl || null,
+        },
+      });
+
+      // Create payment transaction
+      await tx.paymentTransaction.create({
+        data: {
+          jobSeekerId: user.JobSeeker.userId,
+          jobPostingId: jobId,
+          applicationId: application.id,
+          paymentType: "APPLICATION_FEE",
+          gateway: "Razorpay",
+          transactionId: payment.razorpay_payment_id,
+          amount: new Prisma.Decimal(9),
+          currency: "INR",
+          status: "SUCCESS",
+        },
+      });
+
+      // Return the application populated with its related job
+      const populated = await tx.jobApplication.findUnique({
+        where: { id: application.id },
+        include: { job: true }
+      });
+
+      return populated;
+    });
+
+    return res.json({ success: true, application: result });
+  } catch (err) {
+    console.error("Error in confirmApplicationPayment:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+}
+
+module.exports = { 
+  createOrder, 
+  verifyPayment, 
+  getPublicKey, 
+  confirmAndPublish,
+  createApplicationFeePayment,
+  confirmApplicationPayment
+};

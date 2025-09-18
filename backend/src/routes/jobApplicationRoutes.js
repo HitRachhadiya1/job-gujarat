@@ -8,10 +8,12 @@ const {
   withdrawApplication,
   uploadApplicationResume,
   checkApplicationResume,
+  uploadAadhaarDocument,
   upload
 } = require("../controllers/jobApplicationController");
 const { jwtWithRole } = require("../middleware/jwtAuth");
 const { requireRole } = require("../middleware/roleAuth");
+const { uploadSingleAadhaar } = require("../middleware/upload");
 
 const router = express.Router();
 
@@ -21,6 +23,7 @@ router.post("/upload-resume", jwtWithRole, requireRole("JOB_SEEKER"), upload.sin
 router.post("/apply", jwtWithRole, requireRole("JOB_SEEKER"), applyForJob);
 router.get("/my-applications", jwtWithRole, requireRole("JOB_SEEKER"), getMyApplications);
 router.delete("/:applicationId/withdraw", jwtWithRole, requireRole("JOB_SEEKER"), withdrawApplication);
+router.post("/:applicationId/upload-aadhaar", jwtWithRole, requireRole("JOB_SEEKER"), uploadSingleAadhaar, uploadAadhaarDocument);
 
 // Company routes
 router.get("/job/:jobId", jwtWithRole, requireRole("COMPANY"), getJobApplications);

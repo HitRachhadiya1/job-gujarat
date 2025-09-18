@@ -37,8 +37,21 @@ const uploadSingleLogo = multer({
   }
 }).single('logo');
 
+const uploadSingleAadhaar = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 3 * 1024 * 1024 }, // 3MB limit
+  fileFilter: (req, file, cb) => {
+    if (['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'].includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PNG, JPG, and PDF files are allowed for Aadhaar documents'), false);
+    }
+  }
+}).single('aadhaar');
+
 module.exports = {
   uploadSingleResume,
   uploadSinglePhoto,
-  uploadSingleLogo
+  uploadSingleLogo,
+  uploadSingleAadhaar
 };

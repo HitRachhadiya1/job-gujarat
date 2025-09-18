@@ -26,7 +26,7 @@ app.use("/api/company", companyRoutes);
 app.use("/api/applications", jobApplicationRoutes);
 app.use("/api/jobseeker", jobSeekerRoutes);
 app.use("/api/saved-jobs", savedJobRoutes);
-app.use("/api/payment", paymentRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/public", publicRoutes);
 

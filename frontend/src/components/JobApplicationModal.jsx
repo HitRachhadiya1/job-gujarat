@@ -19,40 +19,14 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
   const [existingResume, setExistingResume] = useState(null);
   const [checkingResume, setCheckingResume] = useState(true);
 
-  // Check for existing resume when modal opens or job changes
+  // Reset resume state when modal opens
   React.useEffect(() => {
-    if (isOpen && job?.id) {
-      checkExistingResume();
-    }
-  }, [isOpen, job?.id]);
-
-  const checkExistingResume = async () => {
-    try {
-      setCheckingResume(true);
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`http://localhost:5000/api/applications/check-resume/${job.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.hasResume) {
-          setExistingResume({
-            url: data.resumeUrl,
-            fileName: data.fileName
-          });
-        } else {
-          setExistingResume(null);
-        }
-      }
-    } catch (error) {
-      console.error('Error checking existing resume:', error);
-    } finally {
+    if (isOpen) {
+      setResumeFile(null);
+      setExistingResume(null);
       setCheckingResume(false);
     }
-  };
+  }, [isOpen]);
 
   const validateResumeFile = (file) => {
     if (file.type !== 'application/pdf') {
@@ -77,8 +51,8 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate resume is required (either new file or existing resume)
-    if (!resumeFile && !existingResume) {
+    // Validate resume is required
+    if (!resumeFile) {
       setError('Please upload your resume to apply for this job');
       return;
     }
@@ -88,39 +62,9 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
 
     try {
       const token = await getAccessTokenSilently();
-      let resumeUrl = null;
 
-      // Use existing resume or upload new one
-      if (resumeFile) {
-        // Upload new resume
-        setUploadingResume(true);
-        const formData = new FormData();
-        formData.append('resume', resumeFile);
-        formData.append('jobId', job.id);
-
-        const uploadResponse = await fetch('http://localhost:5000/api/applications/upload-resume', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        });
-
-        if (!uploadResponse.ok) {
-          const uploadError = await uploadResponse.json();
-          throw new Error(uploadError.error || 'Failed to upload resume');
-        }
-
-        const uploadResult = await uploadResponse.json();
-        resumeUrl = uploadResult.resumeUrl;
-        setUploadingResume(false);
-      } else if (existingResume) {
-        // Use existing resume
-        resumeUrl = existingResume.url;
-      }
-
-      // Then, submit the application with the resume URL
-      const response = await fetch('http://localhost:5000/api/applications/apply', {
+      // Create payment order for ₹9 application fee (no resume upload yet)
+      const paymentResponse = await fetch('http://localhost:5000/api/payments/create-application-fee', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -128,21 +72,109 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
         },
         body: JSON.stringify({
           jobId: job.id,
-          coverLetter: coverLetter.trim() || null,
-          resumeUrl: resumeUrl,
         }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        onApplicationSubmitted(data.application);
-        onClose();
-        setCoverLetter('');
-      } else {
-        setError(data.error || 'Failed to submit application');
-        setErrorData(data);
+      if (!paymentResponse.ok) {
+        const paymentError = await paymentResponse.json();
+        throw new Error(paymentError.error || 'Failed to create payment order');
       }
+
+      const paymentOrder = await paymentResponse.json();
+
+      // Get Razorpay key
+      const keyResponse = await fetch('http://localhost:5000/api/payments/key');
+      const { key } = await keyResponse.json();
+
+      // Initialize Razorpay payment
+      const options = {
+        key: key,
+        amount: paymentOrder.amount,
+        currency: paymentOrder.currency,
+        name: 'Job Gujarat',
+        description: `Application fee for ${job.title}`,
+        order_id: paymentOrder.id,
+        handler: async function (response) {
+          try {
+            let finalResumeUrl = null;
+
+            // Upload resume AFTER successful payment
+            setUploadingResume(true);
+            const formData = new FormData();
+            formData.append('resume', resumeFile);
+            formData.append('jobId', job.id);
+
+            const uploadResponse = await fetch('http://localhost:5000/api/applications/upload-resume', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              body: formData,
+            });
+
+            if (!uploadResponse.ok) {
+              const uploadError = await uploadResponse.json();
+              throw new Error(uploadError.error || 'Failed to upload resume after payment');
+            }
+
+            const uploadResult = await uploadResponse.json();
+            finalResumeUrl = uploadResult.resumeUrl;
+            setUploadingResume(false);
+
+            // Confirm payment and create application with resume URL
+            const confirmResponse = await fetch('http://localhost:5000/api/payments/confirm-application', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                payment: {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                },
+                jobId: job.id,
+                coverLetter: coverLetter.trim() || null,
+                resumeUrl: finalResumeUrl,
+              }),
+            });
+
+            const confirmData = await confirmResponse.json();
+
+            if (confirmResponse.ok) {
+              onApplicationSubmitted(confirmData.application);
+              onClose();
+              setCoverLetter('');
+              setResumeFile(null);
+              setExistingResume(null);
+            } else {
+              setError(confirmData.error || 'Failed to confirm payment');
+            }
+          } catch (error) {
+            console.error('Error confirming payment:', error);
+            setError('Payment confirmation failed');
+          } finally {
+            setIsSubmitting(false);
+          }
+        },
+        prefill: {
+          name: 'Job Seeker',
+          email: '',
+        },
+        theme: {
+          color: '#3399cc',
+        },
+        modal: {
+          ondismiss: function() {
+            setIsSubmitting(false);
+            setError('Payment cancelled');
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (error) {
       console.error('Error submitting application:', error);
       setError('An error occurred while submitting your application');
@@ -223,43 +255,10 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
               </p>
             </div>
 
-            {/* Resume Upload Section */}
-            <div className="space-y-2">
-              <label 
-                htmlFor="resumeUpload" 
-                className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center space-x-2"
-              >
-                <FileText className="w-4 h-4" />
-                <span>Resume (Required) *</span>
-              </label>
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100">Resume Upload</h4>
               
-              {checkingResume ? (
-                <div className="flex items-center justify-center p-4 text-slate-500">
-                  <span className="text-sm">Checking for existing resume...</span>
-                </div>
-              ) : existingResume && !resumeFile ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-800">
-                    <div className="flex items-center space-x-2">
-                      <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
-                      <span className="text-sm font-medium text-green-900 dark:text-green-100">
-                        Resume already uploaded for this job
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setExistingResume(null)}
-                      className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
-                      title="Upload different resume"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Click the X to upload a different resume for this job
-                  </p>
-                </div>
-              ) : !resumeFile ? (
+              {!resumeFile ? (
                 <>
                   <input
                     type="file"
@@ -278,21 +277,23 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
                         Click to upload PDF resume (max 2MB)
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                        Upload a targeted resume for this specific position
+                        Will be uploaded after successful payment
                       </p>
                     </div>
                   </label>
                 </>
               ) : (
-                <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-300 dark:border-slate-600">
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
                   <div className="flex items-center space-x-2">
-                    <FileText className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                    <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                      {resumeFile.name}
-                    </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      ({(resumeFile.size / 1024 / 1024).toFixed(1)} MB)
-                    </span>
+                    <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                        {resumeFile.name}
+                      </span>
+                      <span className="text-xs text-blue-600 dark:text-blue-400">
+                        Ready to upload after payment • {(resumeFile.size / 1024 / 1024).toFixed(1)} MB
+                      </span>
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -342,7 +343,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
                 disabled={isSubmitting}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Application'}
+{isSubmitting ? (uploadingResume ? 'Uploading Resume...' : 'Processing...') : 'Pay ₹9 & Apply'}
               </Button>
             </div>
           </form>

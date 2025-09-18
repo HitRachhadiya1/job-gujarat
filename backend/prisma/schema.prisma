@@ -23,23 +23,23 @@ model User {
 }
 
 model JobSeeker {
-  id              String           @id @default(uuid())
-  userId          String           @unique
-  fullName        String
-  phone           String?
-  location        String?
-  skills          String[]
-  experienceYears Int?
-  resumeUrl       String?
-  aadhaarStatus   AadhaarStatus    @default(PENDING)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  profilePhotoUrl String?
-  AadhaarVault    AadhaarVault?
-  Applications    JobApplication[]
-  user            User             @relation(fields: [userId], references: [id])
-  SavedJobs       SavedJob[]
+  id                  String               @id @default(uuid())
+  userId              String               @unique
+  fullName            String
+  phone               String?
+  location            String?
+  skills              String[]
+  experienceYears     Int?
+  resumeUrl           String?
+  aadhaarStatus       AadhaarStatus        @default(PENDING)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  profilePhotoUrl     String?
+  AadhaarVault        AadhaarVault?
+  Applications        JobApplication[]
+  user                User                 @relation(fields: [userId], references: [id])
   PaymentTransactions PaymentTransaction[]
+  SavedJobs           SavedJob[]
 }
 
 model AadhaarVault {
@@ -72,60 +72,60 @@ model Company {
 }
 
 model JobPosting {
-  id           String              @id @default(uuid())
-  companyId    String
-  categoryId   String?
-  title        String
-  description  String
-  requirements String[]
-  location     String?
-  jobType      JobType
-  salaryRange  String?
-  status       JobStatus           @default(DRAFT)
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  expiresAt    DateTime?
-  Applications JobApplication[]
-  company      Company             @relation(fields: [companyId], references: [id])
-  category     Category?           @relation("JobCategory", fields: [categoryId], references: [id])
+  id                  String               @id @default(uuid())
+  companyId           String
+  title               String
+  description         String
+  requirements        String[]
+  location            String?
+  jobType             JobType
+  salaryRange         String?
+  status              JobStatus            @default(DRAFT)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  expiresAt           DateTime?
+  categoryId          String?
+  Applications        JobApplication[]
+  category            Category?            @relation("JobCategory", fields: [categoryId], references: [id])
+  company             Company              @relation(fields: [companyId], references: [id])
   PaymentTransactions PaymentTransaction[]
-  SavedJobs    SavedJob[]
+  SavedJobs           SavedJob[]
 }
 
 model JobApplication {
-  id             String            @id @default(uuid())
-  jobId          String
-  jobSeekerId    String
-  status         ApplicationStatus @default(APPLIED)
-  coverLetter    String?
-  resumeSnapshot String?
-  appliedAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  job            JobPosting        @relation(fields: [jobId], references: [id])
-  jobSeeker      JobSeeker         @relation(fields: [jobSeekerId], references: [id])
+  id                  String               @id @default(uuid())
+  jobId               String
+  jobSeekerId         String
+  status              ApplicationStatus    @default(APPLIED)
+  coverLetter         String?
+  resumeSnapshot      String?
+  appliedAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  job                 JobPosting           @relation(fields: [jobId], references: [id])
+  jobSeeker           JobSeeker            @relation(fields: [jobSeekerId], references: [id])
   PaymentTransactions PaymentTransaction[]
 }
 
 model PaymentTransaction {
-  id            String        @id @default(uuid())
+  id            String          @id @default(uuid())
   companyId     String?
-  jobSeekerId   String?
   jobPostingId  String?
-  applicationId String?
-  pricingPlanId String?
-  paymentType   PaymentType
   gateway       String
-  transactionId String        @unique
+  transactionId String          @unique
   amount        Decimal
-  currency      String        @default("INR")
-  status        PaymentStatus @default(PENDING)
-  createdAt     DateTime      @default(now())
+  currency      String          @default("INR")
+  status        PaymentStatus   @default(PENDING)
+  createdAt     DateTime        @default(now())
   completedAt   DateTime?
-  company       Company?      @relation(fields: [companyId], references: [id])
-  jobSeeker     JobSeeker?    @relation(fields: [jobSeekerId], references: [userId])
-  jobPosting    JobPosting?   @relation(fields: [jobPostingId], references: [id])
+  applicationId String?
+  jobSeekerId   String?
+  paymentType   PaymentType
+  pricingPlanId String?
   application   JobApplication? @relation(fields: [applicationId], references: [id])
-  pricingPlan   PricingPlan?  @relation("PlanPurchases", fields: [pricingPlanId], references: [id])
+  company       Company?        @relation(fields: [companyId], references: [id])
+  jobPosting    JobPosting?     @relation(fields: [jobPostingId], references: [id])
+  jobSeeker     JobSeeker?      @relation(fields: [jobSeekerId], references: [userId])
+  pricingPlan   PricingPlan?    @relation("PlanPurchases", fields: [pricingPlanId], references: [id])
 }
 
 model Notification {
@@ -189,16 +189,16 @@ model Category {
 }
 
 model PricingPlan {
-  id          String    @id @default(uuid())
-  name        String    @unique
-  price       Decimal
-  duration    Int       // Duration in days
-  features    String[]  // Array of features
-  active      Boolean   @default(true)
-  popular     Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  purchases   PaymentTransaction[] @relation("PlanPurchases")
+  id        String               @id @default(uuid())
+  name      String               @unique
+  price     Decimal
+  duration  Int
+  features  String[]
+  active    Boolean              @default(true)
+  popular   Boolean              @default(false)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  purchases PaymentTransaction[] @relation("PlanPurchases")
 }
 
 enum UserRole {

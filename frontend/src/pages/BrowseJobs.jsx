@@ -73,7 +73,8 @@ const BrowseJobs = () => {
   };
 
   const handleApplicationSubmitted = (application) => {
-    alert(`Application submitted successfully for "${application.job.title}"!`);
+    const jobTitle = application?.job?.title || application?.title || selectedJob?.title || 'this job';
+    alert(`Application submitted successfully for "${jobTitle}"!`);
     // Optionally refresh jobs or update UI to show applied status
   };
 
