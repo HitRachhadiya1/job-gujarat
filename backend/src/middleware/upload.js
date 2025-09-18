@@ -37,21 +37,24 @@ const uploadSingleLogo = multer({
   }
 }).single('logo');
 
-const uploadSingleAadhaar = multer({
+const uploadAadhaarImages = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 3 * 1024 * 1024 }, // 3MB limit
+  limits: { fileSize: 3 * 1024 * 1024 }, // 3MB limit per file
   fileFilter: (req, file, cb) => {
-    if (['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'].includes(file.mimetype)) {
+    if (['image/png', 'image/jpeg', 'image/jpg'].includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only PNG, JPG, and PDF files are allowed for Aadhaar documents'), false);
+      cb(new Error('Only PNG and JPG files are allowed for Aadhaar images'), false);
     }
   }
-}).single('aadhaar');
+}).fields([
+  { name: 'front', maxCount: 1 },
+  { name: 'back', maxCount: 1 }
+]);
 
 module.exports = {
   uploadSingleResume,
   uploadSinglePhoto,
   uploadSingleLogo,
-  uploadSingleAadhaar
+  uploadAadhaarImages
 };

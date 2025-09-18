@@ -19,6 +19,7 @@ import {
   Users
 } from 'lucide-react';
 import Spinner from '../components/Spinner';
+import AadhaarUpload from '../components/AadhaarUpload';
 
 const MyApplications = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -224,6 +225,23 @@ const MyApplications = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Aadhaar Upload for Hired Applications */}
+                  {application.status === 'HIRED' && (
+                    <div className="mb-4">
+                      <AadhaarUpload 
+                        application={application} 
+                        onUploadComplete={(updatedApplication) => {
+                          // Update the application in the list
+                          setApplications(prev => 
+                            prev.map(app => 
+                              app.id === updatedApplication.id ? updatedApplication : app
+                            )
+                          );
+                        }}
+                      />
+                    </div>
+                  )}
 
                   <div className="flex gap-2 pt-3 border-t border-stone-200 dark:border-stone-700">
                     {application.status === 'APPLIED' && (

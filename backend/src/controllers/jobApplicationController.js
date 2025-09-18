@@ -795,36 +795,67 @@ const withdrawApplication = async (req, res) => {
   }
 };
 
-// Upload Aadhaar document for hired applications
+// Upload Aadhaar document for hired application
 const uploadAadhaarDocument = async (req, res) => {
   try {
-    const { applicationId } = req.params;
-    const authUser = req.user;
-
-    if (!authUser?.email) {
-      return res.status(401).json({ error: "Unauthorized" });
+    const auth0User = req.user;
+    
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ error: "No Aadhaar document provided" });
+    if (!req.files || !req.files.front || !req.files.back) {
+      return res.status(400).json({ error: "Both front and back images are required" });
     }
 
-    // Get user and jobseeker
-    const user = await prisma.user.findFirst({
-      where: { email: authUser.email },
-      include: { JobSeeker: true }
+    const { applicationId } = req.body;
+    if (!applicationId) {
+      return res.status(400).json({ error: "Application ID is required" });
+    }
+
+    // Validate file types and sizes
+    const frontFile = req.files.front[0];
+    const backFile = req.files.back[0];
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    const maxSize = 3 * 1024 * 1024; // 3MB
+
+    if (!allowedTypes.includes(frontFile.mimetype) || !allowedTypes.includes(backFile.mimetype)) {
+      return res.status(400).json({ error: "Aadhaar images must be JPEG or PNG files" });
+    }
+
+    if (frontFile.size > maxSize || backFile.size > maxSize) {
+      return res.status(400).json({ error: "Each Aadhaar image must be less than 3MB" });
+    }
+
+    // Get user from database
+    const dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
+    if (!dbUser) {
+      return res.status(404).json({ error: "User record not found" });
+    }
+
+    // Get jobSeeker profile
+    const jobSeeker = await prisma.jobSeeker.findUnique({
+      where: { userId: dbUser.id }
     });
 
-    if (!user || !user.JobSeeker) {
-      return res.status(403).json({ error: "JobSeeker profile not found" });
+    if (!jobSeeker) {
+      return res.status(404).json({ error: "Job seeker profile not found" });
     }
 
-    // Check if application exists and belongs to this jobseeker
+    // Verify application exists and is HIRED
     const application = await prisma.jobApplication.findFirst({
       where: {
         id: applicationId,
-        jobSeekerId: user.JobSeeker.id,
-        status: "HIRED" // Only allow upload for hired applications
+        jobSeekerId: jobSeeker.id,
+        status: "HIRED"
+      },
+      include: {
+        job: {
+          include: {
+            company: true
+          }
+        }
       }
     });
 
@@ -832,37 +863,319 @@ const uploadAadhaarDocument = async (req, res) => {
       return res.status(404).json({ error: "Hired application not found" });
     }
 
-    // Upload to Supabase in "Aadhar Card" bucket
-    const { uploadFile } = require("../services/supabaseService");
-    const fileExtension = req.file.originalname.split('.').pop();
-    const fileName = `aadhaar_${applicationId}.${fileExtension}`;
-    const filePath = `applications/${applicationId}/${fileName}`;
+    // Create job seeker-specific file paths (reusable across all applications)
+    // Structure: jobseeker/{jobSeekerId}/aadhaar_front.jpg
+    const frontFileName = `jobseeker/${jobSeeker.id}/aadhaar_front.${frontFile.originalname.split('.').pop()}`;
+    const backFileName = `jobseeker/${jobSeeker.id}/aadhaar_back.${backFile.originalname.split('.').pop()}`;
 
-    const uploadResult = await uploadFile(
-      'Aadhar Card', // bucket name as specified
-      filePath,
-      req.file.buffer,
-      req.file.mimetype
+    console.log('=== AADHAAR UPLOAD DEBUG ===');
+    console.log('Job Seeker ID:', jobSeeker.id);
+    console.log('Application ID:', applicationId);
+    console.log('Front file path:', frontFileName);
+    console.log('Back file path:', backFileName);
+    console.log('This will overwrite existing Aadhaar documents for this job seeker');
+
+    // Upload front image to 'Aadhar Card' bucket
+    const frontUploadResult = await uploadFile(
+      'Aadhar Card',
+      frontFileName,
+      frontFile.buffer,
+      frontFile.mimetype
     );
 
-    if (uploadResult.error) {
-      return res.status(500).json({ error: uploadResult.error });
+    if (frontUploadResult.error) {
+      console.error('Front upload error:', frontUploadResult.error);
+      return res.status(500).json({ error: `Failed to upload front image: ${frontUploadResult.error}` });
     }
 
-    // Update application with Aadhaar document URL
+    console.log('Front upload success:', frontUploadResult.url);
+
+    // Upload back image to 'Aadhar Card' bucket
+    const backUploadResult = await uploadFile(
+      'Aadhar Card',
+      backFileName,
+      backFile.buffer,
+      backFile.mimetype
+    );
+
+    if (backUploadResult.error) {
+      console.error('Back upload error:', backUploadResult.error);
+      return res.status(500).json({ error: `Failed to upload back image: ${backUploadResult.error}` });
+    }
+
+    console.log('Back upload success:', backUploadResult.url);
+    console.log('=== END AADHAAR UPLOAD DEBUG ===');
+
+    // Update JobSeeker profile with Aadhaar document URLs (stored centrally)
+    const updatedJobSeeker = await prisma.jobSeeker.update({
+      where: { id: jobSeeker.id },
+      data: {
+        aadhaarDocumentUrl: JSON.stringify({
+          front: frontUploadResult.url,
+          back: backUploadResult.url,
+          uploadedAt: new Date().toISOString()
+        })
+      }
+    });
+
+    // Also update the current application to mark it has Aadhaar uploaded
     const updatedApplication = await prisma.jobApplication.update({
       where: { id: applicationId },
-      data: { aadhaarDocumentUrl: uploadResult.url }
+      data: {
+        aadhaarDocumentUrl: JSON.stringify({
+          front: frontUploadResult.url,
+          back: backUploadResult.url,
+          uploadedAt: new Date().toISOString()
+        })
+      },
+      include: {
+        job: {
+          include: {
+            company: true
+          }
+        }
+      }
     });
 
     res.json({
-      message: "Aadhaar document uploaded successfully",
-      aadhaarDocumentUrl: uploadResult.url,
-      application: updatedApplication
+      message: "Aadhaar documents uploaded successfully and will be reused for future applications",
+      application: updatedApplication,
+      aadhaarUrls: {
+        front: frontUploadResult.url,
+        back: backUploadResult.url
+      }
     });
+
   } catch (error) {
-    console.error("Error uploading Aadhaar document:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error uploading Aadhaar documents:', error);
+    res.status(500).json({ error: "Failed to upload Aadhaar documents" });
+  }
+};
+
+// Check if job seeker has existing Aadhaar documents
+const checkExistingAadhaar = async (req, res) => {
+  try {
+    const auth0User = req.user;
+    
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    // Get user from database
+    const dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
+    if (!dbUser) {
+      return res.status(404).json({ error: "User record not found" });
+    }
+
+    // Get jobSeeker profile
+    const jobSeeker = await prisma.jobSeeker.findUnique({
+      where: { userId: dbUser.id },
+      select: {
+        id: true,
+        aadhaarDocumentUrl: true
+      }
+    });
+
+    if (!jobSeeker) {
+      return res.status(404).json({ error: "Job seeker profile not found" });
+    }
+
+    if (!jobSeeker.aadhaarDocumentUrl) {
+      return res.json({ 
+        hasAadhaar: false,
+        message: "No Aadhaar documents found"
+      });
+    }
+
+    // Parse existing Aadhaar data
+    const aadhaarData = JSON.parse(jobSeeker.aadhaarDocumentUrl);
+
+    res.json({
+      hasAadhaar: true,
+      aadhaarUrls: {
+        front: aadhaarData.front,
+        back: aadhaarData.back,
+        uploadedAt: aadhaarData.uploadedAt
+      }
+    });
+
+  } catch (error) {
+    console.error('Error checking existing Aadhaar:', error);
+    res.status(500).json({ error: "Failed to check Aadhaar documents" });
+  }
+};
+
+// Get Aadhaar documents for a specific application (Company only)
+const getAadhaarDocuments = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const auth0User = req.user;
+
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    // Check if user is company owner
+    const user = await prisma.user.findFirst({
+      where: { email: auth0User.email },
+      include: { Company: true },
+    });
+
+    if (!user || !user.Company) {
+      return res.status(403).json({ error: "Company profile not found" });
+    }
+
+    // Get application and verify it belongs to company's job
+    const application = await prisma.jobApplication.findFirst({
+      where: {
+        id: applicationId,
+        job: {
+          companyId: user.Company.id
+        }
+      },
+      include: {
+        job: {
+          select: {
+            title: true,
+            company: {
+              select: {
+                name: true
+              }
+            }
+          }
+        },
+        jobSeeker: {
+          select: {
+            fullName: true,
+            phone: true,
+            location: true
+          }
+        }
+      }
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "Application not found or not authorized" });
+    }
+
+    // Check if Aadhaar documents exist
+    if (!application.aadhaarDocumentUrl) {
+      return res.status(404).json({ 
+        error: "Aadhaar documents not uploaded yet",
+        status: application.status 
+      });
+    }
+
+    // Parse Aadhaar document URLs
+    const aadhaarData = JSON.parse(application.aadhaarDocumentUrl);
+
+    res.json({
+      application: {
+        id: application.id,
+        status: application.status,
+        appliedAt: application.appliedAt,
+        job: application.job,
+        jobSeeker: application.jobSeeker
+      },
+      aadhaarDocuments: {
+        front: aadhaarData.front,
+        back: aadhaarData.back,
+        uploadedAt: aadhaarData.uploadedAt
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching Aadhaar documents:', error);
+    res.status(500).json({ error: "Failed to fetch Aadhaar documents" });
+  }
+};
+
+// Get all applications with Aadhaar status for company dashboard
+const getApplicationsWithAadhaarStatus = async (req, res) => {
+  try {
+    const auth0User = req.user;
+
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    // Check if user is company owner
+    const user = await prisma.user.findFirst({
+      where: { email: auth0User.email },
+      include: { Company: true },
+    });
+
+    if (!user || !user.Company) {
+      return res.status(403).json({ error: "Company profile not found" });
+    }
+
+    // Get all hired applications for this company
+    const applications = await prisma.jobApplication.findMany({
+      where: {
+        job: {
+          companyId: user.Company.id
+        },
+        status: "HIRED"
+      },
+      include: {
+        job: {
+          select: {
+            title: true,
+            location: true
+          }
+        },
+        jobSeeker: {
+          select: {
+            fullName: true,
+            phone: true,
+            location: true
+          }
+        }
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
+    });
+
+    // Add Aadhaar status to each application
+    const applicationsWithAadhaarStatus = applications.map(app => {
+      let aadhaarStatus = 'pending';
+      let aadhaarUploadedAt = null;
+
+      if (app.aadhaarDocumentUrl) {
+        try {
+          const aadhaarData = JSON.parse(app.aadhaarDocumentUrl);
+          aadhaarStatus = 'uploaded';
+          aadhaarUploadedAt = aadhaarData.uploadedAt;
+        } catch (e) {
+          aadhaarStatus = 'error';
+        }
+      }
+
+      return {
+        id: app.id,
+        status: app.status,
+        appliedAt: app.appliedAt,
+        updatedAt: app.updatedAt,
+        job: app.job,
+        jobSeeker: app.jobSeeker,
+        aadhaarStatus,
+        aadhaarUploadedAt
+      };
+    });
+
+    res.json({
+      applications: applicationsWithAadhaarStatus,
+      summary: {
+        total: applications.length,
+        aadhaarUploaded: applicationsWithAadhaarStatus.filter(app => app.aadhaarStatus === 'uploaded').length,
+        aadhaarPending: applicationsWithAadhaarStatus.filter(app => app.aadhaarStatus === 'pending').length
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching applications with Aadhaar status:', error);
+    res.status(500).json({ error: "Failed to fetch applications" });
   }
 };
 
@@ -876,5 +1189,8 @@ module.exports = {
   uploadApplicationResume,
   checkApplicationResume,
   uploadAadhaarDocument,
+  checkExistingAadhaar,
+  getAadhaarDocuments,
+  getApplicationsWithAadhaarStatus,
   upload // Export multer middleware
 };
