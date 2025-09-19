@@ -9,6 +9,7 @@ const {
   uploadApplicationResume,
   checkApplicationResume,
   uploadAadhaarDocument,
+  getApprovalFeeInfo,
   checkExistingAadhaar,
   getAadhaarDocuments,
   getApplicationsWithAadhaarStatus,
@@ -26,6 +27,7 @@ router.post("/upload-resume", jwtWithRole, requireRole("JOB_SEEKER"), upload.sin
 router.post("/apply", jwtWithRole, requireRole("JOB_SEEKER"), applyForJob);
 router.get("/my-applications", jwtWithRole, requireRole("JOB_SEEKER"), getMyApplications);
 router.delete("/:applicationId/withdraw", jwtWithRole, requireRole("JOB_SEEKER"), withdrawApplication);
+router.get("/:applicationId/approval-fee", jwtWithRole, requireRole("JOB_SEEKER"), getApprovalFeeInfo);
 router.get("/check-aadhaar", jwtWithRole, requireRole("JOB_SEEKER"), checkExistingAadhaar);
 router.post("/upload-aadhaar", jwtWithRole, requireRole("JOB_SEEKER"), uploadAadhaarImages, uploadAadhaarDocument);
 

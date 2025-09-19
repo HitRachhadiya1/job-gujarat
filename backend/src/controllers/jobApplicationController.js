@@ -1,7 +1,23 @@
 const { PrismaClient } = require("@prisma/client");
-const { uploadFile, supabase } = require("../services/supabaseService");
+const { uploadFile } = require("../services/supabaseService");
 const multer = require('multer');
+
 const prisma = new PrismaClient();
+
+// Calculate approval fee based on monthly salary
+const calculateApprovalFee = (monthlySalary) => {
+  const salary = parseFloat(monthlySalary);
+  
+  if (salary < 10000) {
+    return 250;
+  } else if (salary >= 10000 && salary < 20000) {
+    return 400;
+  } else if (salary >= 20000 && salary < 30000) {
+    return 500;
+  } else {
+    return 600;
+  }
+};
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
@@ -863,6 +879,23 @@ const uploadAadhaarDocument = async (req, res) => {
       return res.status(404).json({ error: "Hired application not found" });
     }
 
+    // Check if approval fee is paid before allowing Aadhaar upload
+    const approvalPayment = await prisma.paymentTransaction.findFirst({
+      where: {
+        applicationId: applicationId,
+        status: "SUCCESS",
+        paymentType: "APPROVAL_FEE"
+      }
+    });
+
+    if (!approvalPayment) {
+      return res.status(403).json({ 
+        error: "Approval fee must be paid before uploading Aadhaar documents",
+        requiresPayment: true,
+        applicationId: applicationId
+      });
+    }
+
     // Create job seeker-specific file paths (reusable across all applications)
     // Structure: jobseeker/{jobSeekerId}/aadhaar_front.jpg
     const frontFileName = `jobseeker/${jobSeeker.id}/aadhaar_front.${frontFile.originalname.split('.').pop()}`;
@@ -906,14 +939,15 @@ const uploadAadhaarDocument = async (req, res) => {
     console.log('Back upload success:', backUploadResult.url);
     console.log('=== END AADHAAR UPLOAD DEBUG ===');
 
-    // Update JobSeeker profile with Aadhaar document URLs (stored centrally)
+    // Update JobSeeker profile with Aadhaar document URLs (stored centrally - overwrites existing)
     const updatedJobSeeker = await prisma.jobSeeker.update({
       where: { id: jobSeeker.id },
       data: {
         aadhaarDocumentUrl: JSON.stringify({
           front: frontUploadResult.url,
           back: backUploadResult.url,
-          uploadedAt: new Date().toISOString()
+          uploadedAt: new Date().toISOString(),
+          applicationId: applicationId // Track which application triggered this upload
         })
       }
     });
@@ -937,6 +971,9 @@ const uploadAadhaarDocument = async (req, res) => {
       }
     });
 
+    console.log('Aadhaar documents uploaded and JobSeeker profile updated');
+    console.log('JobSeeker aadhaarDocumentUrl updated:', updatedJobSeeker.aadhaarDocumentUrl);
+
     res.json({
       message: "Aadhaar documents uploaded successfully and will be reused for future applications",
       application: updatedApplication,
@@ -949,6 +986,90 @@ const uploadAadhaarDocument = async (req, res) => {
   } catch (error) {
     console.error('Error uploading Aadhaar documents:', error);
     res.status(500).json({ error: "Failed to upload Aadhaar documents" });
+  }
+};
+
+// Get approval fee information for hired application
+const getApprovalFeeInfo = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const auth0User = req.user;
+
+    if (!auth0User?.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    // Get user from database
+    const dbUser = await prisma.user.findFirst({ where: { email: auth0User.email } });
+    if (!dbUser) {
+      return res.status(404).json({ error: "User record not found" });
+    }
+
+    // Get jobSeeker profile
+    const jobSeeker = await prisma.jobSeeker.findUnique({
+      where: { userId: dbUser.id }
+    });
+
+    if (!jobSeeker) {
+      return res.status(404).json({ error: "Job seeker profile not found" });
+    }
+
+    // Get application and verify it belongs to job seeker and is HIRED
+    const application = await prisma.jobApplication.findFirst({
+      where: {
+        id: applicationId,
+        jobSeekerId: jobSeeker.id,
+        status: "HIRED"
+      },
+      include: {
+        job: {
+          include: {
+            company: true
+          }
+        }
+      }
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "Hired application not found" });
+    }
+
+    // Extract salary from job description or use a default
+    // You might want to add a salary field to JobPosting model
+    const salaryRange = application.job.salaryRange || "15000"; // Default if not specified
+    const monthlySalary = parseFloat(salaryRange.replace(/[^\d.]/g, '')) || 15000;
+    
+    const approvalFee = calculateApprovalFee(monthlySalary);
+
+    // Check if approval fee is already paid
+    const existingPayment = await prisma.paymentTransaction.findFirst({
+      where: {
+        applicationId: applicationId,
+        status: "SUCCESS"
+      }
+    });
+
+    res.json({
+      applicationId,
+      jobTitle: application.job.title,
+      companyName: application.job.company.name,
+      monthlySalary,
+      approvalFee,
+      currency: "INR",
+      isPaid: !!existingPayment,
+      paymentId: existingPayment?.id || null,
+      feeBreakdown: {
+        "Below ₹10,000": 250,
+        "₹10,000 - ₹20,000": 400,
+        "₹20,000 - ₹30,000": 500,
+        "Above ₹30,000": 600,
+        "Your Range": `₹${approvalFee}`
+      }
+    });
+
+  } catch (error) {
+    console.error('Error getting approval fee info:', error);
+    res.status(500).json({ error: "Failed to get approval fee information" });
   }
 };
 
@@ -1137,11 +1258,13 @@ const getApplicationsWithAadhaarStatus = async (req, res) => {
       }
     });
 
-    // Add Aadhaar status to each application
-    const applicationsWithAadhaarStatus = applications.map(app => {
+    // Add Aadhaar status and payment status to each application
+    const applicationsWithAadhaarStatus = await Promise.all(applications.map(async (app) => {
       let aadhaarStatus = 'pending';
       let aadhaarUploadedAt = null;
+      let paymentStatus = 'pending';
 
+      // Check Aadhaar status
       if (app.aadhaarDocumentUrl) {
         try {
           const aadhaarData = JSON.parse(app.aadhaarDocumentUrl);
@@ -1152,6 +1275,19 @@ const getApplicationsWithAadhaarStatus = async (req, res) => {
         }
       }
 
+      // Check payment status
+      const approvalPayment = await prisma.paymentTransaction.findFirst({
+        where: {
+          applicationId: app.id,
+          paymentType: "APPROVAL_FEE",
+          status: "SUCCESS"
+        }
+      });
+
+      if (approvalPayment) {
+        paymentStatus = 'paid';
+      }
+
       return {
         id: app.id,
         status: app.status,
@@ -1160,16 +1296,21 @@ const getApplicationsWithAadhaarStatus = async (req, res) => {
         job: app.job,
         jobSeeker: app.jobSeeker,
         aadhaarStatus,
-        aadhaarUploadedAt
+        aadhaarUploadedAt,
+        paymentStatus,
+        approvalProcessComplete: aadhaarStatus === 'uploaded' && paymentStatus === 'paid'
       };
-    });
+    }));
 
     res.json({
       applications: applicationsWithAadhaarStatus,
       summary: {
         total: applications.length,
         aadhaarUploaded: applicationsWithAadhaarStatus.filter(app => app.aadhaarStatus === 'uploaded').length,
-        aadhaarPending: applicationsWithAadhaarStatus.filter(app => app.aadhaarStatus === 'pending').length
+        aadhaarPending: applicationsWithAadhaarStatus.filter(app => app.aadhaarStatus === 'pending').length,
+        paymentCompleted: applicationsWithAadhaarStatus.filter(app => app.paymentStatus === 'paid').length,
+        paymentPending: applicationsWithAadhaarStatus.filter(app => app.paymentStatus === 'pending').length,
+        approvalProcessComplete: applicationsWithAadhaarStatus.filter(app => app.approvalProcessComplete).length
       }
     });
 
@@ -1189,6 +1330,7 @@ module.exports = {
   uploadApplicationResume,
   checkApplicationResume,
   uploadAadhaarDocument,
+  getApprovalFeeInfo,
   checkExistingAadhaar,
   getAadhaarDocuments,
   getApplicationsWithAadhaarStatus,

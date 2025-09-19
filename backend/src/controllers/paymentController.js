@@ -283,11 +283,148 @@ async function confirmApplicationPayment(req, res) {
   }
 }
 
+// Create approval fee payment order
+async function createApprovalFeeOrder(req, res) {
+  try {
+    const authUser = req.user;
+    if (!authUser?.email) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { amount, applicationId, paymentType } = req.body;
+    if (!amount || !applicationId || paymentType !== 'APPROVAL_FEE') {
+      return res.status(400).json({ error: "Invalid payment data" });
+    }
+
+    // Verify the application belongs to the user and is HIRED
+    const user = await prisma.user.findFirst({ 
+      where: { email: authUser.email }, 
+      include: { JobSeeker: true } 
+    });
+
+    if (!user || !user.JobSeeker) {
+      return res.status(403).json({ error: "JobSeeker profile not found" });
+    }
+
+    const application = await prisma.jobApplication.findFirst({
+      where: {
+        id: applicationId,
+        jobSeekerId: user.JobSeeker.id,
+        status: "HIRED"
+      }
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "Hired application not found" });
+    }
+
+    // Create Razorpay order
+    // Build a compact receipt: "af_<8charId>_<last8ts>" (always < 40 chars)
+    const shortId = String(applicationId).replace(/[^a-zA-Z0-9]/g, '').slice(0, 8);
+    const shortTs = Date.now().toString().slice(-8);
+    const options = {
+      amount: Math.round(amount * 100), // Convert to paise
+      currency: "INR",
+      receipt: `af_${shortId}_${shortTs}`,
+    };
+
+    const order = await razorpay.orders.create(options);
+    return res.json(order);
+  } catch (err) {
+    console.error("Error creating approval fee order:", err);
+    return res.status(500).json({ error: "Error creating payment order" });
+  }
+}
+
+// Verify approval fee payment
+async function verifyApprovalPayment(req, res) {
+  try {
+    const authUser = req.user;
+    if (!authUser?.email) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, applicationId } = req.body || {};
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !applicationId) {
+      return res.status(400).json({ error: "Missing payment verification data" });
+    }
+
+    // Verify signature
+    const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({ error: "Payment verification failed" });
+    }
+
+    // Get user and verify application
+    const user = await prisma.user.findFirst({ 
+      where: { email: authUser.email }, 
+      include: { JobSeeker: true } 
+    });
+
+    if (!user || !user.JobSeeker) {
+      return res.status(403).json({ error: "JobSeeker profile not found" });
+    }
+
+    const application = await prisma.jobApplication.findFirst({
+      where: {
+        id: applicationId,
+        jobSeekerId: user.JobSeeker.id,
+        status: "HIRED"
+      },
+      include: {
+        job: {
+          include: {
+            company: true
+          }
+        }
+      }
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "Hired application not found" });
+    }
+
+    // Get order details from Razorpay to get the amount
+    const order = await razorpay.orders.fetch(razorpay_order_id);
+
+    // Create payment transaction record
+    await prisma.paymentTransaction.create({
+      data: {
+        jobSeekerId: user.JobSeeker.userId,
+        applicationId: applicationId,
+        paymentType: "APPROVAL_FEE",
+        gateway: "razorpay",
+        transactionId: razorpay_payment_id,
+        amount: new Prisma.Decimal(order.amount / 100), // Convert from paise to rupees
+        currency: "INR",
+        status: "SUCCESS",
+        completedAt: new Date()
+      },
+    });
+
+    return res.json({ 
+      success: true, 
+      message: "Payment verified successfully",
+      application: application
+    });
+  } catch (err) {
+    console.error("Error verifying approval payment:", err);
+    return res.status(500).json({ error: "Payment verification failed" });
+  }
+}
+
 module.exports = { 
   createOrder, 
   verifyPayment, 
   getPublicKey, 
   confirmAndPublish,
   createApplicationFeePayment,
-  confirmApplicationPayment
+  confirmApplicationPayment,
+  createApprovalFeeOrder,
+  verifyApprovalPayment
 };

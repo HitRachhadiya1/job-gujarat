@@ -19,7 +19,7 @@ import {
   Users
 } from 'lucide-react';
 import Spinner from '../components/Spinner';
-import AadhaarUpload from '../components/AadhaarUpload';
+import ApprovalProcessModal from '../components/ApprovalProcessModal';
 
 const MyApplications = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -27,6 +27,8 @@ const MyApplications = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [pagination, setPagination] = useState({});
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -57,6 +59,18 @@ const MyApplications = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOpenApprovalProcess = (application) => {
+    setSelectedApplication(application);
+    setShowApprovalModal(true);
+  };
+
+  const handleCloseApprovalModal = () => {
+    setShowApprovalModal(false);
+    setSelectedApplication(null);
+    // Refresh applications to get updated status
+    fetchApplications();
   };
 
   const handleWithdraw = async (applicationId, jobTitle) => {
@@ -226,20 +240,48 @@ const MyApplications = () => {
                     )}
                   </div>
 
-                  {/* Aadhaar Upload for Hired Applications */}
+                  {/* Approval Process for Hired Applications */}
                   {application.status === 'HIRED' && (
                     <div className="mb-4">
-                      <AadhaarUpload 
-                        application={application} 
-                        onUploadComplete={(updatedApplication) => {
-                          // Update the application in the list
-                          setApplications(prev => 
-                            prev.map(app => 
-                              app.id === updatedApplication.id ? updatedApplication : app
-                            )
-                          );
-                        }}
-                      />
+                      {/* Check if approval process is completed */}
+                      {application.aadhaarDocumentUrl ? (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                          <div className="flex items-center space-x-3">
+                            <CheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            <div>
+                              <h4 className="font-semibold text-blue-900 dark:text-blue-100">
+                                ✅ Process Completed & Fees Paid
+                              </h4>
+                              <p className="text-sm text-blue-700 dark:text-blue-300">
+                                Your approval process is complete. The company will contact you soon.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                              <div>
+                                <h4 className="font-semibold text-green-900 dark:text-green-100">
+                                  🎉 Congratulations! You're Hired!
+                                </h4>
+                                <p className="text-sm text-green-700 dark:text-green-300">
+                                  Complete your approval process to finalize your hiring
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => handleOpenApprovalProcess(application)}
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              Complete Process
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -280,6 +322,13 @@ const MyApplications = () => {
           )}
         </div>
       </div>
+
+      {/* Approval Process Modal */}
+      <ApprovalProcessModal
+        isOpen={showApprovalModal}
+        onClose={handleCloseApprovalModal}
+        application={selectedApplication}
+      />
     </div>
   );
 };
