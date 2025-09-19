@@ -748,37 +748,26 @@ export default function JobSeekerDashboard({ onLogout }) {
   }
 
   return (
-    <div className="h-screen bg-stone-300 dark:bg-stone-950 flex transition-colors duration-500 overflow-hidden m-0 p-0">
+    <div className="h-screen bg-stone-300 dark:bg-stone-950 flex transition-colors duration-500 overflow-hidden m-0 p-0 pt-20">
       {/* Sidebar */}
       <div
         className={`${sidebarCollapsed ? "w-16" : "w-64"} bg-stone-800/95 dark:bg-stone-900/95 backdrop-blur-md border-r border-stone-700 dark:border-stone-800/60 shadow-xl flex flex-col transition-all duration-500 ease-out relative transform`}
       >
-        {/* Logo/Brand - Match Navbar Style */}
-        <div className="py-5 px-6 border-b border-stone-700 dark:border-stone-800/60">
-          <div className="flex items-center space-x-3">
-            <AppLogo size="w-12 h-12" rounded="rounded-xl" mode="contain" />
-            {!sidebarCollapsed && (
-              <div>
-                <h2 className="text-xl font-bold text-stone-100 dark:text-stone-100 tracking-tight">
-                  Job Gujarat
-                </h2>
-              </div>
-            )}
-          </div>
-          {/* Collapse Toggle */}
+        {/* Sidebar Top (Collapse Toggle Only) */}
+  
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-stone-900 dark:bg-stone-700 border border-stone-600 dark:border-stone-600 text-white hover:text-white hover:bg-stone-800 dark:hover:bg-stone-600 rounded-full p-2 transition-all duration-300 shadow-xl z-20"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-stone-900 dark:bg-stone-700 border border-stone-600 dark:border-stone-600 text-white hover:text-white hover:bg-stone-800 dark:hover:bg-stone-600 rounded-full p-2 transition-all duration-300 hover:scale-[1.03] shadow-xl z-20"
+            title={sidebarCollapsed ? 'Expand' : 'Collapse'}
           >
             {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
           </Button>
-        </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 overflow-hidden">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto mt-4 md:mt-9">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -791,10 +780,11 @@ export default function JobSeekerDashboard({ onLogout }) {
                     : "justify-start px-3 h-11"
                 } text-left transition-all duration-300 ease-out rounded-lg font-medium group ${
                   activeView === item.id
-                    ? "bg-stone-100/20 text-stone-100 shadow-md border border-stone-600/30 hover:bg-stone-100/30"
+                    ? "bg-stone-100/20 text-stone-100 shadow-md border border-stone-600/30 hover:bg-stone-100/30 border-l-2 border-l-stone-200 pl-2"
                     : "text-stone-300 hover:text-stone-100 hover:bg-stone-700/40"
                 }`}
                 onClick={() => handleNavigation(item.id)}
+                title={sidebarCollapsed ? item.label : undefined}
               >
                 <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4'} transition-all duration-300`} />
                 {!sidebarCollapsed && (
@@ -825,36 +815,41 @@ export default function JobSeekerDashboard({ onLogout }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-gradient-to-r from-stone-600/95 to-stone-700/95 dark:from-stone-800/95 dark:to-stone-900/95 backdrop-blur-md border-b border-stone-500/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
-          <div className="flex items-center justify-between px-8 py-4">
-            <div className="flex items-center space-x-6">
-              <h2 className="text-2xl font-bold text-stone-100 dark:text-stone-100 tracking-tight">
-                {`Welcome, ${
-                  user?.given_name || user?.name?.split(" ")[0] || "User"
-                }`}
+        <header className="fixed top-0 left-0 right-0 z-40 h-20 bg-gradient-to-r from-stone-600/95 to-stone-700/95 dark:from-stone-800/95 dark:to-stone-900/95 backdrop-blur-md border-b border-stone-500/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
+          <div className="h-full flex items-center justify-between px-6 md:px-8">
+            {/* Brand + Welcome */}
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="flex items-center gap-3">
+                <AppLogo size="w-10 h-10" rounded="rounded-lg" mode="contain" />
+                <span className="text-xl md:text-2xl font-bold text-stone-100 tracking-tight">
+                  Job Gujarat
+                </span>
+              </div>
+              <span className="hidden md:inline-block text-stone-200/50">|</span>
+              <h2 className="hidden md:block text-base md:text-lg font-semibold text-stone-100/90">
+                {`Welcome, ${user?.given_name || user?.name?.split(" ")[0] || "User"}`}
               </h2>
             </div>
-            <div className="flex items-center space-x-4">
-              {/* User Profile Photo */}
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="bg-stone-500/20 dark:bg-stone-700/30 rounded-lg p-1 border border-stone-400/30 dark:border-stone-600/30">
+                <ThemeToggle />
+              </div>
               <img
                 src={
                   user?.picture ||
                   "https://via.placeholder.com/40/78716c/FFFFFF?text=U"
                 }
                 alt="Profile"
-                className="w-10 h-10 rounded-full border-2 border-stone-400 dark:border-stone-500 shadow-md"
+                className="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-stone-400 dark:border-stone-500 shadow-md"
               />
-              
-              {/* Theme Toggle */}
-              <div className="bg-stone-500/20 dark:bg-stone-700/30 rounded-lg p-1 border border-stone-400/30 dark:border-stone-600/30">
-                <ThemeToggle />
-              </div>
             </div>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-transparent p-8">
+        <main className="flex-1 overflow-y-auto bg-transparent p-8 mt-4">
           {renderActiveView()}
         </main>
       </div>

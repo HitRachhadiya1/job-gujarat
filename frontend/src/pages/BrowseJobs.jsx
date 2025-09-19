@@ -1,23 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
   Search, 
   MapPin, 
   Building2, 
-  DollarSign, 
+  IndianRupee, 
   Clock, 
-  Heart, 
+  Bookmark,
+  BookmarkCheck,
   Briefcase,
   Filter,
-  Users
+  FileText,
 } from 'lucide-react';
 import JobApplicationModal from '../components/JobApplicationModal';
 import Spinner from '../components/Spinner';
 import { savedJobsAPI } from '../api/savedJobs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const BrowseJobs = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -30,6 +33,9 @@ const BrowseJobs = () => {
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
   const [savedJobs, setSavedJobs] = useState(new Set());
   const [savingJobs, setSavingJobs] = useState(new Set());
+  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+  const [descriptionJob, setDescriptionJob] = useState(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -102,16 +108,16 @@ const BrowseJobs = () => {
           newSet.delete(jobId);
           return newSet;
         });
-        alert('Job removed from saved jobs!');
+        // no alert, update UI silently
       } else {
         // Save the job
         await savedJobsAPI.saveJob(jobId, token);
         setSavedJobs(prev => new Set([...prev, jobId]));
-        alert('Job saved successfully!');
+        // no alert, update UI silently
       }
     } catch (error) {
       console.error('Error saving/unsaving job:', error);
-      alert(error.message || 'Failed to save job');
+      // no alert on errors to keep UX clean
     } finally {
       setSavingJobs(prev => {
         const newSet = new Set(prev);
@@ -130,66 +136,101 @@ const BrowseJobs = () => {
     return matchesSearch && matchesLocation && matchesType;
   });
 
+  // UI-only helper to format enum-like job types for display (e.g., FULL_TIME -> Full Time)
+  const formatJobType = (type) => {
+    if (!type || typeof type !== 'string') return '';
+    return type
+      .toLowerCase()
+      .split('_')
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(' ');
+  };
+
   if (loading) {
     return <Spinner />;
   }
 
   return (
-    <div className="min-h-screen bg-transparent py-6">
-      <div className="container mx-auto px-4 max-w-none">
-        {/* Compact Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-3">
-            <Briefcase className="w-7 h-7 text-stone-700 dark:text-stone-300" />
-            <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-              Browse Jobs
-            </h1>
+    <div className="min-h-screen bg-transparent py-0">
+      <div className="container mx-auto px-4 max-w-7xl">
+        {/* Page Header */}
+        <div className="mb-2">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-md bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+              <Briefcase className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
+                Browse Jobs
+              </h1>
+            </div>
           </div>
-          <p className="text-lg text-stone-700 dark:text-stone-400 font-medium ml-10">
-            Discover your next career opportunity
-          </p>
         </div>
-        
-        {/* Compact Search and Filter Section */}
-        <div className="mb-6 bg-transparent rounded-none border-0 shadow-none p-0">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="relative lg:col-span-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-500" />
-              <Input
-                type="text"
-                className="pl-10 h-10 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg shadow-sm focus:ring-2 focus:ring-stone-500 focus:border-stone-500"
-                placeholder="Search jobs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+
+        {/* Search and Filters */}
+        <div className="mb-5">
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+                <Input
+                  id="job-search"
+                  type="text"
+                  className="pl-10 h-10 bg-white dark:bg-stone-900 border-2 border-stone-900 dark:border-stone-200 text-stone-900 dark:text-stone-100 rounded-lg shadow-none focus:ring-0 focus:border-stone-900"
+                  placeholder="Search job titles or descriptions"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-500" />
-              <Input
-                type="text"
-                className="pl-10 h-10 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg shadow-sm focus:ring-2 focus:ring-stone-500 focus:border-stone-500"
-                placeholder="Location"
-                value={filterLocation}
-                onChange={(e) => setFilterLocation(e.target.value)}
-              />
-            </div>
-            
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-500" />
-              <select
-                className="w-full pl-10 pr-4 h-10 border border-stone-300 dark:border-stone-700 rounded-lg bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-500 shadow-sm"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-              >
-                <option value="">All Types</option>
-                <option value="FULL_TIME">Full Time</option>
-                <option value="PART_TIME">Part Time</option>
-                <option value="CONTRACT">Contract</option>
-                <option value="INTERNSHIP">Internship</option>
-              </select>
-            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-10 px-3"
+              onClick={() => setFiltersOpen((v) => !v)}
+              aria-expanded={filtersOpen}
+              aria-controls="filters-panel"
+            >
+              <Filter className="w-4 h-4 mr-2" /> Filters
+            </Button>
           </div>
+          {filtersOpen && (
+            <div id="filters-panel" className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div>
+                <Label htmlFor="job-location" className="text-xs font-medium text-stone-700 dark:text-stone-300">Location</Label>
+                <div className="relative mt-1">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+                  <Input
+                    id="job-location"
+                    type="text"
+                    className="pl-10 h-8 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg shadow-sm focus:ring-2 focus:ring-stone-500 focus:border-stone-500"
+                    placeholder="City, state or remote"
+                    value={filterLocation}
+                    onChange={(e) => setFilterLocation(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="job-type" className="text-xs font-medium text-stone-700 dark:text-stone-300">Job type</Label>
+                <div className="relative mt-1">
+                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+                  <select
+                    id="job-type"
+                    className="w-full pl-10 pr-4 h-8 border border-stone-300 dark:border-stone-700 rounded-lg bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-500 shadow-sm"
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                  >
+                    <option value="">All Types</option>
+                    <option value="FULL_TIME">Full Time</option>
+                    <option value="PART_TIME">Part Time</option>
+                    <option value="CONTRACT">Contract</option>
+                    <option value="INTERNSHIP">Internship</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Results Summary */}
@@ -197,10 +238,21 @@ const BrowseJobs = () => {
           <p className="text-stone-700 dark:text-stone-400 font-medium">
             {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''} found
           </p>
+          <div className="hidden md:flex flex-wrap items-center gap-2">
+            {searchTerm && (
+              <Badge variant="outline" className="text-xs px-2 py-1">Search: {searchTerm}</Badge>
+            )}
+            {filterLocation && (
+              <Badge variant="outline" className="text-xs px-2 py-1">Location: {filterLocation}</Badge>
+            )}
+            {filterType && (
+              <Badge variant="outline" className="text-xs px-2 py-1">Type: {filterType}</Badge>
+            )}
+          </div>
         </div>
 
-        {/* Jobs Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Jobs Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           {filteredJobs.length === 0 ? (
             <div className="lg:col-span-2 bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-12 text-center">
               <Briefcase className="w-16 h-16 text-stone-400 mx-auto mb-4" />
@@ -213,57 +265,103 @@ const BrowseJobs = () => {
             </div>
           ) : (
             filteredJobs.map((job) => (
-              <Card key={job.id} className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 h-fit">
-                <CardContent className="p-5">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2 line-clamp-2">
-                      {job.title}
-                    </h3>
-                    <div className="flex items-center text-sm text-stone-600 dark:text-stone-400 mb-3">
-                      <Building2 className="w-4 h-4 mr-1" />
-                      <span className="mr-4">{job.company?.name || 'Company'}</span>
-                      <MapPin className="w-4 h-4 mr-1" />
-                      <span>{job.location || 'Remote'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant="secondary" className="text-xs px-2 py-1">
-                        {job.jobType || 'Full Time'}
-                      </Badge>
-                      {job.salaryRange && (
-                        <Badge variant="outline" className="text-xs px-2 py-1 text-green-700 border-green-300">
-                          {job.salaryRange}
-                        </Badge>
+              <Card
+                key={job.id}
+                className="group bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 h-full min-h-[200px] rounded-xl"
+              >
+                <CardContent className="p-5 h-full flex flex-col">
+                  <div className="flex gap-4">
+                    <div className="h-12 w-12 rounded-md border border-black bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                      {job.company?.logoUrl ? (
+                        <img
+                          src={job.company.logoUrl}
+                          alt={`${job.company?.name || 'Company'} logo`}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : job.company?.name ? (
+                        <span className="text-sm font-semibold text-stone-700 dark:text-stone-200">
+                          {job.company.name.charAt(0).toUpperCase()}
+                        </span>
+                      ) : (
+                        <Building2 className="w-5 h-5 text-stone-500" />
                       )}
                     </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <p className="text-sm text-stone-700 dark:text-stone-300 line-clamp-3">
-                      {job.description?.substring(0, 120)}...
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2 pt-3 border-t border-stone-200 dark:border-stone-700">
-                    <Button 
-                      onClick={() => handleApplyClick(job)}
-                      size="sm"
-                      className="flex-1 bg-stone-900 hover:bg-stone-800 text-white h-8 text-xs"
-                    >
-                      Apply
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className={`px-3 h-8 ${
-                        savedJobs.has(job.id) 
-                          ? 'text-red-600 border-red-300 hover:bg-red-50' 
-                          : 'text-stone-600 border-stone-300 hover:bg-stone-50'
-                      }`}
-                      onClick={() => handleSaveJob(job.id)}
-                      disabled={savingJobs.has(job.id)}
-                    >
-                      <Heart className={`w-4 h-4 ${savedJobs.has(job.id) ? 'fill-red-500 text-red-500' : ''}`} />
-                    </Button>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 mb-1 line-clamp-2">
+                        {job.title}
+                      </h3>
+                      <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-sm text-stone-600 dark:text-stone-400 mb-2">
+                        <span className="inline-flex items-center font-bold text-stone-900 dark:text-white">
+                          <Building2 className="w-4 h-4 mr-1" />
+                          {job.company?.name || 'Company'}
+                        </span>
+                        <span className="hidden sm:inline text-stone-300">•</span>
+                        <span className="inline-flex items-center">
+                          <MapPin className="w-4 h-4 mr-1" />
+                          {job.location || 'Remote'}
+                        </span>
+                        {job.createdAt && (
+                          <>
+                            <span className="hidden sm:inline text-stone-300">•</span>
+                            <span className="inline-flex items-center">
+                              <Clock className="w-4 h-4 mr-1" />
+                              {new Date(job.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary" className="text-xs px-2 py-1 rounded-full bg-stone-100 text-stone-800 border border-stone-200">
+                          {formatJobType(job.jobType) || 'Full Time'}
+                        </Badge>
+                        {job.salaryRange && (
+                          <Badge variant="outline" className="text-xs px-2 py-1 rounded-full text-green-700 bg-green-50 border-green-200 inline-flex items-center gap-1">
+                            <IndianRupee className="w-3 h-3" />
+                            {job.salaryRange}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-2 pt-6">
+                        <Button
+                          onClick={() => handleApplyClick(job)}
+                          size="sm"
+                          className="flex-1 bg-stone-900 hover:bg-stone-800 text-white h-9 text-sm"
+                          aria-label={`Apply for ${job.title || 'this job'}`}
+                          title="Apply"
+                        >
+                          Apply Now
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-9 px-3 text-blue-700 border-blue-300 bg-blue-50 hover:bg-blue-100"
+                          onClick={() => { setDescriptionJob(job); setIsDescriptionOpen(true); }}
+                          title="Job Description"
+                          aria-label="Job Description"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Job Description
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`${savedJobs.has(job.id) ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-stone-700 hover:bg-stone-100'} h-9 w-9 p-0 rounded-full`}
+                          onClick={() => handleSaveJob(job.id)}
+                          disabled={savingJobs.has(job.id)}
+                          aria-label={savedJobs.has(job.id) ? 'Unsave job' : 'Save job'}
+                          aria-pressed={savedJobs.has(job.id)}
+                          title={savedJobs.has(job.id) ? 'Remove from saved' : 'Save this job'}
+                        >
+                          {savedJobs.has(job.id) ? (
+                            <BookmarkCheck className="w-4 h-4" />
+                          ) : (
+                            <Bookmark className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -281,6 +379,22 @@ const BrowseJobs = () => {
           onApplicationSubmitted={handleApplicationSubmitted}
         />
       )}
+
+      {/* Description Modal */}
+      <Dialog open={isDescriptionOpen} onOpenChange={setIsDescriptionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{descriptionJob?.title || 'Job Description'}</DialogTitle>
+            <DialogDescription>
+              {descriptionJob?.company?.name || 'Company'}
+              {descriptionJob?.location ? ` • ${descriptionJob.location}` : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 text-sm text-stone-700 dark:text-stone-300 whitespace-pre-wrap">
+            {descriptionJob?.description || 'No description available.'}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -236,24 +236,6 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
 
         <CardContent className="p-6 overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label 
-                htmlFor="coverLetter" 
-                className="text-sm font-medium text-slate-700 dark:text-slate-300"
-              >
-                Cover Letter (Optional)
-              </label>
-              <textarea
-                id="coverLetter"
-                className="w-full min-h-[120px] p-3 border border-slate-300 dark:border-slate-600 rounded-md resize-vertical text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Write a brief cover letter explaining why you're interested in this position and what makes you a good fit..."
-                value={coverLetter}
-                onChange={(e) => setCoverLetter(e.target.value)}
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                This will help your application stand out to the employer.
-              </p>
-            </div>
 
             <div className="space-y-4">
               <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100">Resume Upload</h4>
