@@ -118,16 +118,11 @@ const CompanySettings = () => {
         <CompanyDetailsForm
           existingCompany={company}
           onSuccess={company ? handleUpdateSuccess : handleCreateSuccess}
+          onClose={company ? () => setIsEditing(false) : undefined}
         />
         {company && (
           <div className="fixed bottom-6 right-6">
-            <Button 
-              onClick={() => setIsEditing(false)} 
-              variant="outline"
-              className="bg-stone-100/90 dark:bg-stone-900/90 backdrop-blur-sm border-stone-400/70 dark:border-stone-700 text-stone-800 dark:text-stone-200"
-            >
-              Cancel
-            </Button>
+            
           </div>
         )}
       </div>
@@ -289,37 +284,7 @@ const CompanySettings = () => {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-400/70 dark:border-stone-800/50 shadow-xl rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-              Quick Actions
-            </CardTitle>
-            <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
-              Manage your company presence on the platform
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Button 
-                onClick={() => navigate('/jobs')}
-                variant="outline"
-                className="justify-start space-x-2 border-stone-400 dark:border-stone-700 text-stone-800 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 font-medium py-3 px-4 rounded-xl transition-all duration-200"
-              >
-                <Building2 className="w-4 h-4" />
-                <span>Manage Job Postings</span>
-              </Button>
-              <Button 
-                onClick={() => navigate('/')}
-                variant="outline"
-                className="justify-start space-x-2 border-stone-400 dark:border-stone-700 text-stone-800 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 font-medium py-3 px-4 rounded-xl transition-all duration-200"
-              >
-                <FileText className="w-4 h-4" />
-                <span>View Dashboard</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        
       </div>
     </div>
   );

@@ -131,7 +131,7 @@ const CompanyApplications = () => {
           <p className="text-lg text-stone-700 dark:text-stone-400 font-medium">Review and manage candidates who applied to your postings</p>
         </div>
 
-        <Card className="mb-6 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+        <Card className="mb-6 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg rounded-2xl">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <Filter className="w-5 h-5 text-stone-600 dark:text-stone-400" />
@@ -156,7 +156,7 @@ const CompanyApplications = () => {
         </Card>
 
         {applications.length === 0 ? (
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg rounded-2xl">
             <CardContent className="p-12 text-center">
               <Users className="w-16 h-16 text-stone-500 dark:text-stone-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">No applications</h3>
@@ -166,7 +166,7 @@ const CompanyApplications = () => {
         ) : (
           <div className="space-y-4">
             {applications.map((app) => (
-              <Card key={app.id} className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 hover:shadow-xl transition-all duration-200 shadow-lg">
+              <Card key={app.id} className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 hover:shadow-xl transition-all duration-200 shadow-lg rounded-2xl">
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">

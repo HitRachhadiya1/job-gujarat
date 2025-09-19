@@ -52,7 +52,6 @@ const Navbar = () => {
           label: "Applications",
           icon: FileText,
         },
-        { path: "/company-setup", label: "Company Settings", icon: Settings },
       ];
     }
 
@@ -85,9 +84,9 @@ const Navbar = () => {
   const navigationItems = getNavigationItems();
 
   return (
-    <nav className="bg-stone-100/95 dark:bg-stone-900/95 backdrop-blur-sm border-b border-stone-400/50 dark:border-stone-700/50 shadow-sm sticky top-0 z-50 transition-colors duration-500">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
+    <nav className="h-20 bg-stone-100/95 dark:bg-stone-900/95 backdrop-blur-sm border-b border-stone-400/50 dark:border-stone-700/50 shadow-sm sticky top-0 z-50 transition-colors duration-500">
+      <div className="container mx-auto px-4 h-20">
+        <div className="h-full flex items-center justify-between">
           {/* Logo/Brand */}
           <div
             className="flex items-center space-x-3 cursor-pointer group"
@@ -114,10 +113,10 @@ const Navbar = () => {
                   variant={isActive(item.path) ? "default" : "ghost"}
                   size="sm"
                   onClick={() => navigate(item.path)}
-                  className={`flex items-center space-x-2 transition-all duration-200 font-medium rounded-xl ${
+                  className={`relative overflow-hidden flex items-center space-x-2 transition-all duration-200 font-medium rounded-xl ${
                     isActive(item.path)
-                      ? "bg-stone-900 dark:bg-stone-700 text-white shadow-md"
-                      : "text-stone-700 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-800"
+                      ? "bg-gradient-to-r from-stone-900 to-stone-800 dark:from-stone-700 dark:to-stone-600 text-white shadow-md ring-1 ring-stone-700/50"
+                      : "text-stone-700 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-800 hover:shadow-sm"
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -196,9 +195,9 @@ const Navbar = () => {
                 <Button
                   key={item.path}
                   variant={isActive(item.path) ? "default" : "ghost"}
-                  className={`w-full justify-start space-x-3 font-medium rounded-xl transition-all duration-200 ${
+                  className={`relative w-full justify-start space-x-3 font-medium rounded-xl transition-all duration-200 ${
                     isActive(item.path)
-                      ? "bg-stone-900 dark:bg-stone-700 text-white"
+                      ? "bg-gradient-to-r from-stone-900 to-stone-800 dark:from-stone-700 dark:to-stone-600 text-white ring-1 ring-stone-700/50"
                       : "text-stone-700 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-800"
                   }`}
                   onClick={() => {

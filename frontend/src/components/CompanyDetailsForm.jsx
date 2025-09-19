@@ -24,6 +24,7 @@ const CompanyDetailsForm = ({
   onSuccess,
   existingCompany = null,
   refreshAuthMeta,
+  onClose,
 }) => {
   const { getAccessTokenSilently } = useAuth0();
   const [formData, setFormData] = useState({
@@ -254,10 +255,10 @@ const CompanyDetailsForm = ({
   };
 
   return (
-    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 py-8 transition-colors duration-500">
+    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 py-6 transition-colors duration-500">
       <div className="container mx-auto px-4 max-w-2xl">
         <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-400/70 dark:border-stone-800/50 shadow-xl rounded-2xl">
-          <CardHeader className="space-y-1">
+          <CardHeader className="space-y-1 relative">
             <CardTitle className="text-2xl font-bold text-stone-900 dark:text-stone-100 flex items-center space-x-2 tracking-tight">
               <Building2 className="w-6 h-6 text-stone-700 dark:text-stone-400" />
               <span>
@@ -270,10 +271,20 @@ const CompanyDetailsForm = ({
               Please fill in your company information to continue using the
               platform.
             </CardDescription>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="absolute right-4 top-4 w-8 h-8 rounded-full bg-stone-200/70 dark:bg-stone-800/60 hover:bg-stone-300 dark:hover:bg-stone-700 flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4 text-stone-700 dark:text-stone-300" />
+              </button>
+            )}
           </CardHeader>
 
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label
                   htmlFor="name"
