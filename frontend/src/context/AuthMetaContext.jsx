@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { API_URL } from '@/config';
 
 const AuthMetaContext = createContext();
 
@@ -61,7 +62,7 @@ export const AuthMetaProvider = ({ children }) => {
       });
       
       console.log('Fetching fresh auth metadata...', retryCount > 0 ? `(retry ${retryCount})` : '');
-      const response = await fetch('http://localhost:5000/api/auth/me', {
+      const response = await fetch(`${API_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',

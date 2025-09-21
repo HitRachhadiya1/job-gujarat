@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { PUBLIC_API_URL, resolveAssetUrl } from '@/config';
 
 const LogoContext = createContext();
 
@@ -19,11 +20,11 @@ export const LogoProvider = ({ children }) => {
   const fetchLogo = async () => {
     try {
       // Fetch logo from public endpoint (no authentication required)
-      const response = await fetch('http://localhost:5000/api/public/app-logo');
+      const response = await fetch(`${PUBLIC_API_URL}/app-logo`);
 
       if (response.ok) {
         const data = await response.json();
-        const baseUrl = data.logoUrl || '';
+        const baseUrl = resolveAssetUrl(data.logoUrl || '');
         if (baseUrl) {
           const version = window.__logoCacheBust || 0;
           const withCacheBust = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}v=${version}`;

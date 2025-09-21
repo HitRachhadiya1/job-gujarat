@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Plus, Edit2, Trash2, MapPin, IndianRupee, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
+import { API_URL } from "@/config";
 
 const JobManagement = () => {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ const JobManagement = () => {
     try {
       setLoading(true);
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:5000/api/job-postings/my-jobs", {
+      const response = await fetch(`${API_URL}/job-postings/my-jobs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -127,7 +128,7 @@ const JobManagement = () => {
       if (editingJob) {
         // Update existing job on server
         const token = await getAccessTokenSilently();
-        const url = `http://localhost:5000/api/job-postings/${editingJob.id}`;
+        const url = `${API_URL}/job-postings/${editingJob.id}`;
         const response = await fetch(url, {
           method: "PUT",
           headers: {
@@ -182,7 +183,7 @@ const JobManagement = () => {
 
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch(`http://localhost:5000/api/job-postings/${jobId}`, {
+      const response = await fetch(`${API_URL}/job-postings/${jobId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { X, MapPin, Building2, IndianRupee, Clock, User, Upload, FileText } from 'lucide-react';
+import { API_URL } from "@/config";
 
 const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -58,7 +59,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
       const token = await getAccessTokenSilently();
 
       // Create payment order for ₹9 application fee (no resume upload yet)
-      const paymentResponse = await fetch('http://localhost:5000/api/payments/create-application-fee', {
+      const paymentResponse = await fetch(`${API_URL}/payments/create-application-fee`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -85,7 +86,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
       const paymentOrder = await paymentResponse.json();
 
       // Get Razorpay key
-      const keyResponse = await fetch('http://localhost:5000/api/payments/key');
+      const keyResponse = await fetch(`${API_URL}/payments/key`);
       const { key } = await keyResponse.json();
 
       // Initialize Razorpay payment
@@ -107,7 +108,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
               formData.append('resume', resumeFile);
               formData.append('jobId', job.id);
 
-              const uploadResponse = await fetch('http://localhost:5000/api/applications/upload-resume', {
+              const uploadResponse = await fetch(`${API_URL}/applications/upload-resume`, {
                 method: 'POST',
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -126,7 +127,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
             }
 
             // Confirm payment and create application with resume URL
-            const confirmResponse = await fetch('http://localhost:5000/api/payments/confirm-application', {
+            const confirmResponse = await fetch(`${API_URL}/payments/confirm-application`, {
               method: 'POST',
               headers: {
                 Authorization: `Bearer ${token}`,

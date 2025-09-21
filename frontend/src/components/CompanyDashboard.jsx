@@ -18,6 +18,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import Spinner from "./Spinner";
+import { API_URL, resolveAssetUrl } from "@/config";
 
 function CompanyDashboard() {
   const { isDark, toggleTheme } = useTheme();
@@ -34,9 +35,7 @@ function CompanyDashboard() {
   
   // Resolve logo source to include backend host for relative '/uploads/..' paths
   const resolveLogoSrc = (value) => {
-    if (!value) return "";
-    if (value.startsWith("http") || value.startsWith("blob:")) return value;
-    return `http://localhost:5000${value}`;
+    return resolveAssetUrl(value);
   };
 
   useEffect(() => {
@@ -50,7 +49,7 @@ function CompanyDashboard() {
   const fetchCompanyData = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:5000/api/company", {
+      const response = await fetch(`${API_URL}/company`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -75,7 +74,7 @@ function CompanyDashboard() {
       const token = await getAccessTokenSilently();
 
       // Fetch company's jobs to compute active job count and applications sum (fallback)
-      const jobsRes = await fetch("http://localhost:5000/api/job-postings/my-jobs", {
+      const jobsRes = await fetch(`${API_URL}/job-postings/my-jobs`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (jobsRes.ok) {
@@ -84,7 +83,7 @@ function CompanyDashboard() {
       }
 
       // Fetch recent applications and total count
-      const url = new URL("http://localhost:5000/api/applications/company/all");
+      const url = new URL(`${API_URL}/applications/company/all`);
       url.searchParams.set("page", "1");
       url.searchParams.set("limit", "3");
       const appsRes = await fetch(url, {

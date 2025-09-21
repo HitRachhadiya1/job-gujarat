@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { API_URL } from "@/config";
 
 const AadhaarUpload = ({ application, onUploadComplete }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -25,7 +26,7 @@ const AadhaarUpload = ({ application, onUploadComplete }) => {
     try {
       setCheckingExisting(true);
       const token = await getAccessTokenSilently();
-      const response = await fetch('http://localhost:5000/api/applications/check-aadhaar', {
+      const response = await fetch(`${API_URL}/applications/check-aadhaar`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -103,7 +104,7 @@ const AadhaarUpload = ({ application, onUploadComplete }) => {
       formData.append('back', backFile);
       formData.append('applicationId', application.id);
 
-      const response = await fetch('http://localhost:5000/api/applications/upload-aadhaar', {
+      const response = await fetch(`${API_URL}/applications/upload-aadhaar`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

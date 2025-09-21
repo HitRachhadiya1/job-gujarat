@@ -18,6 +18,7 @@ import {
   Star,
   Zap
 } from 'lucide-react';
+import { API_URL, PUBLIC_API_URL } from "@/config";
 
 const JobPostingPayment = () => {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ const JobPostingPayment = () => {
   useEffect(() => {
     const fetchPricingPlans = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/public/pricing-plans');
+        const response = await fetch(`${PUBLIC_API_URL}/pricing-plans`);
         if (response.ok) {
           const plans = await response.json();
           setPricingPlans(plans);
@@ -173,12 +174,12 @@ const JobPostingPayment = () => {
     setLoading(true);
     try {
       // 1) Get publishable key (no auth required)
-      const keyRes = await fetch("http://localhost:5000/api/payment/key");
+      const keyRes = await fetch(`${API_URL}/payment/key`);
       const { key } = await keyRes.json();
 
       // 2) Create order on backend (auth required)
       const token = await getAccessTokenSilently();
-      const orderRes = await fetch("http://localhost:5000/api/payment/create-order", {
+      const orderRes = await fetch(`${API_URL}/payment/create-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -205,7 +206,7 @@ const JobPostingPayment = () => {
         handler: async (response) => {
           try {
             // 4) Verify payment on backend
-            const verifyRes = await fetch("http://localhost:5000/api/payment/verify", {
+            const verifyRes = await fetch(`${API_URL}/payment/verify`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -220,7 +221,7 @@ const JobPostingPayment = () => {
             }
 
             // 5) Confirm and publish job atomically on backend
-            const confirmRes = await fetch("http://localhost:5000/api/payment/confirm-and-publish", {
+            const confirmRes = await fetch(`${API_URL}/payment/confirm-and-publish`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

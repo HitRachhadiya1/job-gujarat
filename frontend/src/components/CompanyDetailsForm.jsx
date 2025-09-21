@@ -19,6 +19,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import { API_URL, PUBLIC_API_URL, resolveAssetUrl } from "@/config";
 
 const CompanyDetailsForm = ({
   onSuccess,
@@ -41,18 +42,14 @@ const CompanyDetailsForm = ({
   const [loadingCategories, setLoadingCategories] = useState(true);
 
   function resolveLogoSrc(value) {
-    if (!value) return "";
-    if (value.startsWith("blob:") || value.startsWith("http")) return value;
-    return `http://localhost:5000${value}`;
+    return resolveAssetUrl(value);
   }
 
   // Fetch categories on component mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5000/api/public/categories"
-        );
+        const response = await fetch(`${PUBLIC_API_URL}/categories`);
         if (response.ok) {
           const categoriesData = await response.json();
           setCategories(categoriesData);
@@ -207,9 +204,7 @@ const CompanyDetailsForm = ({
 
     try {
       const token = await getAccessTokenSilently();
-      const url = existingCompany
-        ? "http://localhost:5000/api/company"
-        : "http://localhost:5000/api/company";
+      const url = `${API_URL}/company`;
 
       const method = existingCompany ? "PUT" : "POST";
 

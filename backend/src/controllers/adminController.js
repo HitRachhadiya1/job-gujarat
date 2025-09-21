@@ -155,17 +155,19 @@ async function toggleUserBlock(req, res) {
       const email = userResp?.data?.email;
       if (email) {
         // Update status to SUSPENDED when blocked, ACTIVE when unblocked
-        await prisma.user.update({
-          where: { email },
-          data: { status: action === "block" ? "SUSPENDED" : "ACTIVE" },
-        }).catch(async (e) => {
-          // If user record doesn't exist, create it
-          if (action === "block") {
-            await prisma.user.create({
-              data: { email, role: "JOB_SEEKER", status: "SUSPENDED" },
-            });
-          }
-        });
+        await prisma.user
+          .update({
+            where: { email },
+            data: { status: action === "block" ? "SUSPENDED" : "ACTIVE" },
+          })
+          .catch(async (e) => {
+            // If user record doesn't exist, create it
+            if (action === "block") {
+              await prisma.user.create({
+                data: { email, role: "JOB_SEEKER", status: "SUSPENDED" },
+              });
+            }
+          });
       }
     } catch (e) {
       console.warn("Could not sync user block status to DB:", e.message);
@@ -187,12 +189,16 @@ async function getJobSeekerProfileAdmin(req, res) {
 
     const { email } = req.query;
     if (!email) {
-      return res.status(400).json({ error: "Email query parameter is required" });
+      return res
+        .status(400)
+        .json({ error: "Email query parameter is required" });
     }
 
     const dbUser = await prisma.user.findFirst({ where: { email } });
     if (!dbUser) {
-      return res.status(404).json({ error: "User not found for provided email" });
+      return res
+        .status(404)
+        .json({ error: "User not found for provided email" });
     }
 
     const jobSeeker = await prisma.jobSeeker.findUnique({
