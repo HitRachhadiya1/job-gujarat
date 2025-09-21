@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import Spinner from '@/components/Spinner';
 import JobSeekerProfileForm from '../components/JobSeekerProfileForm';
 import JobSeekerProfileView from '@/components/JobSeekerProfileView';
+import { API_URL } from '@/config';
 
 const Profile = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -14,7 +15,7 @@ const Profile = () => {
     try {
       setLoading(true);
       const token = await getAccessTokenSilently();
-      const response = await fetch('http://localhost:5000/api/jobseeker/', {
+      const response = await fetch(`${API_URL}/jobseeker/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {

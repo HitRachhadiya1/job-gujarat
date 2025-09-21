@@ -71,6 +71,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import ThemeToggle from "./ThemeToggle";
+import { API_URL } from "@/config";
 
 export default function AdminDashboard({ onLogout }) {
   const { isDark, toggleTheme } = useTheme();
@@ -138,22 +139,22 @@ export default function AdminDashboard({ onLogout }) {
         categoriesRes,
         plansRes,
       ] = await Promise.all([
-        fetch("http://localhost:5000/api/admin/users", {
+        fetch(`${API_URL}/admin/users`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/admin/companies", {
+        fetch(`${API_URL}/admin/companies`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/admin/jobs", {
+        fetch(`${API_URL}/admin/jobs`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/admin/payments", {
+        fetch(`${API_URL}/admin/payments`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/admin/categories", {
+        fetch(`${API_URL}/admin/categories`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/admin/pricing-plans", {
+        fetch(`${API_URL}/admin/pricing-plans`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -223,7 +224,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        `http://localhost:5000/api/admin/users/${userId}/${action}`,
+        `${API_URL}/admin/users/${userId}/${action}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -246,7 +247,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        `http://localhost:5000/api/admin/jobs/${jobId}/${action}`,
+        `${API_URL}/admin/jobs/${jobId}/${action}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -269,7 +270,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        `http://localhost:5000/api/admin/companies/${companyId}/${action}`,
+        `${API_URL}/admin/companies/${companyId}/${action}`,
         {
           method: "POST",
           headers: {
@@ -295,7 +296,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        `http://localhost:5000/api/admin/payments/${paymentId}/${action}`,
+        `${API_URL}/admin/payments/${paymentId}/${action}`,
         {
           method: "POST",
           headers: {
@@ -321,7 +322,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        "http://localhost:5000/api/admin/categories",
+        `${API_URL}/admin/categories`,
         {
           method: "POST",
           headers: {
@@ -357,7 +358,7 @@ export default function AdminDashboard({ onLogout }) {
         : [];
 
       const response = await fetch(
-        "http://localhost:5000/api/admin/pricing-plans",
+        `${API_URL}/admin/pricing-plans`,
         {
           method: "POST",
           headers: {
@@ -391,24 +392,20 @@ export default function AdminDashboard({ onLogout }) {
     setEditingCategory(category);
     setShowEditCategoryDialog(true);
   };
-
   const handleUpdateCategory = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch(
-        `http://localhost:5000/api/admin/categories/${editingCategory.id}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: editingCategory.name,
-            description: editingCategory.description,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/admin/categories/${editingCategory.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: editingCategory.name,
+          description: editingCategory.description,
+        }),
+      });
 
       if (response.ok) {
         toast.success("Category updated successfully");
@@ -430,7 +427,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        `http://localhost:5000/api/admin/categories/${categoryId}`,
+        `${API_URL}/admin/categories/${categoryId}`,
         {
           method: "DELETE",
           headers: {
@@ -473,7 +470,7 @@ export default function AdminDashboard({ onLogout }) {
         : [];
 
       const response = await fetch(
-        `http://localhost:5000/api/admin/pricing-plans/${editingPlan.id}`,
+        `${API_URL}/admin/pricing-plans/${editingPlan.id}`,
         {
           method: "PUT",
           headers: {
@@ -509,7 +506,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        `http://localhost:5000/api/admin/pricing-plans/${planId}`,
+        `${API_URL}/admin/pricing-plans/${planId}`,
         {
           method: "DELETE",
           headers: {
@@ -552,7 +549,7 @@ export default function AdminDashboard({ onLogout }) {
       formData.append("logo", file);
 
       const response = await fetch(
-        "http://localhost:5000/api/admin/upload-logo",
+        `${API_URL}/admin/upload-logo`,
         {
           method: "POST",
           headers: {
@@ -582,7 +579,7 @@ export default function AdminDashboard({ onLogout }) {
   const handleRemoveLogo = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:5000/api/admin/app-logo", {
+      const response = await fetch(`${API_URL}/admin/app-logo`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -636,7 +633,7 @@ export default function AdminDashboard({ onLogout }) {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        `http://localhost:5000/api/admin/job-seeker-profile?email=${encodeURIComponent(
+        `${API_URL}/admin/job-seeker-profile?email=${encodeURIComponent(
           user.email
         )}`,
         {

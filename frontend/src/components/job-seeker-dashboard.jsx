@@ -60,6 +60,7 @@ import MyApplications from "../pages/MyApplications";
 import SavedJobs from "../pages/SavedJobs";
 import { savedJobsAPI } from "../api/savedJobs";
 import AppLogo from "./AppLogo";
+import { API_URL } from "@/config";
 
 export default function JobSeekerDashboard({ onLogout }) {
   const { isDark, toggleTheme } = useTheme();
@@ -514,7 +515,7 @@ export default function JobSeekerDashboard({ onLogout }) {
         
         try {
           const appsResponse = await fetch(
-            "http://localhost:5000/api/applications/my-applications",
+            `${API_URL}/applications/my-applications`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -564,7 +565,7 @@ export default function JobSeekerDashboard({ onLogout }) {
         // Fetch profile status
         try {
           const profileResponse = await fetch(
-            "http://localhost:5000/api/jobseeker/status",
+            `${API_URL}/jobseeker/status`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -658,7 +659,7 @@ export default function JobSeekerDashboard({ onLogout }) {
 
         // Fetch recent jobs
         const jobsResponse = await fetch(
-          "http://localhost:5000/api/job-postings?limit=5",
+          `${API_URL}/job-postings?limit=5`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

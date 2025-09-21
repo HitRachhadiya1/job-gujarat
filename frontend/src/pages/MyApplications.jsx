@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import Spinner from "../components/Spinner";
 import ApprovalProcessModal from "../components/ApprovalProcessModal";
+import { API_URL } from "@/config";
 
 const MyApplications = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -45,7 +46,7 @@ const MyApplications = () => {
       setLoading(true);
       const token = await getAccessTokenSilently();
       const url = new URL(
-        "http://localhost:5000/api/applications/my-applications"
+        `${API_URL}/applications/my-applications`
       );
       if (filter) url.searchParams.set("status", filter);
 
@@ -93,7 +94,7 @@ const MyApplications = () => {
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(
-        `http://localhost:5000/api/applications/${applicationId}/withdraw`,
+        `${API_URL}/applications/${applicationId}/withdraw`,
         {
           method: "DELETE",
           headers: {

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Upload, FileText, X, CheckCircle, AlertCircle, CreditCard, IndianRupee, Clock, Eye } from 'lucide-react';
+import { API_URL } from "@/config";
 
 const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -29,7 +30,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
       const token = await getAccessTokenSilently();
       
       // Fetch only fee info - no need to check existing documents
-      const feeResponse = await fetch(`http://localhost:5000/api/applications/${application.id}/approval-fee`, {
+      const feeResponse = await fetch(`${API_URL}/applications/${application.id}/approval-fee`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -106,7 +107,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
       const token = await getAccessTokenSilently();
 
       // Step 1: Create Razorpay order
-      const orderResponse = await fetch('http://localhost:5000/api/payments/create-approval-order', {
+      const orderResponse = await fetch(`${API_URL}/payments/create-approval-order`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -127,7 +128,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
       }
 
       // Step 2: Get publishable Razorpay key from backend and open Razorpay checkout
-      const keyResponse = await fetch('http://localhost:5000/api/payments/key');
+      const keyResponse = await fetch(`${API_URL}/payments/key`);
       const keyData = await keyResponse.json();
       const razorpayKey = keyData?.key;
 
@@ -145,7 +146,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
         handler: async (response) => {
           try {
             // Step 3: Verify payment
-            const verifyResponse = await fetch('http://localhost:5000/api/payments/verify-approval-payment', {
+            const verifyResponse = await fetch(`${API_URL}/payments/verify-approval-payment`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -174,7 +175,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
             formData.append('back', backFile);
             formData.append('applicationId', application.id);
 
-            const uploadResponse = await fetch('http://localhost:5000/api/applications/upload-aadhaar', {
+            const uploadResponse = await fetch(`${API_URL}/applications/upload-aadhaar`, {
               method: 'POST',
               headers: {
                 Authorization: `Bearer ${token}`,

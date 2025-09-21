@@ -20,6 +20,7 @@ import {
   Camera,
   Upload,
 } from "lucide-react";
+import { API_URL } from "@/config";
 
 const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -44,7 +45,7 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
   const fetchExistingProfile = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch("http://localhost:5000/api/jobseeker/", {
+      const response = await fetch(`${API_URL}/jobseeker/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -79,7 +80,7 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
       const token = await getAccessTokenSilently();
       const method = existingProfile ? "PUT" : "POST";
 
-      const response = await fetch("http://localhost:5000/api/jobseeker/", {
+      const response = await fetch(`${API_URL}/jobseeker/`, {
         method,
         headers: {
           Authorization: `Bearer ${token}`,
@@ -168,7 +169,7 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
       formData.append("photo", file);
 
       const response = await fetch(
-        "http://localhost:5000/api/jobseeker/upload-photo",
+        `${API_URL}/jobseeker/upload-photo`,
         {
           method: "POST",
           headers: {

@@ -51,6 +51,7 @@ import Spinner from "./components/Spinner";
 import UnknownRole from "./components/UnknownRole";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoutes from "./components/PublicRoutes";
+import { API_URL } from "@/config";
 
 // Import dashboard components with beautiful UI from job-portal(1)
 import JobSeekerDashboard from "./components/job-seeker-dashboard";
@@ -69,7 +70,7 @@ export default function JobPortalApp() {
       const { sub: userId } = user;
 
       const response = await fetch(
-        "http://localhost:5000/api/auth/assign-role",
+        `${API_URL}/auth/assign-role`,
         {
           method: "POST",
           headers: {
