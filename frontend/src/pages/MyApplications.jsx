@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -36,7 +35,6 @@ const MyApplications = () => {
   const [pagination, setPagination] = useState({});
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchApplications();
@@ -182,19 +180,16 @@ const MyApplications = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent py-6">
+    <div className="min-h-screen bg-transparent py-0">
       <div className="container mx-auto px-4 max-w-none">
         {/* Compact Header */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-3">
+        <div className="mb-2">
+          <div className="flex items-center space-x-3">
             <FileText className="w-7 h-7 text-stone-700 dark:text-stone-300" />
             <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
               My Applications
             </h1>
           </div>
-          <p className="text-lg text-stone-700 dark:text-stone-400 font-medium ml-10">
-            Track your job applications and their current status
-          </p>
         </div>
 
         {/* Compact Filter Section */}
@@ -231,7 +226,7 @@ const MyApplications = () => {
         </div>
 
         {/* Applications Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           {applications.length === 0 ? (
             <div className="lg:col-span-2 bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-12 text-center">
               <FileText className="w-16 h-16 text-stone-400 mx-auto mb-4" />
@@ -246,7 +241,6 @@ const MyApplications = () => {
               {!filter && (
                 <Button
                   size="sm"
-                  onClick={() => navigate('/browse-jobs')}
                   className="bg-stone-900 hover:bg-stone-800 text-white"
                 >
                   Browse Jobs
@@ -257,9 +251,9 @@ const MyApplications = () => {
             applications.map((application) => (
               <Card
                 key={application.id}
-                className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 h-fit"
+                className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 h-full rounded-xl"
               >
-                <CardContent className="p-5">
+                <CardContent className="p-5 h-full flex flex-col">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100 mb-2 line-clamp-2">
@@ -355,7 +349,7 @@ const MyApplications = () => {
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-3 border-t border-stone-200 dark:border-stone-700">
+                  <div className="mt-auto flex gap-2 pt-3 border-t border-stone-200 dark:border-stone-700">
                     {application.status === "APPLIED" && (
                       <Button
                         onClick={() =>

@@ -44,6 +44,8 @@ const JobManagement = () => {
     expiresAt: "",
   });
   const [newRequirement, setNewRequirement] = useState("");
+  const [isDescOpen, setIsDescOpen] = useState(false);
+  const [descJob, setDescJob] = useState(null);
 
   useEffect(() => {
     fetchJobs();
@@ -248,12 +250,12 @@ const JobManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 p-6 transition-colors duration-500">
+    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 pt-8 pb-10 px-6 transition-colors duration-500">
       <div className="container mx-auto max-w-7xl space-y-8">
         {/* Enhanced Header Section */}
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-stone-400/10 to-stone-500/10 rounded-2xl"></div>
-          <Card className="relative border-0 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm shadow-lg">
+          <Card className="relative bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm shadow-lg border border-stone-400/70 dark:border-stone-800/50 rounded-2xl">
             <CardContent className="p-8">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="space-y-2">
@@ -288,7 +290,7 @@ const JobManagement = () => {
                         Create New Job
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto bg-stone-100/95 dark:bg-stone-900/90 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50">
+                    <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto bg-stone-100/95 dark:bg-stone-900/90 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 rounded-2xl">
               <DialogHeader className="text-center space-y-3 pb-6">
                 <div className="mx-auto w-16 h-16 bg-gradient-to-br from-stone-700 to-stone-800 rounded-full flex items-center justify-center">
                   {editingJob ? (
@@ -310,7 +312,7 @@ const JobManagement = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-6 bg-gradient-to-b from-stone-600 to-stone-700 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-stone-800 dark:text-stone-200">Basic Information</h3>
+                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Basic Information</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
@@ -373,7 +375,7 @@ const JobManagement = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-6 bg-gradient-to-b from-green-500 to-green-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-slate-800">Location & Compensation</h3>
+                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Location & Compensation</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-3">
@@ -425,7 +427,7 @@ const JobManagement = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-6 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-slate-800">Job Description</h3>
+                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Job Description</h3>
                   </div>
                   <div className="space-y-3">
                     <Label htmlFor="description" className="text-slate-700 dark:text-slate-200 font-medium">
@@ -455,7 +457,7 @@ const JobManagement = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-6 bg-gradient-to-b from-orange-500 to-orange-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-slate-800">Requirements & Skills</h3>
+                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Requirements & Skills</h3>
                   </div>
                   <div className="space-y-4">
                     <Label className="text-slate-700 dark:text-slate-200 font-medium">
@@ -513,7 +515,7 @@ const JobManagement = () => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-2 h-6 bg-gradient-to-b from-red-500 to-red-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-slate-800">Additional Details</h3>
+                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Additional Details</h3>
                   </div>
                   <div className="space-y-3">
                     <Label htmlFor="expiresAt" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
@@ -602,9 +604,9 @@ const JobManagement = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
               {jobs.map((job) => (
-                <Card key={job.id} className="shadow-lg border-0 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm hover:shadow-xl transition-shadow overflow-hidden">
+                <Card key={job.id} className="shadow-lg border-0 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-col min-h-[200px]">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1 flex-1">
@@ -644,7 +646,7 @@ const JobManagement = () => {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 flex-1 flex flex-col">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       {job.location && (
                         <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
@@ -667,17 +669,21 @@ const JobManagement = () => {
                         <span>Expires: {formatDate(job.expiresAt)}</span>
                       </div>
                     </div>
-
-                    <p className="text-slate-600 dark:text-slate-300 line-clamp-3">
-                      {job.description.length > 150
-                        ? `${job.description.substring(0, 150)}...`
-                        : job.description}
-                    </p>
-
+                    
                     <Separator className="bg-slate-200 dark:bg-slate-700" />
 
-                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                      Created: {formatDate(job.createdAt)}
+                    <div className="mt-auto flex items-center justify-between">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        Created: {formatDate(job.createdAt)}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        onClick={() => { setDescJob(job); setIsDescOpen(true); }}
+                      >
+                        View Description
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -685,6 +691,27 @@ const JobManagement = () => {
             </div>
           )}
         </div>
+
+        {/* View Description Dialog */}
+        <Dialog open={isDescOpen} onOpenChange={setIsDescOpen}>
+          <DialogContent className="max-w-2xl bg-stone-100/95 dark:bg-stone-900/90 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 rounded-2xl">
+            <DialogHeader className="pb-2">
+              <DialogTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
+                {descJob?.title || "Job Description"}
+              </DialogTitle>
+              {descJob && (
+                <DialogDescription className="text-stone-600 dark:text-stone-400">
+                  {descJob.jobType?.replace('_',' ')}
+                  {descJob.location ? ` • ${descJob.location}` : ''}
+                </DialogDescription>
+              )}
+            </DialogHeader>
+            <div className="text-sm text-stone-800 dark:text-stone-300 whitespace-pre-wrap leading-relaxed">
+              {descJob?.description}
+            </div>
+          </DialogContent>
+        </Dialog>
+
       </div>
     </div>
   );

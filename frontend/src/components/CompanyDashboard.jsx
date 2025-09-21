@@ -12,7 +12,6 @@ import {
   Settings,
   Briefcase, 
   Users, 
-  BarChart3, 
   CheckCircle, 
   Clock,
   AlertTriangle,
@@ -28,9 +27,24 @@ function CompanyDashboard() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [jobs, setJobs] = useState([]);
+  const [applicationsTotal, setApplicationsTotal] = useState(0);
+  const [recentApplicants, setRecentApplicants] = useState([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+  
+  // Resolve logo source to include backend host for relative '/uploads/..' paths
+  const resolveLogoSrc = (value) => {
+    if (!value) return "";
+    if (value.startsWith("http") || value.startsWith("blob:")) return value;
+    return `http://localhost:5000${value}`;
+  };
 
   useEffect(() => {
     fetchCompanyData();
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
   }, []);
 
   const fetchCompanyData = async () => {
@@ -53,6 +67,39 @@ function CompanyDashboard() {
       setError(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+
+      // Fetch company's jobs to compute active job count and applications sum (fallback)
+      const jobsRes = await fetch("http://localhost:5000/api/job-postings/my-jobs", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (jobsRes.ok) {
+        const jobsData = await jobsRes.json();
+        setJobs(jobsData || []);
+      }
+
+      // Fetch recent applications and total count
+      const url = new URL("http://localhost:5000/api/applications/company/all");
+      url.searchParams.set("page", "1");
+      url.searchParams.set("limit", "3");
+      const appsRes = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (appsRes.ok) {
+        const data = await appsRes.json();
+        setApplicationsTotal(data.pagination?.total || 0);
+        setRecentApplicants(Array.isArray(data.applications) ? data.applications : []);
+      }
+    } catch (e) {
+      // Non-blocking for dashboard stats
+      console.warn("CompanyDashboard: failed to load stats", e);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -85,58 +132,57 @@ function CompanyDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 py-8 transition-colors duration-500">
+    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 pt-8 pb-10 transition-colors duration-500">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Company Header */}
-        <Card className="mb-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-xl">
+        <Card className="mb-8 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-400/70 dark:border-stone-800/50 shadow-xl rounded-2xl">
           <CardContent className="p-8">
             <div className="flex flex-col md:flex-row justify-between items-start gap-6">
               <div className="flex items-center space-x-6">
                 {company.logoUrl && (
                   <div className="flex-shrink-0">
                     <img
-                      src={`http://localhost:5000${company.logoUrl}`}
+                      src={resolveLogoSrc(company.logoUrl)}
                       alt={`${company.name} logo`}
-                      className="rounded-xl object-contain border-2 border-slate-200 dark:border-slate-600 shadow-md bg-white"
-                      style={{ maxWidth: '80px', maxHeight: '80px' }}
+                      className="w-16 h-16 rounded-xl object-contain border border-stone-300 dark:border-stone-700 shadow-md bg-white"
                     />
                   </div>
                 )}
-                <div>
-                  <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">
-                    {company.name}
-                  </h1>
-                  <div className="flex items-center space-x-3 mb-3">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
+                      {company.name}
+                    </h1>
+                    {company.verified ? (
+                      <Badge className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Verified
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="bg-stone-300/80 text-stone-800 border-stone-500/50 dark:bg-stone-700/50 dark:text-stone-400 dark:border-stone-600/50">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Pending
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
                     <Badge variant="secondary" className="text-sm bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50">
                       <Building2 className="w-4 h-4 mr-1" />
                       {company.industry}
                     </Badge>
-                    <div className="flex items-center space-x-1">
-                      {company.verified ? (
-                        <Badge className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Verified
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="bg-stone-300/80 text-stone-800 border-stone-500/50 dark:bg-stone-700/50 dark:text-stone-400 dark:border-stone-600/50">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Pending
-                        </Badge>
-                      )}
-                    </div>
+                    {company.website && (
+                      <a
+                        href={company.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-stone-800 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
+                      >
+                        <Globe className="w-4 h-4" />
+                        <span>Visit Website</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
                   </div>
-                  {company.website && (
-                    <a
-                      href={company.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1 text-stone-800 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
-                    >
-                      <Globe className="w-4 h-4" />
-                      <span>Visit Website</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
                 </div>
               </div>
               <Button 
@@ -144,7 +190,7 @@ function CompanyDashboard() {
                 className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
               >
                 <Settings className="w-4 h-4" />
-                <span>Company Settings</span>
+                <span>View Profile</span>
               </Button>
             </div>
           </CardContent>
@@ -165,74 +211,88 @@ function CompanyDashboard() {
           </CardContent>
         </Card>
 
-        {/* Dashboard Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Job Postings */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
+        {/* Dashboard Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-white/80 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-300/70 dark:border-stone-800/60 shadow-md hover:shadow-lg transition-all duration-200 rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 tracking-tight">
-                <Briefcase className="w-5 h-5 text-stone-800 dark:text-stone-300" />
-                <span>Job Postings</span>
-              </CardTitle>
-              <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
-                Manage your job postings and view applications.
-              </CardDescription>
+              <CardTitle className="text-sm text-stone-500 dark:text-stone-400">Active Jobs</CardTitle>
             </CardHeader>
             <CardContent>
-              <Button 
-                onClick={() => navigate('/jobs')}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                Manage Job Postings
-              </Button>
+              <div className="flex items-center justify-between">
+                <div className="text-4xl font-bold text-stone-900 dark:text-stone-100">
+                  {statsLoading ? '—' : jobs.filter(j => j.status === 'PUBLISHED').length}
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-stone-200/80 dark:bg-stone-800/50 flex items-center justify-center">
+                  <Briefcase className="w-5 h-5 text-stone-700 dark:text-stone-300" />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Applications */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
+          <Card className="bg-white/80 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-300/70 dark:border-stone-800/60 shadow-md hover:shadow-lg transition-all duration-200 rounded-2xl">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 tracking-tight">
-                <Users className="w-5 h-5 text-stone-800 dark:text-stone-300" />
-                <span>Applications</span>
-              </CardTitle>
-              <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
-                Review and manage job applications from candidates.
-              </CardDescription>
+              <CardTitle className="text-sm text-stone-500 dark:text-stone-400">Total Applications</CardTitle>
             </CardHeader>
             <CardContent>
-              <Button 
-                onClick={() => navigate('/company/applications')}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                View Applications
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Analytics */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 tracking-tight">
-                <BarChart3 className="w-5 h-5 text-stone-800 dark:text-stone-300" />
-                <span>Company Analytics</span>
-              </CardTitle>
-              <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
-                View insights about your job postings and company profile.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full bg-stone-700 hover:bg-stone-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg"
-                disabled
-              >
-                View Analytics
-                <Badge variant="secondary" className="ml-2 text-xs bg-stone-200/80 text-stone-700 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-400 dark:border-stone-600/50">
-                  Coming Soon
-                </Badge>
-              </Button>
+              <div className="flex items-center justify-between">
+                <div className="text-4xl font-bold text-stone-900 dark:text-stone-100">
+                  {statsLoading ? '—' : applicationsTotal}
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-stone-200/80 dark:bg-stone-800/50 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-stone-700 dark:text-stone-300" />
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Recent Applicants */}
+        <Card className="mt-8 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg rounded-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-stone-900 dark:text-stone-100 tracking-tight">
+              <Users className="w-5 h-5 text-stone-800 dark:text-stone-300" />
+              <span>Recent Applicants</span>
+            </CardTitle>
+            <CardDescription className="text-stone-700 dark:text-stone-400 font-medium">
+              Latest candidates who applied to your jobs
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {statsLoading ? (
+              <div className="text-stone-600 dark:text-stone-300">Loading...</div>
+            ) : recentApplicants.length === 0 ? (
+              <div className="text-stone-700 dark:text-stone-400 font-medium">No recent applications.</div>
+            ) : (
+              <div className="divide-y divide-stone-300/60 dark:divide-stone-800/60">
+                {recentApplicants.slice(0,3).map((app) => (
+                  <div key={app.id} className="py-4 flex items-center justify-between">
+                    <div className="min-w-0">
+                      <div className="text-stone-900 dark:text-stone-100 font-semibold truncate">{app.jobSeeker?.fullName}</div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400 truncate">{app.job?.title}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge className="uppercase bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50">{app.status}</Badge>
+                      <div className="text-sm text-stone-600 dark:text-stone-400">
+                        {new Date(app.appliedAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-4 flex justify-end">
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/company/applications')}
+                className="border-stone-400 dark:border-stone-700 text-stone-800 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 rounded-xl"
+              >
+                View All Applications
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        
       </div>
     </div>
   );
