@@ -202,13 +202,13 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-4">
-      <Card className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+      <Card className="bg-white dark:bg-stone-900/60 border-[#77BEE0]/30 dark:border-[#155AA4]/40 shadow-lg">
         <CardHeader className="py-4 px-5">
           <div className="flex items-start justify-between">
             <div>
               <CardTitle className="text-2xl md:text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-2xl flex items-center justify-center shadow-lg">
-                  <User className="w-5 h-5 text-stone-900 dark:text-stone-300" />
+                <div className="w-10 h-10 bg-gradient-to-br from-[#155AA4] to-[#0574EE] dark:from-[#155AA4] dark:to-[#0574EE] rounded-2xl flex items-center justify-center shadow-lg">
+                  <User className="w-5 h-5 text-white" />
                 </div>
                 <span>
                   {existingProfile
@@ -242,12 +242,12 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
             {/* Profile Photo Upload */}
             <div className="md:col-span-2 space-y-3">
               <label className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3">
-                <Camera className="w-5 h-5 text-stone-700 dark:text-stone-400" />
+                <Camera className="w-5 h-5 text-[#155AA4] dark:text-[#77BEE0]" />
                 <span>Profile Photo</span>
               </label>
               <div className="flex items-center space-x-4">
                 {formData.profilePhotoUrl && (
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-stone-300 dark:border-stone-600">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-[#77BEE0] dark:border-[#155AA4]">
                     <img
                       src={formData.profilePhotoUrl}
                       alt="Profile"
@@ -268,7 +268,7 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
                   />
                   <label
                     htmlFor="profilePhoto"
-                    className="inline-flex items-center px-3 py-2 bg-stone-200 dark:bg-stone-700 text-stone-900 dark:text-stone-100 rounded-lg cursor-pointer hover:bg-stone-300 dark:hover:bg-stone-600 transition-colors duration-200"
+                    className="inline-flex items-center px-3 py-2 bg-[#EAF6F9] text-[#155AA4] border border-[#77BEE0] rounded-lg cursor-pointer hover:bg-[#77BEE0]/20 transition-colors duration-200"
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     {uploadingPhoto ? "Uploading..." : "Upload Photo"}
@@ -285,7 +285,7 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
                 htmlFor="fullName"
                 className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-3"
               >
-                <User className="w-5 h-5 text-stone-700 dark:text-stone-400" />
+                <User className="w-5 h-5 text-[#155AA4] dark:text-[#77BEE0]" />
                 <span>Full Name *</span>
               </label>
               <Input
@@ -296,7 +296,7 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
                   setFormData((prev) => ({ ...prev, fullName: e.target.value }))
                 }
                 required
-                className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
+                className="bg-white dark:bg-stone-900 border-[#77BEE0] dark:border-[#155AA4] text-stone-900 dark:text-stone-100 font-medium py-3 px-4 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-[#0574EE] focus:border-transparent"
               />
             </div>
 
@@ -304,7 +304,7 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="space-y-2.5">
                   <label htmlFor="phone" className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-2">
-                    <Phone className="w-4 h-4 text-stone-700 dark:text-stone-400" />
+                    <Phone className="w-4 h-4 text-[#155AA4] dark:text-[#77BEE0]" />
                     <span>Phone Number</span>
                   </label>
                   <Input
@@ -312,12 +312,12 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                    className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-2.5 px-3.5 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
+                    className="bg-white dark:bg-stone-900 border-[#77BEE0] dark:border-[#155AA4] text-stone-900 dark:text-stone-100 font-medium py-2.5 px-3.5 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-[#0574EE] focus:border-transparent"
                   />
                 </div>
                 <div className="space-y-2.5">
                   <label htmlFor="location" className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-2">
-                    <MapPin className="w-4 h-4 text-stone-700 dark:text-stone-400" />
+                    <MapPin className="w-4 h-4 text-[#155AA4] dark:text-[#77BEE0]" />
                     <span>Location</span>
                   </label>
                   <Input
@@ -326,17 +326,17 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
                     placeholder="City, State"
                     value={formData.location}
                     onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
-                    className="bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-2.5 px-3.5 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
+                    className="bg-white dark:bg-stone-900 border-[#77BEE0] dark:border-[#155AA4] text-stone-900 dark:text-stone-100 font-medium py-2.5 px-3.5 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-[#0574EE] focus:border-transparent"
                   />
                 </div>
                 <div className="space-y-2.5">
                   <label htmlFor="experienceYears" className="text-sm font-bold text-stone-900 dark:text-stone-200 flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-stone-700 dark:text-stone-400" />
+                    <Clock className="w-4 h-4 text-[#155AA4] dark:text-[#77BEE0]" />
                     <span>Experience</span>
                   </label>
                   <select
                     id="experienceYears"
-                    className="w-full py-2.5 px-3.5 border border-stone-400/50 dark:border-stone-700 rounded-xl bg-stone-50 dark:bg-stone-800/50 text-stone-900 dark:text-stone-100 font-medium focus:outline-none focus:ring-2 focus:ring-stone-600 focus:border-transparent transition-all duration-200"
+                    className="w-full py-2.5 px-3.5 border border-[#77BEE0] dark:border-[#155AA4] rounded-xl bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-medium focus:outline-none focus:ring-2 focus:ring-[#0574EE] focus:border-transparent transition-all duration-200"
                     value={formData.experienceYears}
                     onChange={(e) => setFormData((prev) => ({ ...prev, experienceYears: e.target.value }))}
                   >
@@ -365,12 +365,12 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="flex-1 bg-stone-50 dark:bg-stone-800/50 border-stone-400/50 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-medium py-2.5 px-3.5 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-stone-600 focus:border-transparent"
+                  className="flex-1 bg-white dark:bg-stone-900 border-[#77BEE0] dark:border-[#155AA4] text-stone-900 dark:text-stone-100 font-medium py-2.5 px-3.5 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-[#0574EE] focus:border-transparent"
                 />
                 <Button
                   type="button"
                   onClick={handleSkillAdd}
-                  className="bg-stone-900 hover:bg-stone-800 text-white font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="bg-[#0574EE] hover:bg-[#155AA4] text-white font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   <Plus className="w-5 h-5" />
                 </Button>
@@ -379,13 +379,13 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
                 {formData.skills.map((skill, index) => (
                   <Badge
                     key={index}
-                    className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50 font-semibold px-3 py-2 rounded-xl flex items-center gap-2"
+                    className="bg-[#77BEE0]/20 text-[#155AA4] border-[#77BEE0]/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-[#155AA4]/50 font-semibold px-3 py-2 rounded-xl flex items-center gap-2"
                   >
                     {skill}
                     <button
                       type="button"
                       onClick={() => handleSkillRemove(skill)}
-                      className="text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200 transition-colors duration-200"
+                      className="text-[#155AA4] hover:text-[#0574EE] dark:text-stone-400 dark:hover:text-stone-200 transition-colors duration-200"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -398,7 +398,7 @@ const JobSeekerProfileForm = ({ onSuccess, onCancel }) => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#0574EE] hover:bg-[#155AA4] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading
                   ? "Saving..."

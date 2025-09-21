@@ -174,11 +174,11 @@ export default function JobSeekerDashboard({ onLogout }) {
         <div className="lg:col-span-2 space-y-8">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
+            <Card className="bg-white dark:bg-stone-900/60 backdrop-blur-sm border-[#77BEE0]/30 dark:border-[#155AA4]/40 shadow-lg hover:shadow-xl transition-all duration-200 group">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
-                  <div className="p-4 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
-                    <Briefcase className="w-6 h-6 text-stone-900 dark:text-stone-300" />
+                  <div className="p-4 bg-[#EAF6F9] border border-[#77BEE0]/40 dark:bg-stone-900/40 dark:border-[#155AA4]/40 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                    <Briefcase className="w-6 h-6 text-[#155AA4] dark:text-[#77BEE0]" />
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
@@ -192,11 +192,11 @@ export default function JobSeekerDashboard({ onLogout }) {
               </CardContent>
             </Card>
 
-            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
+            <Card className="bg-white dark:bg-stone-900/60 backdrop-blur-sm border-[#77BEE0]/30 dark:border-[#155AA4]/40 shadow-lg hover:shadow-xl transition-all duration-200 group">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
-                  <div className="p-4 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
-                    <Heart className="w-6 h-6 text-stone-900 dark:text-stone-300" />
+                  <div className="p-4 bg-[#EAF6F9] border border-[#77BEE0]/40 dark:bg-stone-900/40 dark:border-[#155AA4]/40 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                    <Heart className="w-6 h-6 text-[#155AA4] dark:text-[#77BEE0]" />
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
@@ -210,11 +210,11 @@ export default function JobSeekerDashboard({ onLogout }) {
               </CardContent>
             </Card>
 
-            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
+            <Card className="bg-white dark:bg-stone-900/60 backdrop-blur-sm border-[#77BEE0]/30 dark:border-[#155AA4]/40 shadow-lg hover:shadow-xl transition-all duration-200 group">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
-                  <div className="p-4 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
-                    <Calendar className="w-6 h-6 text-stone-900 dark:text-stone-300" />
+                  <div className="p-4 bg-[#EAF6F9] border border-[#77BEE0]/40 dark:bg-stone-900/40 dark:border-[#155AA4]/40 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
+                    <Calendar className="w-6 h-6 text-[#155AA4] dark:text-[#77BEE0]" />
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
@@ -230,7 +230,7 @@ export default function JobSeekerDashboard({ onLogout }) {
           </div>
 
           {/* My Applications Table */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+          <Card className="bg-white dark:bg-stone-900/60 backdrop-blur-sm border-[#77BEE0]/30 dark:border-[#155AA4]/40 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
@@ -242,7 +242,7 @@ export default function JobSeekerDashboard({ onLogout }) {
               </div>
               <Button
                 variant="ghost"
-                className="text-stone-800 hover:text-stone-900 hover:bg-stone-200/50 rounded-xl font-semibold transition-all duration-200"
+                className="text-[#155AA4] hover:text-white hover:bg-[#0574EE] rounded-xl font-semibold transition-all duration-200"
                 onClick={() => handleNavigation("applications")}
               >
                 View All
@@ -272,12 +272,12 @@ export default function JobSeekerDashboard({ onLogout }) {
                       {applications.slice(0, 3).map((app) => (
                         <tr
                           key={app.id}
-                          className="border-b border-stone-300/30 dark:border-stone-800 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors duration-200"
+                          className="border-b border-[#77BEE0]/20 dark:border-stone-800 hover:bg-[#77BEE0]/10 dark:hover:bg-stone-800/30 transition-colors duration-200"
                         >
                           <td className="py-4">
                             <div className="flex items-center space-x-4">
-                              <div className="w-12 h-12 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-2xl flex items-center justify-center shadow-md">
-                                <Building2 className="w-6 h-6 text-stone-900 dark:text-stone-300" />
+                              <div className="w-12 h-12 bg-[#155AA4] border border-[#155AA4] dark:bg-[#155AA4] dark:border-[#155AA4] rounded-2xl flex items-center justify-center shadow-md">
+                                <Building2 className="w-6 h-6 text-white" />
                               </div>
                               <div>
                                 <div className="font-bold text-stone-900 dark:text-stone-100">
@@ -320,12 +320,12 @@ export default function JobSeekerDashboard({ onLogout }) {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-stone-500 mx-auto mb-6" />
-                  <p className="text-stone-800 dark:text-stone-400 text-lg font-medium mb-6">
+                  <FileText className="w-16 h-16 text-[#155AA4] mx-auto mb-6" />
+                  <p className="text-[#155AA4] dark:text-stone-400 text-lg font-medium mb-6">
                     No applications yet
                   </p>
                   <Button
-                    className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="bg-[#0574EE] hover:bg-[#155AA4] text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
                     onClick={() => handleNavigation("browse-jobs")}
                   >
                     Browse Jobs
@@ -336,7 +336,7 @@ export default function JobSeekerDashboard({ onLogout }) {
           </Card>
 
           {/* Recent Jobs Section */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+          <Card className="bg-white dark:bg-stone-900/60 backdrop-blur-sm border-[#77BEE0]/30 dark:border-[#155AA4]/40 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
@@ -348,7 +348,7 @@ export default function JobSeekerDashboard({ onLogout }) {
               </div>
               <Button
                 variant="ghost"
-                className="text-stone-800 hover:text-stone-900 hover:bg-stone-200/50 rounded-xl font-semibold transition-all duration-200"
+                className="text-[#155AA4] hover:text-white hover:bg-[#0574EE] rounded-xl font-semibold transition-all duration-200"
                 onClick={() => handleNavigation("browse-jobs")}
               >
                 View All
@@ -360,11 +360,11 @@ export default function JobSeekerDashboard({ onLogout }) {
                   {jobs.slice(0, 3).map((job) => (
                     <div
                       key={job.id}
-                      className="flex items-center justify-between p-6 border border-stone-400/50 dark:border-stone-700 rounded-2xl hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-all duration-200 shadow-sm hover:shadow-md"
+                      className="flex items-center justify-between p-6 border border-[#77BEE0]/30 dark:border-stone-700 rounded-2xl hover:bg-[#77BEE0]/10 dark:hover:bg-stone-800/30 transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       <div className="flex items-center space-x-5">
-                        <div className="w-14 h-14 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-2xl flex items-center justify-center shadow-md">
-                          <Briefcase className="w-7 h-7 text-stone-900 dark:text-stone-300" />
+                        <div className="w-14 h-14 bg-[#EAF6F9] border border-[#77BEE0]/40 dark:bg-stone-900/40 dark:border-[#155AA4]/40 rounded-2xl flex items-center justify-center shadow-md">
+                          <Briefcase className="w-7 h-7 text-[#155AA4] dark:text-[#77BEE0]" />
                         </div>
                         <div>
                           <h3 className="font-bold text-stone-900 dark:text-stone-100 text-lg">
@@ -376,8 +376,8 @@ export default function JobSeekerDashboard({ onLogout }) {
                               : job.company}
                           </p>
                           <div className="flex items-center space-x-2 mt-2">
-                            <MapPin className="w-4 h-4 text-stone-600 dark:text-stone-500" />
-                            <span className="text-sm text-stone-600 dark:text-stone-500 font-medium">
+                            <MapPin className="w-4 h-4 text-[#155AA4] dark:text-[#77BEE0]" />
+                            <span className="text-sm text-[#155AA4] dark:text-stone-500 font-medium">
                               {job.location}
                             </span>
                           </div>
@@ -400,12 +400,12 @@ export default function JobSeekerDashboard({ onLogout }) {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <Search className="w-16 h-16 text-stone-500 mx-auto mb-6" />
-                  <p className="text-stone-800 dark:text-stone-400 text-lg font-medium mb-6">
+                  <Search className="w-16 h-16 text-[#155AA4] mx-auto mb-6" />
+                  <p className="text-[#155AA4] dark:text-stone-400 text-lg font-medium mb-6">
                     No jobs available
                   </p>
                   <Button
-                    className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="bg-[#0574EE] hover:bg-[#155AA4] text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
                     onClick={() => handleNavigation("browse-jobs")}
                   >
                     Browse Jobs
@@ -419,7 +419,7 @@ export default function JobSeekerDashboard({ onLogout }) {
         {/* Right Sidebar - Profile Card */}
         <div className="space-y-8">
           {/* Profile Card */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 shadow-lg">
+          <Card className="bg-white dark:bg-stone-900/60 border-[#77BEE0]/30 dark:border-[#155AA4]/40 shadow-lg">
             <CardContent className="p-8 text-center">
               <img
                 src={
@@ -428,7 +428,7 @@ export default function JobSeekerDashboard({ onLogout }) {
                   "https://via.placeholder.com/96/78716c/FFFFFF?text=U"
                 }
                 alt="Profile"
-                className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-stone-400 dark:border-stone-500 shadow-md"
+                className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-[#77BEE0] dark:border-[#155AA4] shadow-md"
               />
               <h3 className="font-bold text-xl text-stone-900 dark:text-stone-100 tracking-tight mb-2">
                 {profileFullName || user?.name || "User"}
@@ -437,7 +437,7 @@ export default function JobSeekerDashboard({ onLogout }) {
 
               {/* Quick Stats */}
               <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="text-center p-4 bg-stone-200/50 dark:bg-stone-800/30 rounded-2xl">
+                <div className="text-center p-4 bg-[#77BEE0]/20 dark:bg-stone-800/30 rounded-2xl">
                   <div className="text-xl font-bold text-stone-900 dark:text-stone-100">
                     {stats.appliedJobs}
                   </div>
@@ -445,7 +445,7 @@ export default function JobSeekerDashboard({ onLogout }) {
                     Applications
                   </div>
                 </div>
-                <div className="text-center p-4 bg-stone-200/50 dark:bg-stone-800/30 rounded-2xl">
+                <div className="text-center p-4 bg-[#77BEE0]/20 dark:bg-stone-800/30 rounded-2xl">
                   <div className="text-xl font-bold text-stone-900 dark:text-stone-100">
                     {stats.savedJobs}
                   </div>
@@ -458,7 +458,7 @@ export default function JobSeekerDashboard({ onLogout }) {
               {/* Quick Actions */}
               <div className="space-y-4">
                 <Button
-                  className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                  className="w-full bg-[#0574EE] hover:bg-[#155AA4] text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
                   onClick={() => handleNavigation("profile")}
                 >
                   <Edit className="w-5 h-5 mr-3" />
@@ -466,7 +466,7 @@ export default function JobSeekerDashboard({ onLogout }) {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/30"
+                  className="w-full border-[#77BEE0]/60 dark:border-[#155AA4] text-[#155AA4] dark:text-stone-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-[#77BEE0]/20 dark:hover:bg-stone-800/30"
                   onClick={() => handleNavigation("browse-jobs")}
                 >
                   <Search className="w-5 h-5 mr-3" />
@@ -782,10 +782,10 @@ export default function JobSeekerDashboard({ onLogout }) {
   }
 
   return (
-    <div className="h-screen bg-stone-300 dark:bg-stone-950 flex transition-colors duration-500 overflow-hidden m-0 p-0 pt-20">
+    <div className="h-screen bg-[#EAF6F9] dark:bg-stone-950 flex transition-colors duration-500 overflow-hidden m-0 p-0 pt-20">
       {/* Sidebar */}
       <div
-        className={`${sidebarCollapsed ? "w-16" : "w-64"} bg-stone-800/95 dark:bg-stone-900/95 backdrop-blur-md border-r border-stone-700 dark:border-stone-800/60 shadow-xl flex flex-col transition-all duration-500 ease-out relative transform`}
+        className={`${sidebarCollapsed ? "w-16" : "w-64"} bg-[#155AA4]/95 dark:bg-[#155AA4]/95 backdrop-blur-md border-r border-[#77BEE0]/30 dark:border-[#77BEE0]/20 shadow-xl flex flex-col transition-all duration-500 ease-out relative transform`}
       >
         {/* Sidebar Top (Collapse Toggle Only) */}
   
@@ -849,25 +849,26 @@ export default function JobSeekerDashboard({ onLogout }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-40 h-20 bg-gradient-to-r from-stone-600/95 to-stone-700/95 dark:from-stone-800/95 dark:to-stone-900/95 backdrop-blur-md border-b border-stone-500/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
+        <header className="fixed top-0 left-0 right-0 z-40 h-20 bg-[#155AA4] dark:bg-[#155AA4] backdrop-blur-md border-b border-[#77BEE0]/40 dark:border-[#77BEE0]/30 shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
           <div className="h-full flex items-center justify-between px-6 md:px-8">
             {/* Brand + Welcome */}
             <div className="flex items-center gap-4 md:gap-6">
               <div className="flex items-center gap-3">
                 <AppLogo size="w-10 h-10" rounded="rounded-lg" mode="contain" />
-                <span className="text-xl md:text-2xl font-bold text-stone-100 tracking-tight">
-                  Job Gujarat
-                </span>
+                <div className="leading-tight">
+                  <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">Job Gujarat</h1>
+                  <p className="text-[10px] md:text-xs text-white/90">Connecting you to What's Next</p>
+                </div>
               </div>
-              <span className="hidden md:inline-block text-stone-200/50">|</span>
-              <h2 className="hidden md:block text-base md:text-lg font-semibold text-stone-100/90">
+              <span className="hidden md:inline-block text-white/60">|</span>
+              <h2 className="hidden md:block text-base md:text-lg font-semibold text-white/90">
                 {`Welcome, ${user?.given_name || user?.name?.split(" ")[0] || "User"}`}
               </h2>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-3 md:gap-4">
-              <div className="bg-stone-500/20 dark:bg-stone-700/30 rounded-lg p-1 border border-stone-400/30 dark:border-stone-600/30">
+              <div className="bg-white/10 rounded-lg p-1 border border-white/20">
                 <ThemeToggle />
               </div>
               <img

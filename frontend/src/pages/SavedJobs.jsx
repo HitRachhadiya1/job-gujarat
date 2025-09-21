@@ -122,7 +122,7 @@ const SavedJobs = () => {
         {/* Header */}
         <div className="mb-2">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-md bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+            <div className="h-8 w-8 rounded-md bg-gradient-to-br from-[#155AA4] to-[#0574EE] flex items-center justify-center shadow-sm">
               <Bookmark className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -143,9 +143,9 @@ const SavedJobs = () => {
         {/* Saved Jobs List */}
         <div className="space-y-4">
           {savedJobs.length === 0 ? (
-            <Card className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm">
+            <Card className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-stone-800 shadow-sm">
               <CardContent className="p-16 text-center">
-                <Bookmark className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+                <Bookmark className="w-16 h-16 text-[#155AA4] mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
                   No saved jobs yet
                 </h3>
@@ -154,7 +154,7 @@ const SavedJobs = () => {
                 </p>
                 <Button 
                   onClick={() => window.location.href = '/browse-jobs'}
-                  className="bg-stone-900 hover:bg-stone-800 text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="bg-[#0574EE] hover:bg-[#155AA4] text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                 >
                   <Briefcase className="w-4 h-4 mr-2" />
                   Browse Jobs
@@ -163,7 +163,7 @@ const SavedJobs = () => {
             </Card>
           ) : (
             savedJobs.map((savedJob) => (
-              <Card key={savedJob.id} className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl">
+              <Card key={savedJob.id} className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 rounded-xl">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
@@ -200,7 +200,7 @@ const SavedJobs = () => {
                     <div className="flex items-center gap-2">
                       <Button 
                         onClick={() => { setViewJob(savedJob.job); setIsViewJobOpen(true); }}
-                        className="bg-stone-900 hover:bg-stone-800 text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="bg-[#0574EE] hover:bg-[#155AA4] text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         View Job
@@ -209,7 +209,7 @@ const SavedJobs = () => {
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-9 px-3 text-blue-700 border-blue-300 bg-blue-50 hover:bg-blue-100"
+                        className="h-9 px-3 text-[#155AA4] border-[#77BEE0] bg-[#EAF6F9] hover:bg-[#77BEE0]/20"
                         onClick={() => { setDescriptionJob(savedJob.job); setIsDescriptionOpen(true); }}
                         title="Job Description"
                         aria-label="Job Description"
@@ -245,7 +245,7 @@ const SavedJobs = () => {
               variant="outline"
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
               disabled={pagination.page === 1}
-              className="border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/30"
+              className="border-[#77BEE0] text-[#155AA4] font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-[#77BEE0]/20"
             >
               Previous
             </Button>
@@ -256,7 +256,7 @@ const SavedJobs = () => {
               variant="outline"
               onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
               disabled={pagination.page === pagination.totalPages}
-              className="border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/30"
+              className="border-[#77BEE0] text-[#155AA4] font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-[#77BEE0]/20"
             >
               Next
             </Button>
@@ -293,10 +293,10 @@ const SavedJobs = () => {
           <DialogContent className="bg-white dark:bg-stone-900">
             <div className="p-1">
               {viewJob && (
-                <Card className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm rounded-xl">
+                <Card className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-stone-800 shadow-sm rounded-xl">
                   <CardContent className="p-5">
                     <div className="flex gap-4">
-                      <div className="h-12 w-12 rounded-md border border-black bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                      <div className="h-12 w-12 rounded-md border border-[#77BEE0] bg-white flex items-center justify-center shrink-0 overflow-hidden">
                         {viewJob.company?.logoUrl ? (
                           <img
                             src={viewJob.company.logoUrl}
@@ -342,7 +342,7 @@ const SavedJobs = () => {
                           <Button
                             onClick={() => { setIsViewJobOpen(false); handleApplyClick(viewJob); }}
                             size="sm"
-                            className="flex-1 bg-stone-900 hover:bg-stone-800 text-white h-9 text-sm"
+                            className="flex-1 bg-[#0574EE] hover:bg-[#155AA4] text-white h-9 text-sm"
                             aria-label={`Apply for ${viewJob.title || 'this job'}`}
                             title="Apply"
                           >

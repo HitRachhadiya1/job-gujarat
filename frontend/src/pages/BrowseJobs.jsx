@@ -156,7 +156,7 @@ const BrowseJobs = () => {
         {/* Page Header */}
         <div className="mb-2">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-md bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+            <div className="h-8 w-8 rounded-md bg-gradient-to-br from-[#155AA4] to-[#0574EE] flex items-center justify-center shadow-sm">
               <Briefcase className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -172,11 +172,11 @@ const BrowseJobs = () => {
           <div className="flex items-end gap-2">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#155AA4]" />
                 <Input
                   id="job-search"
                   type="text"
-                  className="pl-10 h-10 bg-white dark:bg-stone-900 border-2 border-stone-900 dark:border-stone-200 text-stone-900 dark:text-stone-100 rounded-lg shadow-none focus:ring-0 focus:border-stone-900"
+                  className="pl-10 h-10 bg-white dark:bg-stone-900 border-2 border-[#155AA4] dark:border-[#77BEE0] text-stone-900 dark:text-stone-100 rounded-lg shadow-none focus:ring-0 focus:border-[#0574EE]"
                   placeholder="Search job titles or descriptions"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -187,7 +187,7 @@ const BrowseJobs = () => {
               type="button"
               variant="outline"
               size="sm"
-              className="h-10 px-3"
+              className="h-10 px-3 text-[#155AA4] border-[#77BEE0] bg-[#EAF6F9] hover:bg-[#77BEE0]/20"
               onClick={() => setFiltersOpen((v) => !v)}
               aria-expanded={filtersOpen}
               aria-controls="filters-panel"
@@ -198,13 +198,13 @@ const BrowseJobs = () => {
           {filtersOpen && (
             <div id="filters-panel" className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
               <div>
-                <Label htmlFor="job-location" className="text-xs font-medium text-stone-700 dark:text-stone-300">Location</Label>
+                <Label htmlFor="job-location" className="text-xs font-medium text-[#155AA4] dark:text-stone-300">Location</Label>
                 <div className="relative mt-1">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#155AA4]" />
                   <Input
                     id="job-location"
                     type="text"
-                    className="pl-10 h-8 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-900 dark:text-stone-100 rounded-lg shadow-sm focus:ring-2 focus:ring-stone-500 focus:border-stone-500"
+                    className="pl-10 h-8 bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] text-stone-900 dark:text-stone-100 rounded-lg shadow-sm focus:ring-2 focus:ring-[#0574EE] focus:border-[#0574EE]"
                     placeholder="City, state or remote"
                     value={filterLocation}
                     onChange={(e) => setFilterLocation(e.target.value)}
@@ -212,12 +212,12 @@ const BrowseJobs = () => {
                 </div>
               </div>
               <div>
-                <Label htmlFor="job-type" className="text-xs font-medium text-stone-700 dark:text-stone-300">Job type</Label>
+                <Label htmlFor="job-type" className="text-xs font-medium text-[#155AA4] dark:text-stone-300">Job type</Label>
                 <div className="relative mt-1">
-                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-500" />
+                  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#155AA4]" />
                   <select
                     id="job-type"
-                    className="w-full pl-10 pr-4 h-8 border border-stone-300 dark:border-stone-700 rounded-lg bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-500 shadow-sm"
+                    className="w-full pl-10 pr-4 h-8 border border-[#77BEE0] dark:border-[#155AA4] rounded-lg bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#0574EE] shadow-sm"
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
                   >
@@ -254,8 +254,8 @@ const BrowseJobs = () => {
         {/* Jobs Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           {filteredJobs.length === 0 ? (
-            <div className="lg:col-span-2 bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-12 text-center">
-              <Briefcase className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+            <div className="lg:col-span-2 bg-white dark:bg-stone-900 rounded-xl border border-[#77BEE0]/40 dark:border-stone-800 shadow-sm p-12 text-center">
+              <Briefcase className="w-16 h-16 text-[#155AA4] mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
                 No jobs found
               </h3>
@@ -267,11 +267,11 @@ const BrowseJobs = () => {
             filteredJobs.map((job) => (
               <Card
                 key={job.id}
-                className="group bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 h-full min-h-[200px] rounded-xl"
+                className="group bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 h-full min-h-[200px] rounded-xl"
               >
                 <CardContent className="p-5 h-full flex flex-col">
                   <div className="flex gap-4">
-                    <div className="h-12 w-12 rounded-md border border-black bg-white flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="h-12 w-12 rounded-md border border-[#77BEE0] bg-white flex items-center justify-center shrink-0 overflow-hidden">
                       {job.company?.logoUrl ? (
                         <img
                           src={job.company.logoUrl}
@@ -326,7 +326,7 @@ const BrowseJobs = () => {
                         <Button
                           onClick={() => handleApplyClick(job)}
                           size="sm"
-                          className="flex-1 bg-stone-900 hover:bg-stone-800 text-white h-9 text-sm"
+                          className="flex-1 bg-[#0574EE] hover:bg-[#155AA4] text-white h-9 text-sm"
                           aria-label={`Apply for ${job.title || 'this job'}`}
                           title="Apply"
                         >
@@ -336,7 +336,7 @@ const BrowseJobs = () => {
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="h-9 px-3 text-blue-700 border-blue-300 bg-blue-50 hover:bg-blue-100"
+                          className="h-9 px-3 text-[#155AA4] border-[#77BEE0] bg-[#EAF6F9] hover:bg-[#77BEE0]/20"
                           onClick={() => { setDescriptionJob(job); setIsDescriptionOpen(true); }}
                           title="Job Description"
                           aria-label="Job Description"
@@ -347,7 +347,7 @@ const BrowseJobs = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={`${savedJobs.has(job.id) ? 'bg-blue-600 text-white hover:bg-blue-700' : 'text-stone-700 hover:bg-stone-100'} h-9 w-9 p-0 rounded-full`}
+                          className={`${savedJobs.has(job.id) ? 'bg-[#0574EE] text-white hover:bg-[#155AA4]' : 'text-[#155AA4] hover:bg-[#77BEE0]/20'} h-9 w-9 p-0 rounded-full`}
                           onClick={() => handleSaveJob(job.id)}
                           disabled={savingJobs.has(job.id)}
                           aria-label={savedJobs.has(job.id) ? 'Unsave job' : 'Save job'}
@@ -382,10 +382,12 @@ const BrowseJobs = () => {
 
       {/* Description Modal */}
       <Dialog open={isDescriptionOpen} onOpenChange={setIsDescriptionOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-2xl sm:rounded-xl">
           <DialogHeader>
-            <DialogTitle>{descriptionJob?.title || 'Job Description'}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-xl font-bold text-stone-900 dark:text-stone-100">
+              {descriptionJob?.title || 'Job Description'}
+            </DialogTitle>
+            <DialogDescription className="text-stone-700 dark:text-stone-400">
               {descriptionJob?.company?.name || 'Company'}
               {descriptionJob?.location ? ` • ${descriptionJob.location}` : ''}
             </DialogDescription>

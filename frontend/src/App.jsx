@@ -42,6 +42,7 @@ import JobManagement from "./components/JobManagement";
 import BrowseJobs from "./pages/BrowseJobs";
 import MyApplications from "./pages/MyApplications";
 import Profile from "./pages/Profile";
+import SavedJobs from "./pages/SavedJobs";
 import CompanySettings from "./pages/CompanySettings";
 import CompanyApplications from "./pages/CompanyApplications";
 import JobPostingPayment from "./pages/JobPostingPayment";
@@ -325,7 +326,7 @@ export default function JobPortalApp() {
             path="/saved-jobs"
             element={
               <ProtectedRoute roles={["JOB_SEEKER"]}>
-                <div className="page-container">Saved Jobs - Coming Soon!</div>
+                <SavedJobs />
               </ProtectedRoute>
             }
           />

@@ -29,11 +29,11 @@ const formatExperience = (years) => {
 export default function JobSeekerProfileView({ profile, onEdit }) {
   return (
     <div className="max-w-4xl mx-auto px-4 py-4">
-      <Card className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 shadow-lg rounded-2xl overflow-hidden">
+      <Card className="bg-white dark:bg-stone-900/60 border-[#77BEE0]/30 dark:border-[#155AA4]/40 shadow-lg rounded-2xl overflow-hidden">
         <CardHeader className="p-5 pb-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-5">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-stone-300 dark:border-stone-600 shadow-md">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-[#77BEE0] dark:border-[#155AA4] shadow-md">
                 <img
                   src={
                     profile.profilePhotoUrl ||
@@ -58,7 +58,7 @@ export default function JobSeekerProfileView({ profile, onEdit }) {
             <div className="flex items-center gap-3">
               <Button
                 onClick={onEdit}
-                className="bg-stone-900 hover:bg-stone-800 text-white font-semibold rounded-xl"
+                className="bg-[#0574EE] hover:bg-[#155AA4] text-white font-semibold rounded-xl"
               >
                 <Pencil className="w-4 h-4 mr-2" />
                 Edit
@@ -71,7 +71,7 @@ export default function JobSeekerProfileView({ profile, onEdit }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="col-span-1 md:col-span-2 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-stone-200/50 dark:bg-stone-800/30 border border-stone-300/50 dark:border-stone-700/50">
+                <div className="p-4 rounded-xl bg-[#EAF6F9] dark:bg-stone-800/30 border border-[#77BEE0]/50 dark:border-[#155AA4]/50">
                   <div className="text-sm text-stone-600 dark:text-stone-400 font-medium mb-1 flex items-center gap-2">
                     <Phone className="w-4 h-4" /> Phone
                   </div>
@@ -79,7 +79,7 @@ export default function JobSeekerProfileView({ profile, onEdit }) {
                     {profile.phone || "Not provided"}
                   </div>
                 </div>
-                <div className="p-4 rounded-xl bg-stone-200/50 dark:bg-stone-800/30 border border-stone-300/50 dark:border-stone-700/50">
+                <div className="p-4 rounded-xl bg-[#EAF6F9] dark:bg-stone-800/30 border border-[#77BEE0]/50 dark:border-[#155AA4]/50">
                   <div className="text-sm text-stone-600 dark:text-stone-400 font-medium mb-1 flex items-center gap-2">
                     <MapPin className="w-4 h-4" /> Location
                   </div>
@@ -87,7 +87,7 @@ export default function JobSeekerProfileView({ profile, onEdit }) {
                     {profile.location || "Not specified"}
                   </div>
                 </div>
-                <div className="p-4 rounded-xl bg-stone-200/50 dark:bg-stone-800/30 border border-stone-300/50 dark:border-stone-700/50">
+                <div className="p-4 rounded-xl bg-[#EAF6F9] dark:bg-stone-800/30 border border-[#77BEE0]/50 dark:border-[#155AA4]/50">
                   <div className="text-sm text-stone-600 dark:text-stone-400 font-medium mb-1 flex items-center gap-2">
                     <Clock className="w-4 h-4" /> Experience
                   </div>
@@ -96,7 +96,7 @@ export default function JobSeekerProfileView({ profile, onEdit }) {
                   </div>
                 </div>
               </div>
-              <div className="p-5 rounded-xl bg-stone-200/50 dark:bg-stone-800/30 border border-stone-300/50 dark:border-stone-700/50">
+              <div className="p-5 rounded-xl bg-[#EAF6F9] dark:bg-stone-800/30 border border-[#77BEE0]/50 dark:border-[#155AA4]/50">
                 <div className="text-sm text-stone-600 dark:text-stone-400 font-medium mb-2 flex items-center gap-2">
                   <User className="w-4 h-4" /> Skills
                 </div>
@@ -105,7 +105,7 @@ export default function JobSeekerProfileView({ profile, onEdit }) {
                     profile.skills.map((skill, idx) => (
                       <Badge
                         key={idx}
-                        className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50 font-semibold px-3 py-1.5 rounded-xl"
+                        className="bg-[#77BEE0]/20 text-[#155AA4] border-[#77BEE0]/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-[#155AA4]/50 font-semibold px-3 py-1.5 rounded-xl"
                       >
                         {skill}
                       </Badge>

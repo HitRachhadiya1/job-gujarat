@@ -185,7 +185,9 @@ const MyApplications = () => {
         {/* Compact Header */}
         <div className="mb-2">
           <div className="flex items-center space-x-3">
-            <FileText className="w-7 h-7 text-stone-700 dark:text-stone-300" />
+            <div className="h-8 w-8 rounded-md bg-gradient-to-br from-[#155AA4] to-[#0574EE] flex items-center justify-center shadow-sm">
+              <FileText className="w-4 h-4 text-white" />
+            </div>
             <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
               My Applications
             </h1>
@@ -204,7 +206,7 @@ const MyApplications = () => {
             </label>
             <select
               id="statusFilter"
-              className="px-3 py-2 border border-stone-300 dark:border-stone-700 rounded-lg bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-500 text-sm shadow-sm"
+              className="px-3 py-2 border border-[#77BEE0] dark:border-[#155AA4] rounded-lg bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#0574EE] text-sm shadow-sm"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             >
@@ -228,8 +230,8 @@ const MyApplications = () => {
         {/* Applications Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           {applications.length === 0 ? (
-            <div className="lg:col-span-2 bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm p-12 text-center">
-              <FileText className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+            <div className="lg:col-span-2 bg-white dark:bg-stone-900 rounded-xl border border-[#77BEE0]/40 dark:border-stone-800 shadow-sm p-12 text-center">
+              <FileText className="w-16 h-16 text-[#155AA4] mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
                 No applications found
               </h3>
@@ -241,7 +243,7 @@ const MyApplications = () => {
               {!filter && (
                 <Button
                   size="sm"
-                  className="bg-stone-900 hover:bg-stone-800 text-white"
+                  className="bg-[#0574EE] hover:bg-[#155AA4] text-white"
                 >
                   Browse Jobs
                 </Button>
@@ -251,7 +253,7 @@ const MyApplications = () => {
             applications.map((application) => (
               <Card
                 key={application.id}
-                className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 h-full rounded-xl"
+                className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-200 h-full rounded-xl"
               >
                 <CardContent className="p-5 h-full flex flex-col">
                   <div className="flex justify-between items-start mb-4">
