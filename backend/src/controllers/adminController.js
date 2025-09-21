@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { getManagementToken } = require("../services/auth0Service");
 const { uploadFile } = require("../services/supabaseService");
-const { createClient } = require('@supabase/supabase-js');
+const { createClient } = require("@supabase/supabase-js");
 const axios = require("axios");
 
 const supabase = createClient(
@@ -15,7 +15,7 @@ const prisma = new PrismaClient();
 async function getUsers(req, res) {
   try {
     // Verify admin role
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -23,13 +23,13 @@ async function getUsers(req, res) {
     const token = await getManagementToken();
     const response = await axios.get(
       `https://${process.env.AUTH0_DOMAIN}/api/v2/users`,
-      { 
+      {
         headers: { Authorization: `Bearer ${token}` },
-        params: { per_page: 100 }
+        params: { per_page: 100 },
       }
     );
 
-    const users = response.data.map(user => ({
+    const users = response.data.map((user) => ({
       id: user.user_id,
       email: user.email,
       name: user.name,
@@ -37,7 +37,7 @@ async function getUsers(req, res) {
       blocked: user.blocked || false,
       createdAt: user.created_at,
       lastLogin: user.last_login,
-      loginCount: user.logins_count
+      loginCount: user.logins_count,
     }));
 
     res.json(users);
@@ -50,24 +50,24 @@ async function getUsers(req, res) {
 // Get all companies with job counts
 async function getCompanies(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
     const companies = await prisma.company.findMany({
       include: {
         _count: {
-          select: { JobPostings: true }
+          select: { Jobs: true },
         },
-        User: {
-          select: { email: true }
-        }
-      }
+        user: {
+          select: { email: true },
+        },
+      },
     });
 
-    const companiesWithEmail = companies.map(company => ({
+    const companiesWithEmail = companies.map((company) => ({
       ...company,
-      email: company.User?.email
+      email: company.User?.email,
     }));
 
     res.json(companiesWithEmail);
@@ -80,20 +80,20 @@ async function getCompanies(req, res) {
 // Get all jobs with company and application counts
 async function getJobs(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
     const jobs = await prisma.jobPosting.findMany({
       include: {
-        Company: {
-          select: { name: true }
+        company: {
+          select: { name: true },
         },
         _count: {
-          select: { Applications: true }
-        }
+          select: { Applications: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     res.json(jobs);
@@ -106,20 +106,20 @@ async function getJobs(req, res) {
 // Get all payment transactions
 async function getPayments(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
     const payments = await prisma.paymentTransaction.findMany({
       include: {
-        Company: {
-          select: { name: true }
+        company: {
+          select: { name: true },
         },
-        JobPosting: {
-          select: { title: true }
-        }
+        jobPosting: {
+          select: { title: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     res.json(payments);
@@ -132,7 +132,7 @@ async function getPayments(req, res) {
 // Block/Unblock user
 async function toggleUserBlock(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -140,10 +140,10 @@ async function toggleUserBlock(req, res) {
     const { action } = req.params; // 'block' or 'unblock'
 
     const token = await getManagementToken();
-    
+
     await axios.patch(
       `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${userId}`,
-      { blocked: action === 'block' },
+      { blocked: action === "block" },
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
@@ -157,7 +157,7 @@ async function toggleUserBlock(req, res) {
 // Close job posting
 async function closeJob(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -165,7 +165,7 @@ async function closeJob(req, res) {
 
     await prisma.jobPosting.update({
       where: { id: parseInt(jobId) },
-      data: { status: 'CLOSED' }
+      data: { status: "CLOSED" },
     });
 
     res.json({ success: true, message: "Job closed successfully" });
@@ -178,7 +178,7 @@ async function closeJob(req, res) {
 // Verify company
 async function verifyCompany(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -186,7 +186,7 @@ async function verifyCompany(req, res) {
 
     await prisma.company.update({
       where: { id: parseInt(companyId) },
-      data: { verified: true }
+      data: { verified: true },
     });
 
     res.json({ success: true, message: "Company verified successfully" });
@@ -199,7 +199,7 @@ async function verifyCompany(req, res) {
 // Get dashboard analytics
 async function getDashboardStats(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -210,20 +210,20 @@ async function getDashboardStats(req, res) {
       activeJobs,
       totalApplications,
       totalPayments,
-      totalRevenue
+      totalRevenue,
     ] = await Promise.all([
       // Get user count from Auth0
       getAuth0UserCount(),
       // Get counts from database
       prisma.company.count(),
       prisma.jobPosting.count(),
-      prisma.jobPosting.count({ where: { status: 'PUBLISHED' } }),
+      prisma.jobPosting.count({ where: { status: "PUBLISHED" } }),
       prisma.application.count(),
       prisma.paymentTransaction.count(),
       prisma.paymentTransaction.aggregate({
         _sum: { amount: true },
-        where: { status: 'SUCCESS' }
-      })
+        where: { status: "SUCCESS" },
+      }),
     ]);
 
     res.json({
@@ -233,7 +233,7 @@ async function getDashboardStats(req, res) {
       activeJobs,
       totalApplications,
       totalPayments,
-      revenue: totalRevenue._sum.amount || 0
+      revenue: totalRevenue._sum.amount || 0,
     });
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
@@ -246,9 +246,9 @@ async function getAuth0UserCount() {
     const token = await getManagementToken();
     const response = await axios.get(
       `https://${process.env.AUTH0_DOMAIN}/api/v2/users`,
-      { 
+      {
         headers: { Authorization: `Bearer ${token}` },
-        params: { per_page: 1, include_totals: true }
+        params: { per_page: 1, include_totals: true },
       }
     );
     return response.data.total || 0;
@@ -261,7 +261,7 @@ async function getAuth0UserCount() {
 // Upload app logo
 async function uploadAppLogo(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -271,21 +271,21 @@ async function uploadAppLogo(req, res) {
 
     // Delete existing logo files in job-gujarat folder
     const { data: existingLogos } = await supabase.storage
-      .from('images')
-      .list('job-gujarat');
-    
+      .from("images")
+      .list("job-gujarat");
+
     if (existingLogos && existingLogos.length > 0) {
-      const logosToDelete = existingLogos.map(logo => `job-gujarat/${logo.name}`);
-      await supabase.storage
-        .from('images')
-        .remove(logosToDelete);
+      const logosToDelete = existingLogos.map(
+        (logo) => `job-gujarat/${logo.name}`
+      );
+      await supabase.storage.from("images").remove(logosToDelete);
     }
 
     const originalName = req.file.originalname;
     const filePath = `job-gujarat/${originalName}`;
-    
+
     const uploadResult = await uploadFile(
-      'images',
+      "images",
       filePath,
       req.file.buffer,
       req.file.mimetype
@@ -297,9 +297,9 @@ async function uploadAppLogo(req, res) {
 
     // Store logo URL in a simple way (you could use a settings table)
     // For now, we'll return the URL and let frontend handle storage
-    res.json({ 
+    res.json({
       logoUrl: uploadResult.url,
-      message: "Logo uploaded successfully" 
+      message: "Logo uploaded successfully",
     });
   } catch (error) {
     console.error("Error uploading logo:", error);
@@ -312,16 +312,16 @@ async function getAppLogo(req, res) {
   try {
     // List files in job-gujarat folder
     const { data: logoFiles } = await supabase.storage
-      .from('images')
-      .list('job-gujarat');
-    
+      .from("images")
+      .list("job-gujarat");
+
     if (logoFiles && logoFiles.length > 0) {
       // Get the first (and should be only) logo file
       const logoFile = logoFiles[0];
       const { data } = supabase.storage
-        .from('images')
+        .from("images")
         .getPublicUrl(`job-gujarat/${logoFile.name}`);
-      
+
       res.json({ logoUrl: data.publicUrl });
     } else {
       res.json({ logoUrl: null });
@@ -335,55 +335,55 @@ async function getAppLogo(req, res) {
 // Delete current app logo
 async function deleteAppLogo(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
     // List files in job-gujarat folder
     const { data: logoFiles, error: listError } = await supabase.storage
-      .from('images')
-      .list('job-gujarat');
+      .from("images")
+      .list("job-gujarat");
 
     if (listError) {
-      console.error('Error listing logo files:', listError);
-      return res.status(500).json({ error: 'Failed to access storage' });
+      console.error("Error listing logo files:", listError);
+      return res.status(500).json({ error: "Failed to access storage" });
     }
 
     if (!logoFiles || logoFiles.length === 0) {
-      return res.json({ success: true, message: 'No logo to delete' });
+      return res.json({ success: true, message: "No logo to delete" });
     }
 
-    const paths = logoFiles.map(f => `job-gujarat/${f.name}`);
+    const paths = logoFiles.map((f) => `job-gujarat/${f.name}`);
     const { error: removeError } = await supabase.storage
-      .from('images')
+      .from("images")
       .remove(paths);
 
     if (removeError) {
-      console.error('Error deleting logo files:', removeError);
-      return res.status(500).json({ error: 'Failed to delete logo' });
+      console.error("Error deleting logo files:", removeError);
+      return res.status(500).json({ error: "Failed to delete logo" });
     }
 
-    return res.json({ success: true, message: 'Logo deleted successfully' });
+    return res.json({ success: true, message: "Logo deleted successfully" });
   } catch (error) {
-    console.error('Error deleting logo:', error);
-    res.status(500).json({ error: 'Failed to delete logo' });
+    console.error("Error deleting logo:", error);
+    res.status(500).json({ error: "Failed to delete logo" });
   }
 }
 
 // Get all categories
 async function getCategories(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
     const categories = await prisma.category.findMany({
       include: {
         _count: {
-          select: { jobs: true }
-        }
+          select: { jobs: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     res.json(categories);
@@ -396,7 +396,7 @@ async function getCategories(req, res) {
 // Create new category
 async function createCategory(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -409,13 +409,13 @@ async function createCategory(req, res) {
     const category = await prisma.category.create({
       data: {
         name: name.trim(),
-        description: description?.trim() || null
-      }
+        description: description?.trim() || null,
+      },
     });
 
     res.status(201).json(category);
   } catch (error) {
-    if (error.code === 'P2002') {
+    if (error.code === "P2002") {
       return res.status(400).json({ error: "Category name already exists" });
     }
     console.error("Error creating category:", error);
@@ -426,7 +426,7 @@ async function createCategory(req, res) {
 // Update category
 async function updateCategory(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -437,17 +437,19 @@ async function updateCategory(req, res) {
       where: { id: categoryId },
       data: {
         ...(name && { name: name.trim() }),
-        ...(description !== undefined && { description: description?.trim() || null }),
-        ...(active !== undefined && { active })
-      }
+        ...(description !== undefined && {
+          description: description?.trim() || null,
+        }),
+        ...(active !== undefined && { active }),
+      },
     });
 
     res.json(category);
   } catch (error) {
-    if (error.code === 'P2002') {
+    if (error.code === "P2002") {
       return res.status(400).json({ error: "Category name already exists" });
     }
-    if (error.code === 'P2025') {
+    if (error.code === "P2025") {
       return res.status(404).json({ error: "Category not found" });
     }
     console.error("Error updating category:", error);
@@ -458,7 +460,7 @@ async function updateCategory(req, res) {
 // Delete category
 async function deleteCategory(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -466,22 +468,22 @@ async function deleteCategory(req, res) {
 
     // Check if category has jobs
     const jobCount = await prisma.jobPosting.count({
-      where: { categoryId }
+      where: { categoryId },
     });
 
     if (jobCount > 0) {
-      return res.status(400).json({ 
-        error: `Cannot delete category with ${jobCount} associated jobs. Please reassign or delete the jobs first.` 
+      return res.status(400).json({
+        error: `Cannot delete category with ${jobCount} associated jobs. Please reassign or delete the jobs first.`,
       });
     }
 
     await prisma.category.delete({
-      where: { id: categoryId }
+      where: { id: categoryId },
     });
 
     res.json({ success: true, message: "Category deleted successfully" });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (error.code === "P2025") {
       return res.status(404).json({ error: "Category not found" });
     }
     console.error("Error deleting category:", error);
@@ -492,17 +494,17 @@ async function deleteCategory(req, res) {
 // Get all pricing plans
 async function getPricingPlans(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
     const plans = await prisma.pricingPlan.findMany({
       include: {
         _count: {
-          select: { purchases: true }
-        }
+          select: { purchases: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" },
     });
 
     res.json(plans);
@@ -515,20 +517,26 @@ async function getPricingPlans(req, res) {
 // Create new pricing plan
 async function createPricingPlan(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
     const { name, price, duration, features, popular } = req.body;
 
     if (!name || !price || !duration) {
-      return res.status(400).json({ error: "Name, price, and duration are required" });
+      return res
+        .status(400)
+        .json({ error: "Name, price, and duration are required" });
     }
 
     // Parse features from comma-separated string to array
-    const featuresArray = typeof features === 'string' 
-      ? features.split(',').map(f => f.trim()).filter(f => f.length > 0)
-      : features || [];
+    const featuresArray =
+      typeof features === "string"
+        ? features
+            .split(",")
+            .map((f) => f.trim())
+            .filter((f) => f.length > 0)
+        : features || [];
 
     const plan = await prisma.pricingPlan.create({
       data: {
@@ -536,14 +544,16 @@ async function createPricingPlan(req, res) {
         price: parseFloat(price),
         duration: parseInt(duration),
         features: featuresArray,
-        popular: popular || false
-      }
+        popular: popular || false,
+      },
     });
 
     res.status(201).json(plan);
   } catch (error) {
-    if (error.code === 'P2002') {
-      return res.status(400).json({ error: "Pricing plan name already exists" });
+    if (error.code === "P2002") {
+      return res
+        .status(400)
+        .json({ error: "Pricing plan name already exists" });
     }
     console.error("Error creating pricing plan:", error);
     res.status(500).json({ error: "Failed to create pricing plan" });
@@ -553,7 +563,7 @@ async function createPricingPlan(req, res) {
 // Update pricing plan
 async function updatePricingPlan(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -561,9 +571,13 @@ async function updatePricingPlan(req, res) {
     const { name, price, duration, features, active, popular } = req.body;
 
     // Parse features if provided
-    const featuresArray = features && typeof features === 'string' 
-      ? features.split(',').map(f => f.trim()).filter(f => f.length > 0)
-      : features;
+    const featuresArray =
+      features && typeof features === "string"
+        ? features
+            .split(",")
+            .map((f) => f.trim())
+            .filter((f) => f.length > 0)
+        : features;
 
     const plan = await prisma.pricingPlan.update({
       where: { id: planId },
@@ -573,16 +587,18 @@ async function updatePricingPlan(req, res) {
         ...(duration !== undefined && { duration: parseInt(duration) }),
         ...(featuresArray && { features: featuresArray }),
         ...(active !== undefined && { active }),
-        ...(popular !== undefined && { popular })
-      }
+        ...(popular !== undefined && { popular }),
+      },
     });
 
     res.json(plan);
   } catch (error) {
-    if (error.code === 'P2002') {
-      return res.status(400).json({ error: "Pricing plan name already exists" });
+    if (error.code === "P2002") {
+      return res
+        .status(400)
+        .json({ error: "Pricing plan name already exists" });
     }
-    if (error.code === 'P2025') {
+    if (error.code === "P2025") {
       return res.status(404).json({ error: "Pricing plan not found" });
     }
     console.error("Error updating pricing plan:", error);
@@ -593,7 +609,7 @@ async function updatePricingPlan(req, res) {
 // Delete pricing plan
 async function deletePricingPlan(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -601,22 +617,22 @@ async function deletePricingPlan(req, res) {
 
     // Check if plan has purchases
     const purchaseCount = await prisma.paymentTransaction.count({
-      where: { pricingPlanId: planId }
+      where: { pricingPlanId: planId },
     });
 
     if (purchaseCount > 0) {
-      return res.status(400).json({ 
-        error: `Cannot delete pricing plan with ${purchaseCount} associated purchases. Please deactivate instead.` 
+      return res.status(400).json({
+        error: `Cannot delete pricing plan with ${purchaseCount} associated purchases. Please deactivate instead.`,
       });
     }
 
     await prisma.pricingPlan.delete({
-      where: { id: planId }
+      where: { id: planId },
     });
 
     res.json({ success: true, message: "Pricing plan deleted successfully" });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (error.code === "P2025") {
       return res.status(404).json({ error: "Pricing plan not found" });
     }
     console.error("Error deleting pricing plan:", error);
@@ -627,7 +643,7 @@ async function deletePricingPlan(req, res) {
 // Enhanced company actions
 async function handleCompanyAction(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -637,21 +653,21 @@ async function handleCompanyAction(req, res) {
     let message = "";
 
     switch (action) {
-      case 'approve':
-      case 'verify':
+      case "approve":
+      case "verify":
         updateData = { verified: true };
         message = "Company verified successfully";
         break;
-      case 'reject':
+      case "reject":
         updateData = { verified: false };
         message = "Company verification rejected";
         break;
-      case 'block':
-        updateData = { status: 'BLOCKED' };
+      case "block":
+        updateData = { status: "BLOCKED" };
         message = "Company blocked successfully";
         break;
-      case 'unblock':
-        updateData = { status: 'ACTIVE' };
+      case "unblock":
+        updateData = { status: "ACTIVE" };
         message = "Company unblocked successfully";
         break;
       default:
@@ -660,12 +676,12 @@ async function handleCompanyAction(req, res) {
 
     await prisma.company.update({
       where: { id: companyId },
-      data: updateData
+      data: updateData,
     });
 
     res.json({ success: true, message });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (error.code === "P2025") {
       return res.status(404).json({ error: "Company not found" });
     }
     console.error(`Error ${req.params.action}ing company:`, error);
@@ -676,7 +692,7 @@ async function handleCompanyAction(req, res) {
 // Enhanced job actions
 async function handleJobAction(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
@@ -686,20 +702,20 @@ async function handleJobAction(req, res) {
     let message = "";
 
     switch (action) {
-      case 'approve':
-        updateData = { status: 'PUBLISHED' };
+      case "approve":
+        updateData = { status: "PUBLISHED" };
         message = "Job approved and published";
         break;
-      case 'reject':
-        updateData = { status: 'REJECTED' };
+      case "reject":
+        updateData = { status: "REJECTED" };
         message = "Job rejected";
         break;
-      case 'flag':
-        updateData = { status: 'FLAGGED' };
+      case "flag":
+        updateData = { status: "FLAGGED" };
         message = "Job flagged for review";
         break;
-      case 'close':
-        updateData = { status: 'CLOSED' };
+      case "close":
+        updateData = { status: "CLOSED" };
         message = "Job closed";
         break;
       default:
@@ -708,12 +724,12 @@ async function handleJobAction(req, res) {
 
     await prisma.jobPosting.update({
       where: { id: jobId },
-      data: updateData
+      data: updateData,
     });
 
     res.json({ success: true, message });
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (error.code === "P2025") {
       return res.status(404).json({ error: "Job not found" });
     }
     console.error(`Error ${req.params.action}ing job:`, error);
@@ -724,20 +740,20 @@ async function handleJobAction(req, res) {
 // Handle payment actions
 async function handlePaymentAction(req, res) {
   try {
-    if (req.user?.role !== 'ADMIN') {
+    if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
 
     const { paymentId, action } = req.params;
 
-    if (action === 'refund') {
+    if (action === "refund") {
       // In a real implementation, you would integrate with payment gateway
       await prisma.paymentTransaction.update({
         where: { id: paymentId },
-        data: { 
-          status: 'REFUNDED',
-          completedAt: new Date()
-        }
+        data: {
+          status: "REFUNDED",
+          completedAt: new Date(),
+        },
       });
 
       res.json({ success: true, message: "Payment refunded successfully" });
@@ -745,11 +761,13 @@ async function handlePaymentAction(req, res) {
       res.status(400).json({ error: "Invalid payment action" });
     }
   } catch (error) {
-    if (error.code === 'P2025') {
+    if (error.code === "P2025") {
       return res.status(404).json({ error: "Payment not found" });
     }
     console.error(`Error processing payment ${req.params.action}:`, error);
-    res.status(500).json({ error: `Failed to process payment ${req.params.action}` });
+    res
+      .status(500)
+      .json({ error: `Failed to process payment ${req.params.action}` });
   }
 }
 
@@ -778,5 +796,5 @@ module.exports = {
   // Enhanced Actions
   handleCompanyAction,
   handleJobAction,
-  handlePaymentAction
+  handlePaymentAction,
 };

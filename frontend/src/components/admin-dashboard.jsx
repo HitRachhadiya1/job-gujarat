@@ -686,7 +686,7 @@ export default function AdminDashboard({ onLogout }) {
               value="users"
               className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700"
             >
-              Job Seekers
+              Users
             </TabsTrigger>
             <TabsTrigger
               value="payments"
@@ -809,7 +809,7 @@ export default function AdminDashboard({ onLogout }) {
                 <CardHeader>
                   <CardTitle className="text-stone-800 dark:text-white flex items-center">
                     <Users className="w-5 h-5 mr-2" />
-                    Recent Job Seekers
+                    Recent Users
                   </CardTitle>
                   <CardDescription className="text-stone-600 dark:text-stone-300">
                     Latest user registrations
@@ -905,10 +905,10 @@ export default function AdminDashboard({ onLogout }) {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
-                  Job Seeker Management
+                  User Management
                 </h3>
                 <p className="text-stone-600 dark:text-stone-300">
-                  Monitor and manage job seeker accounts
+                  Monitor and manage Users accounts
                 </p>
               </div>
               <div className="flex items-center space-x-4">

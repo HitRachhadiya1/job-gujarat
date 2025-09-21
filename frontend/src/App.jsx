@@ -189,6 +189,9 @@ export default function JobPortalApp() {
   // Debug logging
   console.log("App rendering with role:", role);
   console.log("Company status:", companyStatus);
+  console.log("Is authenticated:", isAuthenticated);
+  console.log("Loading:", loading);
+  console.log("User:", user?.email);
 
   // Main app with routing - now using ProtectedRoute for each route
   return (
@@ -220,7 +223,11 @@ export default function JobPortalApp() {
                 );
               } else if (role === "JOB_SEEKER") {
                 console.log("Redirecting job seeker to dashboard");
-                return <JobSeekerDashboard onLogout={handleLogout} />;
+                return (
+                  <ProtectedRoute roles={["JOB_SEEKER"]}>
+                    <JobSeekerDashboard onLogout={handleLogout} />
+                  </ProtectedRoute>
+                );
               } else if (role === "ADMIN") {
                 return <AdminDashboard onLogout={handleLogout} />;
               } else {

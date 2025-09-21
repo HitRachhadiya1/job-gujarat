@@ -5,6 +5,8 @@ import UnknownRole from './UnknownRole';
 const ProtectedRoute = ({ children, roles = [] }) => {
   const { role, loading } = useAuthMeta();
 
+  console.log("ProtectedRoute - role:", role, "loading:", loading, "required roles:", roles);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
@@ -17,9 +19,11 @@ const ProtectedRoute = ({ children, roles = [] }) => {
   }
 
   if (!role || !roles.includes(role)) {
+    console.log("ProtectedRoute - Access denied. Role:", role, "Required:", roles);
     return <UnknownRole />;
   }
 
+  console.log("ProtectedRoute - Access granted for role:", role);
   return children;
 };
 

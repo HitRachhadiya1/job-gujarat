@@ -77,6 +77,14 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
 
       if (!paymentResponse.ok) {
         const paymentError = await paymentResponse.json();
+        
+        // Handle specific case where job seeker profile doesn't exist
+        if (paymentResponse.status === 403 && paymentError.error === "JobSeeker profile not found") {
+          setError('Please complete your profile before applying for jobs');
+          setErrorData({ requiresProfile: true });
+          return;
+        }
+        
         throw new Error(paymentError.error || 'Failed to create payment order');
       }
 
@@ -177,7 +185,14 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
       rzp.open();
     } catch (error) {
       console.error('Error submitting application:', error);
-      setError('An error occurred while submitting your application');
+      
+      // Check if it's a profile-related error
+      if (error.message.includes('JobSeeker profile not found') || error.message.includes('profile')) {
+        setError('Please complete your profile before applying for jobs');
+        setErrorData({ requiresProfile: true });
+      } else {
+        setError(error.message || 'An error occurred while submitting your application');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -308,8 +323,18 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+              <div className={`p-4 rounded-md border ${
+                errorData?.requiresProfile 
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' 
+                  : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              }`}>
+                <p className={`text-sm font-medium ${
+                  errorData?.requiresProfile 
+                    ? 'text-blue-800 dark:text-blue-200' 
+                    : 'text-red-700 dark:text-red-400'
+                }`}>
+                  {error}
+                </p>
                 {errorData?.requiresProfile && (
                   <div className="mt-3">
                     <Button
@@ -318,11 +343,14 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
                         onClose();
                         navigate('/?view=profile');
                       }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2"
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 font-medium"
                     >
                       <User className="w-4 h-4 mr-2" />
-                      Complete Your Profile
+                      Complete Your Profile Now
                     </Button>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                      You need to complete your profile to apply for jobs. This helps employers learn more about you.
+                    </p>
                   </div>
                 )}
               </div>
