@@ -56,6 +56,7 @@ import {
   UserX,
   Calendar,
   MapPin,
+  Phone,
   Plus,
   Globe,
   Clock,
@@ -107,6 +108,12 @@ export default function AdminDashboard({ onLogout }) {
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingPlan, setEditingPlan] = useState(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [showJobDialog, setShowJobDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showUserDialog, setShowUserDialog] = useState(false);
+  const [userProfileData, setUserProfileData] = useState(null);
+  const [loadingUserProfile, setLoadingUserProfile] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -149,7 +156,10 @@ export default function AdminDashboard({ onLogout }) {
       if (usersRes.ok) {
         const usersData = await usersRes.json();
         setUsers(usersData);
-        setStats((prev) => ({ ...prev, totalUsers: usersData.length }));
+        const jobSeekerCount = usersData.filter(
+          (u) => u.role === "JOB_SEEKER" || !u.role
+        ).length;
+        setStats((prev) => ({ ...prev, totalUsers: jobSeekerCount }));
       }
 
       if (companiesRes.ok) {
@@ -585,7 +595,10 @@ export default function AdminDashboard({ onLogout }) {
     }
   };
 
-  const filteredUsers = users.filter(
+  const jobSeekerUsers = users.filter(
+    (u) => u.role === "JOB_SEEKER" || !u.role
+  );
+  const filteredUsers = jobSeekerUsers.filter(
     (user) =>
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -594,10 +607,51 @@ export default function AdminDashboard({ onLogout }) {
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch =
       job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.Company?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      job.company?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === "all" || job.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
+
+  const filteredCompanies = companies.filter((company) => {
+    const matchesSearch =
+      company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      filterStatus === "all" ||
+      (filterStatus === "verified" && company.verified && !company.blocked) ||
+      (filterStatus === "pending" && !company.verified && !company.blocked) ||
+      (filterStatus === "blocked" && company.blocked);
+    return matchesSearch && matchesFilter;
+  });
+
+  const openUserProfile = async (user) => {
+    setSelectedUser(user);
+    setShowUserDialog(true);
+    setLoadingUserProfile(true);
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch(
+        `http://localhost:5000/api/admin/job-seeker-profile?email=${encodeURIComponent(
+          user.email
+        )}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserProfileData(data);
+      } else {
+        setUserProfileData({ profileExists: false });
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      setUserProfileData({ profileExists: false });
+    } finally {
+      setLoadingUserProfile(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300 dark:from-stone-900 dark:via-stone-900 dark:to-stone-950 relative overflow-hidden transition-colors duration-300">
@@ -686,7 +740,7 @@ export default function AdminDashboard({ onLogout }) {
               value="users"
               className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700"
             >
-              Users
+              Job Seekers
             </TabsTrigger>
             <TabsTrigger
               value="payments"
@@ -740,7 +794,7 @@ export default function AdminDashboard({ onLogout }) {
                     {stats.totalUsers}
                   </div>
                   <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
-                    Registered users
+                    Registered job seekers
                   </p>
                 </CardContent>
               </Card>
@@ -809,15 +863,15 @@ export default function AdminDashboard({ onLogout }) {
                 <CardHeader>
                   <CardTitle className="text-stone-800 dark:text-white flex items-center">
                     <Users className="w-5 h-5 mr-2" />
-                    Recent Users
+                    Recent Job Seekers
                   </CardTitle>
                   <CardDescription className="text-stone-600 dark:text-stone-300">
-                    Latest user registrations
+                    Latest job seeker registrations
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {users.slice(0, 5).map((user, index) => (
+                    {jobSeekerUsers.slice(0, 5).map((user, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-3 rounded-lg bg-stone-50 dark:bg-stone-900/50"
@@ -878,7 +932,7 @@ export default function AdminDashboard({ onLogout }) {
                               {job.title}
                             </p>
                             <p className="text-sm text-stone-600 dark:text-stone-400">
-                              {job.Company?.name}
+                              {job.company?.name}
                             </p>
                           </div>
                         </div>
@@ -901,21 +955,173 @@ export default function AdminDashboard({ onLogout }) {
             </div>
           </TabsContent>
 
-          <TabsContent value="users" className="space-y-6">
+          <TabsContent value="companies" className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
-                  User Management
+                  Company Management
                 </h3>
                 <p className="text-stone-600 dark:text-stone-300">
-                  Monitor and manage Users accounts
+                  Approve, verify and manage company registrations
                 </p>
               </div>
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 h-4 w-4" />
                   <Input
-                    placeholder="Search users..."
+                    placeholder="Search companies..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 w-64 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600"
+                  />
+                </div>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-40 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600">
+                    <SelectValue placeholder="Filter status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Companies</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="blocked">Blocked</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid gap-6">
+              {filteredCompanies.map((company) => (
+                <Card
+                  key={company.id}
+                  className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-16 h-16 bg-stone-200 dark:bg-stone-700 rounded-xl flex items-center justify-center">
+                          <Building2 className="w-8 h-8 text-stone-600 dark:text-stone-300" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h4 className="text-xl font-bold text-stone-900 dark:text-white">
+                              {company.name}
+                            </h4>
+                            <Badge
+                              variant={
+                                company.verified
+                                  ? "default"
+                                  : company.blocked
+                                  ? "destructive"
+                                  : "secondary"
+                              }
+                            >
+                              {company.verified
+                                ? "Verified"
+                                : company.blocked
+                                ? "Blocked"
+                                : "Pending Review"}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-stone-600 dark:text-stone-400">
+                            <div className="flex items-center space-x-2">
+                              <Globe className="w-4 h-4" />
+                              <span>{company.email || "Not provided"}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <MapPin className="w-4 h-4" />
+                              <span>
+                                {company.location || "Location not specified"}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Briefcase className="w-4 h-4" />
+                              <span>
+                                {company._count?.Jobs || 0} job postings
+                              </span>
+                            </div>
+                          </div>
+                          {company.description && (
+                            <p className="mt-3 text-sm text-stone-700 dark:text-stone-300 line-clamp-2">
+                              {company.description}
+                            </p>
+                          )}
+                          <div className="flex items-center space-x-4 mt-3 text-xs text-stone-500 dark:text-stone-400">
+                            <span>
+                              Industry: {company.industry || "Not specified"}
+                            </span>
+                            <span>•</span>
+                            <span>Size: {company.size || "Not specified"}</span>
+                            <span>•</span>
+                            <span>
+                              Joined: {new Date(company.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {!company.verified && !company.blocked && (
+                          <>
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => handleCompanyAction(company.id, "approve")}
+                            >
+                              <ThumbsUp className="h-4 w-4 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleCompanyAction(company.id, "reject")}
+                            >
+                              <ThumbsDown className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                        {company.verified && !company.blocked && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleCompanyAction(company.id, "block")}
+                          >
+                            <Ban className="h-4 w-4 mr-1" />
+                            Block
+                          </Button>
+                        )}
+                        {company.blocked && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleCompanyAction(company.id, "unblock")}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Unblock
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
+                  Job Seeker Management
+                </h3>
+                <p className="text-stone-600 dark:text-stone-300">
+                  Monitor and manage job seeker accounts
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search job seekers..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 w-64 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600"
@@ -958,7 +1164,7 @@ export default function AdminDashboard({ onLogout }) {
                               {user.blocked ? "Blocked" : "Active"}
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-stone-600 dark:text-stone-400 mb-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-stone-600 dark:text-stone-400 mb-3">
                             <div className="flex items-center space-x-2">
                               <Globe className="w-4 h-4" />
                               <span>{user.email}</span>
@@ -970,37 +1176,14 @@ export default function AdminDashboard({ onLogout }) {
                                 {new Date(user.createdAt).toLocaleDateString()}
                               </span>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Briefcase className="w-4 h-4" />
-                              <span>
-                                {user._count?.applications || 0} applications
-                              </span>
-                            </div>
                           </div>
-                          {user.profile && (
-                            <p className="text-sm text-stone-700 dark:text-stone-300 line-clamp-2 mb-3">
-                              {user.profile.bio || user.profile.summary}
-                            </p>
-                          )}
                           <div className="flex items-center space-x-4 text-xs text-stone-500 dark:text-stone-400">
                             <span>
                               Last active:{" "}
-                              {user.lastLoginAt
-                                ? new Date(
-                                    user.lastLoginAt
-                                  ).toLocaleDateString()
+                              {user.lastLogin
+                                ? new Date(user.lastLogin).toLocaleDateString()
                                 : "Never"}
                             </span>
-                            {user.profile?.skills && (
-                              <>
-                                <span>•</span>
-                                <span>
-                                  Skills:{" "}
-                                  {user.profile.skills.slice(0, 2).join(", ")}
-                                  {user.profile.skills.length > 2 ? "..." : ""}
-                                </span>
-                              </>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -1009,6 +1192,7 @@ export default function AdminDashboard({ onLogout }) {
                           size="sm"
                           variant="outline"
                           className="bg-white/50 dark:bg-stone-800/50"
+                          onClick={() => openUserProfile(user)}
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           View Profile
@@ -1043,174 +1227,135 @@ export default function AdminDashboard({ onLogout }) {
             </div>
           </TabsContent>
 
-          <TabsContent value="companies" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
-                  Company Management
-                </h3>
-                <p className="text-stone-600 dark:text-stone-300">
-                  Approve, verify and manage company registrations
-                </p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search companies..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600"
-                  />
-                </div>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-40 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600">
-                    <SelectValue placeholder="Filter status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Companies</SelectItem>
-                    <SelectItem value="verified">Verified</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="blocked">Blocked</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-6">
-              {companies.map((company) => (
-                <Card
-                  key={company.id}
-                  className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-16 h-16 bg-stone-200 dark:bg-stone-700 rounded-xl flex items-center justify-center">
-                          <Building2 className="w-8 h-8 text-stone-600 dark:text-stone-300" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="text-xl font-bold text-stone-900 dark:text-white">
-                              {company.name}
-                            </h4>
-                            <Badge
-                              variant={
-                                company.verified
-                                  ? "default"
-                                  : company.blocked
-                                  ? "destructive"
-                                  : "secondary"
-                              }
-                            >
-                              {company.verified
-                                ? "Verified"
-                                : company.blocked
-                                ? "Blocked"
-                                : "Pending Review"}
-                            </Badge>
+          {/* Job Seeker Profile Dialog */}
+          {selectedUser && (
+            <Dialog
+              open={showUserDialog}
+              onOpenChange={(open) => {
+                setShowUserDialog(open);
+                if (!open) {
+                  setSelectedUser(null);
+                  setUserProfileData(null);
+                }
+              }}
+            >
+              <DialogContent className="bg-white dark:bg-stone-900 max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-bold text-stone-900 dark:text-white">
+                    {selectedUser.name || selectedUser.email}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Job Seeker Profile
+                  </DialogDescription>
+                </DialogHeader>
+                {loadingUserProfile ? (
+                  <p className="text-stone-600 dark:text-stone-300">Loading profile...</p>
+                ) : (
+                  <div className="space-y-4">
+                    {userProfileData?.profileExists && userProfileData.profile ? (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-stone-700 dark:text-stone-300">
+                          <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4" />
+                            <span>{userProfileData.profile.fullName}</span>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-stone-600 dark:text-stone-400">
-                            <div className="flex items-center space-x-2">
-                              <Globe className="w-4 h-4" />
-                              <span>{company.email}</span>
+                          {userProfileData.profile.phone && (
+                            <div className="flex items-center gap-2">
+                              <Phone className="w-4 h-4" />
+                              <span>{userProfileData.profile.phone}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <MapPin className="w-4 h-4" />
-                              <span>
-                                {company.location || "Location not specified"}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Briefcase className="w-4 h-4" />
-                              <span>
-                                {company._count?.JobPostings || 0} job postings
-                              </span>
-                            </div>
-                          </div>
-                          {company.description && (
-                            <p className="mt-3 text-sm text-stone-700 dark:text-stone-300 line-clamp-2">
-                              {company.description}
-                            </p>
                           )}
-                          <div className="flex items-center space-x-4 mt-3 text-xs text-stone-500 dark:text-stone-400">
-                            <span>
-                              Industry: {company.industry || "Not specified"}
-                            </span>
-                            <span>•</span>
-                            <span>Size: {company.size || "Not specified"}</span>
-                            <span>•</span>
-                            <span>
-                              Joined:{" "}
-                              {new Date(company.createdAt).toLocaleDateString()}
-                            </span>
+                          {userProfileData.profile.location && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4" />
+                              <span>{userProfileData.profile.location}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Globe className="w-4 h-4" />
+                            <span>{selectedUser.email}</span>
                           </div>
+                          {Array.isArray(userProfileData.profile.skills) && userProfileData.profile.skills.length > 0 && (
+                            <div className="md:col-span-2">
+                              <span className="font-semibold">Skills:</span>{" "}
+                              <span>{userProfileData.profile.skills.join(", ")}</span>
+                            </div>
+                          )}
+                          {userProfileData.profile.experienceYears !== null && userProfileData.profile.experienceYears !== undefined && (
+                            <div>
+                              <span className="font-semibold">Experience:</span>{" "}
+                              <span>{userProfileData.profile.experienceYears} years</span>
+                            </div>
+                          )}
+                          {userProfileData.profile.resumeUrl && (
+                            <div>
+                              <a href={userProfileData.profile.resumeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline">
+                                <ExternalLink className="w-4 h-4" /> View Resume
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-end gap-2 pt-2">
+                          <Button
+                            size="sm"
+                            variant={selectedUser.blocked ? "default" : "destructive"}
+                            onClick={async () => {
+                              await handleUserAction(
+                                selectedUser.id,
+                                selectedUser.blocked ? "unblock" : "block"
+                              );
+                              setShowUserDialog(false);
+                            }}
+                          >
+                            {selectedUser.blocked ? (
+                              <>
+                                <UserCheck className="w-4 h-4 mr-1" /> Unblock
+                              </>
+                            ) : (
+                              <>
+                                <UserX className="w-4 h-4 mr-1" /> Block
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-stone-700 dark:text-stone-300">
+                        <p>No job seeker profile found. Showing available details:</p>
+                        <ul className="list-disc pl-5 mt-2">
+                          <li>Email: {selectedUser.email}</li>
+                          <li>Status: {userProfileData?.dbStatus || "Unknown"}</li>
+                        </ul>
+                        <div className="flex items-center justify-end gap-2 pt-3">
+                          <Button
+                            size="sm"
+                            variant={selectedUser.blocked ? "default" : "destructive"}
+                            onClick={async () => {
+                              await handleUserAction(
+                                selectedUser.id,
+                                selectedUser.blocked ? "unblock" : "block"
+                              );
+                              setShowUserDialog(false);
+                            }}
+                          >
+                            {selectedUser.blocked ? (
+                              <>
+                                <UserCheck className="w-4 h-4 mr-1" /> Unblock
+                              </>
+                            ) : (
+                              <>
+                                <UserX className="w-4 h-4 mr-1" /> Block
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="bg-white/50 dark:bg-stone-800/50"
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                        {!company.verified && !company.blocked && (
-                          <>
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                              onClick={() =>
-                                handleCompanyAction(company.id, "approve")
-                              }
-                            >
-                              <ThumbsUp className="h-4 w-4 mr-1" />
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() =>
-                                handleCompanyAction(company.id, "reject")
-                              }
-                            >
-                              <ThumbsDown className="h-4 w-4 mr-1" />
-                              Reject
-                            </Button>
-                          </>
-                        )}
-                        {company.verified && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() =>
-                              handleCompanyAction(company.id, "block")
-                            }
-                          >
-                            <Ban className="h-4 w-4 mr-1" />
-                            Block
-                          </Button>
-                        )}
-                        {company.blocked && (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() =>
-                              handleCompanyAction(company.id, "unblock")
-                            }
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Unblock
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+                    )}
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          )}
 
           <TabsContent value="jobs" className="space-y-6">
             <div className="flex items-center justify-between">
@@ -1241,7 +1386,8 @@ export default function AdminDashboard({ onLogout }) {
                     <SelectItem value="PUBLISHED">Published</SelectItem>
                     <SelectItem value="DRAFT">Draft</SelectItem>
                     <SelectItem value="CLOSED">Closed</SelectItem>
-                    <SelectItem value="PENDING">Pending Review</SelectItem>
+                    <SelectItem value="REJECTED">Rejected</SelectItem>
+                    <SelectItem value="FLAGGED">Flagged</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1287,7 +1433,7 @@ export default function AdminDashboard({ onLogout }) {
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-stone-600 dark:text-stone-400 mb-3">
                             <div className="flex items-center space-x-2">
                               <Building2 className="w-4 h-4" />
-                              <span>{job.Company?.name}</span>
+                              <span>{job.company?.name}</span>
                             </div>
                             <div className="flex items-center space-x-2">
                               <MapPin className="w-4 h-4" />
@@ -1295,14 +1441,11 @@ export default function AdminDashboard({ onLogout }) {
                             </div>
                             <div className="flex items-center space-x-2">
                               <DollarSign className="w-4 h-4" />
-                              <span>
-                                ₹{job.salaryMin?.toLocaleString()} - ₹
-                                {job.salaryMax?.toLocaleString()}
-                              </span>
+                              <span>{job.salaryRange || "Not specified"}</span>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <Clock className="w-4 h-4" />
-                              <span>{job.type}</span>
+                              {/* <Clock className="w-4 h-4" /> */}
+                              <span>{job.jobType}</span>
                             </div>
                           </div>
                           {job.description && (
@@ -1317,10 +1460,10 @@ export default function AdminDashboard({ onLogout }) {
                             </span>
                             <span>•</span>
                             <span>
-                              Applications: {job._count?.applications || 0}
+                              Applications: {job._count?.Applications || 0}
                             </span>
-                            <span>•</span>
-                            <span>Views: {job.views || 0}</span>
+                            {/* <span>•</span>
+                            <span>Views: {job.views || 0}</span> */}
                           </div>
                         </div>
                       </div>
@@ -1329,51 +1472,15 @@ export default function AdminDashboard({ onLogout }) {
                           size="sm"
                           variant="outline"
                           className="bg-white/50 dark:bg-stone-800/50"
+                          onClick={() => {
+                            setSelectedJob(job);
+                            setShowJobDialog(true);
+                          }}
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        {job.status === "PENDING" && (
-                          <>
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                              onClick={() => handleJobAction(job.id, "approve")}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleJobAction(job.id, "reject")}
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Reject
-                            </Button>
-                          </>
-                        )}
-                        {job.status === "PUBLISHED" && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleJobAction(job.id, "flag")}
-                              className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                            >
-                              <AlertTriangle className="h-4 w-4 mr-1" />
-                              Flag
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleJobAction(job.id, "close")}
-                            >
-                              <Ban className="h-4 w-4 mr-1" />
-                              Close
-                            </Button>
-                          </>
-                        )}
+                        {/* Moderation actions removed per requirement */}
                       </div>
                     </div>
                   </CardContent>
@@ -1381,6 +1488,82 @@ export default function AdminDashboard({ onLogout }) {
               ))}
             </div>
           </TabsContent>
+
+          {/* Job Details Dialog */}
+          {selectedJob && (
+            <Dialog
+              open={showJobDialog}
+              onOpenChange={(open) => {
+                setShowJobDialog(open);
+                if (!open) setSelectedJob(null);
+              }}
+            >
+              <DialogContent className="bg-white dark:bg-stone-900 max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-bold text-stone-900 dark:text-white">
+                    {selectedJob.title}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {selectedJob.company?.name || "Company"}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-3 text-sm text-stone-700 dark:text-stone-300">
+                    <Badge variant="outline">{selectedJob.status}</Badge>
+                    {selectedJob.location && (
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="w-4 h-4" /> {selectedJob.location}
+                      </span>
+                    )}
+                    {selectedJob.jobType && (
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="w-4 h-4" /> {selectedJob.jobType}
+                      </span>
+                    )}
+                    {selectedJob.salaryRange && (
+                      <span className="inline-flex items-center gap-1">
+                        <DollarSign className="w-4 h-4" /> {selectedJob.salaryRange}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      Posted {new Date(selectedJob.createdAt).toLocaleDateString()}
+                    </span>
+                    {selectedJob.expiresAt && (
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        Expires {new Date(selectedJob.expiresAt).toLocaleDateString()}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1">
+                      <Users className="w-4 h-4" /> Applicants: {selectedJob._count?.Applications || 0}
+                    </span>
+                  </div>
+
+                  {selectedJob.description && (
+                    <div>
+                      <h4 className="font-semibold text-stone-900 dark:text-white mb-1">Description</h4>
+                      <p className="text-sm text-stone-700 dark:text-stone-300 whitespace-pre-line">
+                        {selectedJob.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {Array.isArray(selectedJob.requirements) && selectedJob.requirements.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-stone-900 dark:text-white mb-1">Requirements</h4>
+                      <ul className="list-disc pl-5 text-sm text-stone-700 dark:text-stone-300">
+                        {selectedJob.requirements.map((req, idx) => (
+                          <li key={idx}>{req}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
 
           <TabsContent value="payments" className="space-y-6">
             <div className="flex items-center justify-between">

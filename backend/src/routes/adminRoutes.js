@@ -25,7 +25,8 @@ const {
   // Enhanced Actions
   handleCompanyAction,
   handleJobAction,
-  handlePaymentAction
+  handlePaymentAction,
+  getJobSeekerProfileAdmin
 } = require("../controllers/adminController");
 const { uploadSingleLogo } = require("../middleware/upload");
 
@@ -40,6 +41,7 @@ router.get("/stats", getDashboardStats);
 // User management
 router.get("/users", getUsers);
 router.post("/users/:userId/:action", toggleUserBlock); // action: block/unblock
+router.get("/job-seeker-profile", getJobSeekerProfileAdmin); // query: email
 
 // Company management
 router.get("/companies", getCompanies);

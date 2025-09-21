@@ -8,6 +8,7 @@ export const AuthMetaProvider = ({ children }) => {
   const [authMeta, setAuthMeta] = useState({
     role: null,
     companyStatus: null,
+    userStatus: null,
     loading: false,
     error: null
   });
@@ -20,6 +21,7 @@ export const AuthMetaProvider = ({ children }) => {
       setAuthMeta({
         role: null,
         companyStatus: null,
+        userStatus: null,
         loading: false,
         error: null
       });
@@ -41,6 +43,7 @@ export const AuthMetaProvider = ({ children }) => {
       setAuthMeta({
         role: cachedData.data.role,
         companyStatus: cachedData.data.companyStatus,
+        userStatus: cachedData.data.userStatus,
         loading: false,
         error: null
       });
@@ -78,6 +81,7 @@ export const AuthMetaProvider = ({ children }) => {
       setAuthMeta({
         role: data.role,
         companyStatus: data.companyStatus,
+        userStatus: data.userStatus,
         loading: false,
         error: null
       });
@@ -88,6 +92,7 @@ export const AuthMetaProvider = ({ children }) => {
       setAuthMeta({
         role: null,
         companyStatus: null,
+        userStatus: null,
         loading: false,
         error: error.message
       });
@@ -123,6 +128,7 @@ export const AuthMetaProvider = ({ children }) => {
   const value = {
     role: authMeta.role,
     companyStatus: authMeta.companyStatus,
+    userStatus: authMeta.userStatus,
     loading: authMeta.loading,
     error: authMeta.error,
     refreshAuthMeta,

@@ -3,6 +3,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
+import { useAuthMeta } from "@/context/AuthMetaContext";
 import { useLogo } from "@/context/LogoContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +67,7 @@ export default function JobSeekerDashboard({ onLogout }) {
   const { appLogo } = useLogo();
   const navigate = useNavigate();
   const location = useLocation();
+  const { userStatus } = useAuthMeta();
   const [searchTerm, setSearchTerm] = useState("");
   const [applications, setApplications] = useState([]);
   const [jobs, setJobs] = useState([]);
@@ -745,6 +747,38 @@ export default function JobSeekerDashboard({ onLogout }) {
 
   if (loading) {
     return <Spinner />;
+  }
+
+  // Blocked state notice
+  if (userStatus === "SUSPENDED") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-200 dark:bg-stone-950 p-6">
+        <Card className="max-w-md w-full bg-white dark:bg-stone-900 border-stone-300 dark:border-stone-700 shadow-xl">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <XCircle className="w-6 h-6 text-red-600" />
+              <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100">
+                You are blocked
+              </CardTitle>
+            </div>
+            <CardDescription className="text-stone-700 dark:text-stone-300">
+              Your account has been suspended by an administrator. You cannot access the dashboard at this time.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-end">
+              <Button
+                variant="destructive"
+                onClick={onLogout}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" /> Logout
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

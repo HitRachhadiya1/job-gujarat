@@ -118,6 +118,17 @@ async function getCurrentUserInfo(req, res) {
     console.log("getCurrentUserInfo called, role from middleware:", role);
     console.log("Full req.user object:", JSON.stringify(req.user, null, 2));
     
+    // Also attempt to include DB user status for blocked checks
+    let userStatus = null;
+    try {
+      if (req.user?.email) {
+        const dbUser = await prisma.user.findFirst({ where: { email: req.user.email } });
+        userStatus = dbUser?.status || null;
+      }
+    } catch (dbErr) {
+      console.warn("Could not fetch DB user status:", dbErr.message);
+    }
+    
     // If role is COMPANY, also get company status
     if (role === "COMPANY") {
       try {
@@ -206,7 +217,7 @@ async function getCurrentUserInfo(req, res) {
           message: isCompleted ? "Company profile is complete" : "Company profile needs completion"
         };
         
-        return res.json({ role, companyStatus });
+        return res.json({ role, companyStatus, userStatus });
       } catch (companyError) {
         console.error("Error getting company status:", companyError);
         
@@ -230,13 +241,14 @@ async function getCurrentUserInfo(req, res) {
             error: "Error getting company status", 
             details: companyError.message,
             message: "Unable to retrieve company information. Please try again."
-          } 
+          },
+          userStatus
         });
       }
     }
     
     // For other roles or no role, just return the role
-    res.json({ role });
+    res.json({ role, userStatus });
   } catch (err) {
     console.error("Error in getCurrentUserInfo:", err);
     res.status(500).json({ error: "Failed to get current user info", details: err.message });

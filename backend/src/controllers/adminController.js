@@ -18,7 +18,6 @@ async function getUsers(req, res) {
     if (req.user?.role !== "ADMIN") {
       return res.status(403).json({ error: "Admin access required" });
     }
-
     // Get users from Auth0
     const token = await getManagementToken();
     const response = await axios.get(
@@ -67,7 +66,7 @@ async function getCompanies(req, res) {
 
     const companiesWithEmail = companies.map((company) => ({
       ...company,
-      email: company.User?.email,
+      email: company.user?.email,
     }));
 
     res.json(companiesWithEmail);
@@ -147,10 +146,82 @@ async function toggleUserBlock(req, res) {
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
+    // Mirror status in our DB so we can show a message after login
+    try {
+      const userResp = await axios.get(
+        `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const email = userResp?.data?.email;
+      if (email) {
+        // Update status to SUSPENDED when blocked, ACTIVE when unblocked
+        await prisma.user.update({
+          where: { email },
+          data: { status: action === "block" ? "SUSPENDED" : "ACTIVE" },
+        }).catch(async (e) => {
+          // If user record doesn't exist, create it
+          if (action === "block") {
+            await prisma.user.create({
+              data: { email, role: "JOB_SEEKER", status: "SUSPENDED" },
+            });
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Could not sync user block status to DB:", e.message);
+    }
+
     res.json({ success: true, message: `User ${action}ed successfully` });
   } catch (error) {
     console.error(`Error ${req.params.action}ing user:`, error);
     res.status(500).json({ error: `Failed to ${req.params.action} user` });
+  }
+}
+
+// Get a job seeker profile by email (admin view)
+async function getJobSeekerProfileAdmin(req, res) {
+  try {
+    if (req.user?.role !== "ADMIN") {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ error: "Email query parameter is required" });
+    }
+
+    const dbUser = await prisma.user.findFirst({ where: { email } });
+    if (!dbUser) {
+      return res.status(404).json({ error: "User not found for provided email" });
+    }
+
+    const jobSeeker = await prisma.jobSeeker.findUnique({
+      where: { userId: dbUser.id },
+      include: {
+        _count: { select: { Applications: true } },
+      },
+    });
+
+    if (!jobSeeker) {
+      return res.status(200).json({
+        profileExists: false,
+        email,
+        userId: dbUser.id,
+        profile: null,
+        dbStatus: dbUser.status,
+      });
+    }
+
+    return res.json({
+      profileExists: true,
+      email,
+      userId: dbUser.id,
+      dbStatus: dbUser.status,
+      profile: jobSeeker,
+    });
+  } catch (error) {
+    console.error("Error fetching job seeker profile (admin):", error);
+    res.status(500).json({ error: "Failed to fetch job seeker profile" });
   }
 }
 
@@ -797,4 +868,5 @@ module.exports = {
   handleCompanyAction,
   handleJobAction,
   handlePaymentAction,
+  getJobSeekerProfileAdmin,
 };
