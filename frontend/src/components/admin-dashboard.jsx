@@ -39,7 +39,7 @@ import {
   Briefcase,
   Settings,
   TrendingUp,
-  DollarSign,
+  IndianRupee,
   Eye,
   Edit,
   Trash2,
@@ -67,6 +67,7 @@ import {
   Ban,
   ThumbsUp,
   ThumbsDown,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import ThemeToggle from "./ThemeToggle";
@@ -114,6 +115,10 @@ export default function AdminDashboard({ onLogout }) {
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [userProfileData, setUserProfileData] = useState(null);
   const [loadingUserProfile, setLoadingUserProfile] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [showFeaturesDialog, setShowFeaturesDialog] = useState(false);
+  const [featuresPlan, setFeaturesPlan] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -662,7 +667,7 @@ export default function AdminDashboard({ onLogout }) {
 
       {/* Header */}
       <header className="relative z-10 backdrop-blur-sm bg-stone-100/90 dark:bg-stone-900/90 border-b border-stone-300/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-colors duration-300">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <AppLogo size="w-12 h-12" rounded="rounded-xl" mode="contain" />
@@ -679,15 +684,7 @@ export default function AdminDashboard({ onLogout }) {
               <div className="bg-stone-200/60 dark:bg-stone-700/40 rounded-lg p-1 border border-stone-300/60 dark:border-stone-700/60">
                 <ThemeToggle />
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setActiveTab("settings")}
-                className="border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-800 bg-transparent"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
+              
               <Button
                 variant="outline"
                 size="sm"
@@ -717,7 +714,7 @@ export default function AdminDashboard({ onLogout }) {
       {/* Main Content */}
       <main className="relative z-10 container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-8 mb-8 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg rounded-xl p-2">
+          <TabsList className="grid w-full grid-cols-7 mb-4 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg rounded-xl p-2">
             <TabsTrigger
               value="overview"
               className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700"
@@ -759,12 +756,6 @@ export default function AdminDashboard({ onLogout }) {
               className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700"
             >
               Pricing
-            </TabsTrigger>
-            <TabsTrigger
-              value="settings"
-              className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700"
-            >
-              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -843,7 +834,7 @@ export default function AdminDashboard({ onLogout }) {
                     Total Revenue
                   </CardTitle>
                   <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-orange-600" />
+                    <IndianRupee className="h-5 w-5 text-orange-600" />
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -1022,39 +1013,44 @@ export default function AdminDashboard({ onLogout }) {
                                 : "Pending Review"}
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-stone-600 dark:text-stone-400">
-                            <div className="flex items-center space-x-2">
-                              <Globe className="w-4 h-4" />
-                              <span>{company.email || "Not provided"}</span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-stone-600 dark:text-stone-400">
+                            <div className="flex items-start space-x-2 break-words">
+                              <Mail className="w-4 h-4 flex-shrink-0" />
+                              <span className="break-words">{company.email || "Not provided"}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <MapPin className="w-4 h-4" />
-                              <span>
-                                {company.location || "Location not specified"}
-                              </span>
+                            <div className="flex items-start space-x-2 break-words">
+                              <Globe className="w-4 h-4 flex-shrink-0" />
+                              {(company.website || company.websiteUrl || company.url || company.webUrl) ? (
+                                <a
+                                  href={(company.website || company.websiteUrl || company.url || company.webUrl)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline break-words"
+                                >
+                                  {company.website || company.websiteUrl || company.url || company.webUrl}
+                                </a>
+                              ) : (
+                                <span>Not provided</span>
+                              )}
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Briefcase className="w-4 h-4" />
-                              <span>
-                                {company._count?.Jobs || 0} job postings
-                              </span>
+                            <div className="flex items-start space-x-2 break-words">
+                              <MapPin className="w-4 h-4 flex-shrink-0" />
+                              <span className="break-words">{company.location || "Location not specified"}</span>
+                            </div>
+                            <div className="flex items-start space-x-2 break-words">
+                              <Briefcase className="w-4 h-4 flex-shrink-0" />
+                              <span className="break-words">{company._count?.Jobs || 0} job postings</span>
                             </div>
                           </div>
                           {company.description && (
-                            <p className="mt-3 text-sm text-stone-700 dark:text-stone-300 line-clamp-2">
+                            <p className="mt-3 text-sm text-stone-700 dark:text-stone-300 break-words">
                               {company.description}
                             </p>
                           )}
-                          <div className="flex items-center space-x-4 mt-3 text-xs text-stone-500 dark:text-stone-400">
-                            <span>
-                              Industry: {company.industry || "Not specified"}
-                            </span>
-                            <span>•</span>
-                            <span>Size: {company.size || "Not specified"}</span>
-                            <span>•</span>
-                            <span>
-                              Joined: {new Date(company.createdAt).toLocaleDateString()}
-                            </span>
+                          <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-xs text-stone-500 dark:text-stone-400">
+                            <span className="break-words">Industry: {company.industry || "Not specified"}</span>
+                            <span className="break-words">Size: {company.size || "Not specified"}</span>
+                            <span className="break-words">Joined: {new Date(company.createdAt).toLocaleDateString()}</span>
                           </div>
                         </div>
                       </div>
@@ -1430,25 +1426,25 @@ export default function AdminDashboard({ onLogout }) {
                               </Badge>
                             )}
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-stone-600 dark:text-stone-400 mb-3">
-                            <div className="flex items-center space-x-2">
-                              <Building2 className="w-4 h-4" />
-                              <span>{job.company?.name}</span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-stone-600 dark:text-stone-400 mb-3">
+                            <div className="flex items-start space-x-2 min-w-0 break-words">
+                              <Building2 className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate break-words">{job.company?.name || "Company"}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <MapPin className="w-4 h-4" />
-                              <span>{job.location}</span>
+                            <div className="flex items-start space-x-2 min-w-0 break-words">
+                              <MapPin className="w-4 h-4 flex-shrink-0" />
+                              <span className="break-words">{job.location || "Location not specified"}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <DollarSign className="w-4 h-4" />
-                              <span>{job.salaryRange || "Not specified"}</span>
+                            <div className="flex items-start space-x-2 min-w-0 break-words">
+                              <IndianRupee className="w-4 h-4 flex-shrink-0" />
+                              <span className="break-words">{job.salaryRange || "Not specified"}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              {/* <Clock className="w-4 h-4" /> */}
-                              <span>{job.jobType}</span>
+                            <div className="flex items-start space-x-2 min-w-0 break-words">
+                              <Clock className="w-4 h-4 flex-shrink-0" />
+                              <span className="break-words">{job.jobType || "Job type not specified"}</span>
                             </div>
                           </div>
-                          {job.description && (
+                          {false && job.description && (
                             <p className="text-sm text-stone-700 dark:text-stone-300 line-clamp-2 mb-3">
                               {job.description}
                             </p>
@@ -1523,7 +1519,7 @@ export default function AdminDashboard({ onLogout }) {
                     )}
                     {selectedJob.salaryRange && (
                       <span className="inline-flex items-center gap-1">
-                        <DollarSign className="w-4 h-4" /> {selectedJob.salaryRange}
+                        <IndianRupee className="w-4 h-4" /> {selectedJob.salaryRange}
                       </span>
                     )}
                     <span className="inline-flex items-center gap-1">
@@ -1650,57 +1646,16 @@ export default function AdminDashboard({ onLogout }) {
                   className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-16 h-16 bg-stone-200 dark:bg-stone-700 rounded-xl flex items-center justify-center">
-                          <CreditCard className="w-8 h-8 text-stone-600 dark:text-stone-300" />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xl font-bold text-stone-900 dark:text-white">
+                          ₹{Number(payment.amount).toLocaleString()}
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="text-xl font-bold text-stone-900 dark:text-white">
-                              ₹{Number(payment.amount).toLocaleString()}
-                            </h4>
-                            <Badge
-                              variant={
-                                payment.status === "SUCCESS"
-                                  ? "default"
-                                  : payment.status === "FAILED"
-                                  ? "destructive"
-                                  : "secondary"
-                              }
-                            >
-                              {payment.status}
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-stone-600 dark:text-stone-400 mb-3">
-                            <div className="flex items-center space-x-2">
-                              <Building2 className="w-4 h-4" />
-                              <span>{payment.Company?.name}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <CreditCard className="w-4 h-4" />
-                              <span>{payment.gateway}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="w-4 h-4" />
-                              <span>
-                                {new Date(
-                                  payment.createdAt
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <FileText className="w-4 h-4" />
-                              <span className="font-mono text-xs">
-                                {payment.transactionId}
-                              </span>
-                            </div>
-                          </div>
-                          {payment.JobPosting && (
-                            <p className="text-sm text-stone-700 dark:text-stone-300">
-                              Job: {payment.JobPosting.title}
-                            </p>
-                          )}
+                        <div className="text-sm text-stone-600 dark:text-stone-400">
+                          Type: {payment.paymentType}
+                        </div>
+                        <div className="text-sm text-stone-600 dark:text-stone-400">
+                          Date: {new Date(payment.createdAt).toLocaleDateString()}
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -1708,6 +1663,7 @@ export default function AdminDashboard({ onLogout }) {
                           size="sm"
                           variant="outline"
                           className="bg-white/50 dark:bg-stone-800/50"
+                          onClick={() => { setSelectedPayment(payment); setShowPaymentDialog(true); }}
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           Details
@@ -1717,9 +1673,7 @@ export default function AdminDashboard({ onLogout }) {
                             size="sm"
                             variant="outline"
                             className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                            onClick={() =>
-                              handlePaymentAction(payment.id, "refund")
-                            }
+                            onClick={() => handlePaymentAction(payment.id, "refund")}
                           >
                             <RefreshCw className="h-4 w-4 mr-1" />
                             Refund
@@ -1731,6 +1685,127 @@ export default function AdminDashboard({ onLogout }) {
                 </Card>
               ))}
             </div>
+
+            {/* Payment Details Dialog */}
+            <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+              <DialogContent className="bg-white dark:bg-stone-900 max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Payment Details</DialogTitle>
+                  <DialogDescription>Detailed transaction information</DialogDescription>
+                </DialogHeader>
+                {selectedPayment && (
+                  <div className="space-y-3 text-sm text-stone-700 dark:text-stone-300">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="font-medium">Amount</div>
+                      <div>₹{Number(selectedPayment.amount).toLocaleString()}</div>
+
+                      <div className="font-medium">Type</div>
+                      <div>{selectedPayment.paymentType}</div>
+
+                      <div className="font-medium">Status</div>
+                      <div>{selectedPayment.status}</div>
+
+                      <div className="font-medium">Date</div>
+                      <div>{new Date(selectedPayment.createdAt).toLocaleString()}</div>
+
+                      <div className="font-medium">Gateway</div>
+                      <div>{selectedPayment.gateway}</div>
+
+                      <div className="font-medium">Transaction ID</div>
+                      <div className="font-mono text-xs break-all">{selectedPayment.transactionId}</div>
+
+                      <div className="font-medium">Payer</div>
+                      <div>{(() => {
+                        const pType = (selectedPayment.paymentType || "").toString().toUpperCase();
+
+                        // Extract common fields first
+                        let companyName = selectedPayment.Company?.name || selectedPayment.company?.name || null;
+                        let jobSeekerName = selectedPayment.JobSeeker?.fullName
+                          || selectedPayment.JobSeeker?.name
+                          || selectedPayment.jobSeeker?.fullName
+                          || selectedPayment.jobSeeker?.name
+                          || null;
+                        const userName = selectedPayment.User?.name || selectedPayment.user?.name || null;
+                        const payerName = selectedPayment.payerName || selectedPayment.payer || selectedPayment.name || selectedPayment.email || null;
+                        const userEmail = selectedPayment.userEmail || selectedPayment.email || selectedPayment.User?.email || selectedPayment.JobSeeker?.email || selectedPayment.jobSeeker?.email || null;
+
+                        const companyId = selectedPayment.companyId || selectedPayment.CompanyId || selectedPayment.company_id;
+                        const jobSeekerId = selectedPayment.jobSeekerId || selectedPayment.JobSeekerId || selectedPayment.job_seeker_id || selectedPayment.userId || selectedPayment.jobSeeker?.userId;
+                        const payerId = selectedPayment.payerId || selectedPayment.payer_id;
+                        const jobRefId = selectedPayment.jobPostingId || selectedPayment.jobId || selectedPayment.JobPostingId || selectedPayment.JobId;
+
+                        // Helper resolvers
+                        const resolveCompanyName = () => {
+                          // 1) direct id
+                          if (!companyName && companyId && Array.isArray(companies) && companies.length) {
+                            const foundCompany = companies.find((c) => String(c.id) === String(companyId));
+                            if (foundCompany) companyName = foundCompany.name;
+                          }
+                          // 2) via payer/user id mapping
+                          if (!companyName && (payerId || jobSeekerId) && Array.isArray(companies) && companies.length) {
+                            const candidateUserId = payerId || jobSeekerId;
+                            const companyByUser = companies.find((c) => String(c.userId) === String(candidateUserId));
+                            if (companyByUser) companyName = companyByUser.name;
+                          }
+                          // 3) via job ref
+                          if (!companyName && jobRefId && Array.isArray(jobs) && jobs.length) {
+                            const foundJob = jobs.find((j) => String(j.id) === String(jobRefId));
+                            if (foundJob) companyName = foundJob.company?.name || foundJob.Company?.name || foundJob.companyName || companyName;
+                          }
+                        };
+
+                        const resolveJobSeekerName = () => {
+                          if (!jobSeekerName && jobSeekerId && Array.isArray(users) && users.length) {
+                            const foundUser = users.find((u) => String(u.id) === String(jobSeekerId));
+                            if (foundUser) jobSeekerName = foundUser.name || foundUser.email;
+                          }
+                          if (!jobSeekerName && userEmail && Array.isArray(users) && users.length) {
+                            const foundByEmail = users.find((u) => (u.email || "").toLowerCase() === (userEmail || "").toLowerCase());
+                            if (foundByEmail) jobSeekerName = foundByEmail.name || foundByEmail.email;
+                          }
+                        };
+
+                        // Decide expected payer based on payment type
+                        if (pType.includes("APPLICATION") || pType.includes("APPROVAL")) {
+                          // Always show job seeker for these
+                          resolveJobSeekerName();
+                          const name = jobSeekerName || userName || payerName || userEmail || (jobSeekerId ? `User #${jobSeekerId}` : "Unknown");
+                          return `${name} (jobseeker)`;
+                        }
+
+                        // For job posting or other company-side fees, prefer company
+                        if (pType.includes("JOB") || pType.includes("POST")) {
+                          resolveCompanyName();
+                          const name = companyName || payerName || (companyId ? `Company #${companyId}` : "Unknown");
+                          return `${name} (company)`;
+                        }
+
+                        // Fallback heuristic if type is unknown
+                        resolveCompanyName();
+                        resolveJobSeekerName();
+                        let type = "unknown";
+                        if (companyName || companyId) type = "company";
+                        else if (jobSeekerName || jobSeekerId) type = "jobseeker";
+                        else if (selectedPayment.payerType || selectedPayment.payerRole) type = (selectedPayment.payerType || selectedPayment.payerRole).toString().toLowerCase();
+                        else if (pType === "APPROVAL_FEE") type = "jobseeker";
+
+                        const name = (type === "company" ? (companyName || payerName || (companyId ? `Company #${companyId}` : null))
+                                   : (jobSeekerName || userName || payerName || userEmail || (jobSeekerId ? `User #${jobSeekerId}` : null)))
+                                   || (payerId ? `Payer #${payerId}` : "Unknown");
+                        return `${name} (${type})`;
+                      })()}</div>
+                    </div>
+
+                    {selectedPayment.JobPosting && (
+                      <div className="pt-2">
+                        <div className="font-medium">Job</div>
+                        <div>{selectedPayment.JobPosting.title}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           <TabsContent value="categories" className="space-y-6">
@@ -2037,9 +2112,9 @@ export default function AdminDashboard({ onLogout }) {
               {pricingPlans.map((plan) => (
                 <Card
                   key={plan.id}
-                  className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[240px] flex flex-col"
                 >
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 flex-1 flex flex-col">
                     <div className="flex items-start justify-between mb-4">
                       <div>
                         <h4 className="text-xl font-bold text-stone-900 dark:text-white">
@@ -2074,7 +2149,7 @@ export default function AdminDashboard({ onLogout }) {
                       </div>
                     </div>
                     <div className="space-y-2 mb-4">
-                      {plan.features?.map((feature, index) => (
+                      {plan.features?.slice(0, 3).map((feature, index) => (
                         <div
                           key={index}
                           className="flex items-center space-x-2 text-sm text-stone-700 dark:text-stone-300"
@@ -2083,6 +2158,16 @@ export default function AdminDashboard({ onLogout }) {
                           <span>{feature.trim()}</span>
                         </div>
                       ))}
+                      {Array.isArray(plan.features) && plan.features.length > 3 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="px-0 text-stone-700 dark:text-stone-300"
+                          onClick={() => { setFeaturesPlan(plan); setShowFeaturesDialog(true); }}
+                        >
+                          View all features
+                        </Button>
+                      )}
                     </div>
                     <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
                       <span>
@@ -2096,6 +2181,24 @@ export default function AdminDashboard({ onLogout }) {
                 </Card>
               ))}
             </div>
+
+            {/* Features Details Dialog */}
+            <Dialog open={showFeaturesDialog} onOpenChange={setShowFeaturesDialog}>
+              <DialogContent className="bg-white dark:bg-stone-900 max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>{featuresPlan?.name} - All Features</DialogTitle>
+                  <DialogDescription>Full list of features for this plan</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-2">
+                  {Array.isArray(featuresPlan?.features) && featuresPlan.features.map((feature, idx) => (
+                    <div key={idx} className="flex items-start space-x-2 text-sm text-stone-700 dark:text-stone-300">
+                      <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
 
             {/* Edit Pricing Plan Dialog */}
             <Dialog

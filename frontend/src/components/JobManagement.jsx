@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Plus, Edit2, Trash2, MapPin, DollarSign, Calendar, Users } from "lucide-react";
+import { Loader2, Plus, Edit2, Trash2, MapPin, IndianRupee, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
 
 const JobManagement = () => {
@@ -395,7 +395,7 @@ const JobManagement = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="salaryRange" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
+                        <IndianRupee className="h-4 w-4" />
                         Monthly Salary (INR)
                       </Label>
                       <Input
@@ -656,7 +656,7 @@ const JobManagement = () => {
                       )}
                       {job.salaryRange && (
                         <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-                          <DollarSign className="h-3 w-3" />
+                          <IndianRupee className="h-3 w-3" />
                           <span>{job.salaryRange}</span>
                         </div>
                       )}
@@ -682,7 +682,7 @@ const JobManagement = () => {
                         className="border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
                         onClick={() => { setDescJob(job); setIsDescOpen(true); }}
                       >
-                        View Description
+                        View
                       </Button>
                     </div>
                   </CardContent>
@@ -692,20 +692,9 @@ const JobManagement = () => {
           )}
         </div>
 
-        {/* View Description Dialog */}
+        {/* View Description Dialog (only description shown) */}
         <Dialog open={isDescOpen} onOpenChange={setIsDescOpen}>
           <DialogContent className="max-w-2xl bg-stone-100/95 dark:bg-stone-900/90 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 rounded-2xl">
-            <DialogHeader className="pb-2">
-              <DialogTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-                {descJob?.title || "Job Description"}
-              </DialogTitle>
-              {descJob && (
-                <DialogDescription className="text-stone-600 dark:text-stone-400">
-                  {descJob.jobType?.replace('_',' ')}
-                  {descJob.location ? ` • ${descJob.location}` : ''}
-                </DialogDescription>
-              )}
-            </DialogHeader>
             <div className="text-sm text-stone-800 dark:text-stone-300 whitespace-pre-wrap leading-relaxed">
               {descJob?.description}
             </div>

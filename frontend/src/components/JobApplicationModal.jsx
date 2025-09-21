@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { X, MapPin, Building2, DollarSign, Clock, User, Upload, FileText } from 'lucide-react';
+import { X, MapPin, Building2, IndianRupee, Clock, User, Upload, FileText } from 'lucide-react';
 
 const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) => {
   const { getAccessTokenSilently } = useAuth0();
@@ -50,12 +50,6 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate resume is required
-    if (!resumeFile) {
-      setError('Please upload your resume to apply for this job');
-      return;
-    }
 
     setIsSubmitting(true);
     setError('');
@@ -106,28 +100,30 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
           try {
             let finalResumeUrl = null;
 
-            // Upload resume AFTER successful payment
-            setUploadingResume(true);
-            const formData = new FormData();
-            formData.append('resume', resumeFile);
-            formData.append('jobId', job.id);
+            // Upload resume AFTER successful payment only if a file was selected
+            if (resumeFile) {
+              setUploadingResume(true);
+              const formData = new FormData();
+              formData.append('resume', resumeFile);
+              formData.append('jobId', job.id);
 
-            const uploadResponse = await fetch('http://localhost:5000/api/applications/upload-resume', {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              body: formData,
-            });
+              const uploadResponse = await fetch('http://localhost:5000/api/applications/upload-resume', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+              });
 
-            if (!uploadResponse.ok) {
-              const uploadError = await uploadResponse.json();
-              throw new Error(uploadError.error || 'Failed to upload resume after payment');
+              if (!uploadResponse.ok) {
+                const uploadError = await uploadResponse.json();
+                throw new Error(uploadError.error || 'Failed to upload resume after payment');
+              }
+
+              const uploadResult = await uploadResponse.json();
+              finalResumeUrl = uploadResult.resumeUrl;
+              setUploadingResume(false);
             }
-
-            const uploadResult = await uploadResponse.json();
-            finalResumeUrl = uploadResult.resumeUrl;
-            setUploadingResume(false);
 
             // Confirm payment and create application with resume URL
             const confirmResponse = await fetch('http://localhost:5000/api/payments/confirm-application', {
@@ -144,7 +140,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
                 },
                 jobId: job.id,
                 coverLetter: coverLetter.trim() || null,
-                resumeUrl: finalResumeUrl,
+                ...(finalResumeUrl ? { resumeUrl: finalResumeUrl } : {}),
               }),
             });
 
@@ -242,7 +238,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
             </div>
             {job.salaryRange && (
               <div className="flex items-center space-x-2">
-                <DollarSign className="w-4 h-4 text-slate-500" />
+                <IndianRupee className="w-4 h-4 text-slate-500" />
                 <span className="text-slate-600 dark:text-slate-400">{job.salaryRange}</span>
               </div>
             )}
@@ -253,7 +249,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
           <form onSubmit={handleSubmit} className="space-y-6">
 
             <div className="space-y-4">
-              <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100">Resume Upload</h4>
+              <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100">Resume Upload (optional)</h4>
               
               {!resumeFile ? (
                 <>
@@ -274,7 +270,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
                         Click to upload PDF resume (max 2MB)
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                        Will be uploaded after successful payment
+                        You can apply without a resume. If you select one, it will upload after payment.
                       </p>
                     </div>
                   </label>

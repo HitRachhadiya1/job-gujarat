@@ -21,6 +21,7 @@ import {
   User,
   Building2,
   ArrowRight,
+  ArrowLeft,
   Briefcase,
   TrendingUp,
   UserCheck,
@@ -111,7 +112,7 @@ export default function JobPortalApp() {
 
         // Check the returned data instead of relying on stale state
         const currentRole = freshData?.role || null;
-        console.log(`Fresh role from API:`, currentRole);
+        console.log("Fresh role from API:", currentRole);
 
         if (currentRole === expectedRole) {
           console.log(`✅ Role successfully updated to: ${expectedRole}`);
@@ -131,7 +132,7 @@ export default function JobPortalApp() {
       } catch (error) {
         console.error(`Error on refresh attempt ${attempt}:`, error);
         if (attempt === maxRetries) {
-          console.warn(`Max retries reached. Continuing with current state.`);
+          console.warn("Max retries reached. Continuing with current state.");
           return; // Don't throw, let the app continue
         }
         // Short delay before retry on error
@@ -139,9 +140,7 @@ export default function JobPortalApp() {
       }
     }
 
-    console.warn(
-      `⚠️ Max retries (${maxRetries}) reached. Continuing with current state.`
-    );
+    console.warn(`⚠ Max retries (${maxRetries}) reached. Continuing with current state.`);
   }
 
   const handleGetStarted = () => {
@@ -376,149 +375,76 @@ export default function JobPortalApp() {
 
 // Role Selection Component (extracted from the original landing page logic)
 function RoleSelection({ onRoleSelected, onBackToLanding }) {
+  const { logout } = useAuth0();
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300 dark:from-stone-900 dark:via-stone-900 dark:to-stone-950 relative overflow-hidden transition-colors duration-300">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-stone-200/30 to-stone-300/30 dark:from-stone-800/20 dark:to-stone-700/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-stone-200/30 to-stone-300/30 dark:from-stone-800/20 dark:to-stone-900/20 rounded-full blur-3xl"></div>
+    <div className="h-screen min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] relative overflow-hidden">
+      {/* Subtle background accents */}
+      <div className="absolute inset-0 opacity-30 pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#77BEE0]/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-[#0574EE]/15 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 backdrop-blur-sm bg-stone-100/90 dark:bg-stone-900/90 border-b border-stone-300/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-colors duration-300">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-stone-900 dark:bg-stone-700 rounded-xl flex items-center justify-center shadow-lg">
-                <Briefcase className="w-6 h-6 text-white" />
+      {/* Top bar with single back arrow */}
+      <div className="relative z-10 px-6 py-4 flex items-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-xl text-[#155AA4] hover:text-[#0574EE] hover:bg-[#77BEE0]/20 dark:text-[#EAF6F9] dark:hover:text-white dark:hover:bg-white/10"
+          onClick={() => logout({ returnTo: window.location.origin })}
+          title="Back to login"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </Button>
+      </div>
+
+      {/* Content - no scrolling, vertically centered */}
+      <div className="relative z-10 h-[calc(100vh-72px)] flex items-center justify-center px-6">
+        <div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Job Seeker */}
+          <Card className="overflow-hidden bg-white/90 dark:bg-white/10 backdrop-blur-sm border border-[#77BEE0]/40 shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <div className="w-14 h-14 bg-[#155AA4] dark:bg-[#0574EE] rounded-xl flex items-center justify-center mx-auto shadow-md mb-3">
+                <User className="w-7 h-7 text-white" />
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-stone-800 dark:text-stone-200">
-                  Job Gujarat
-                </h1>
-                <p className="text-xs text-stone-600 dark:text-stone-400">
-                  Connecting you to What's Next
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="bg-stone-200/60 dark:bg-stone-700/40 rounded-lg p-1 border border-stone-300/60 dark:border-stone-700/60">
-                <ThemeToggle />
-              </div>
+              <CardTitle className="text-xl font-bold text-[#155AA4] dark:text-white">Job Seeker</CardTitle>
+              <CardDescription className="text-[#155AA4]/80 dark:text-[#EAF6F9]/80 text-sm">
+                Browse jobs, upload resume, and apply in minutes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <Button
-                onClick={onBackToLanding}
-                variant="outline"
-                className="border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-800 bg-transparent"
+                onClick={() => onRoleSelected("JOB_SEEKER")}
+                className="w-full bg-gradient-to-r from-[#155AA4] to-[#0574EE] hover:from-[#155AA4] hover:to-[#0574EE]/90 text-white font-semibold py-3 rounded-lg shadow-md"
               >
-                Back to Home
+                <span className="mr-2">Continue as Job Seeker</span>
+                <ArrowRight className="w-4 h-4" />
               </Button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+
+          {/* Company */}
+          <Card className="overflow-hidden bg-white/90 dark:bg-white/10 backdrop-blur-sm border border-[#77BEE0]/40 shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <div className="w-14 h-14 bg-[#0574EE] dark:bg-[#155AA4] rounded-xl flex items-center justify-center mx-auto shadow-md mb-3">
+                <Building2 className="w-7 h-7 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-[#155AA4] dark:text-white">Company</CardTitle>
+              <CardDescription className="text-[#155AA4]/80 dark:text-[#EAF6F9]/80 text-sm">
+                Post jobs and manage applicants with ease
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => onRoleSelected("COMPANY")}
+                className="w-full bg-gradient-to-r from-[#155AA4] to-[#0574EE] hover:from-[#155AA4] hover:to-[#0574EE]/90 text-white font-semibold py-3 rounded-lg shadow-md"
+              >
+                <span className="mr-2">Continue as Company</span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      </header>
-
-      {/* Role Selection Section */}
-      <section className="relative z-10 container mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold text-stone-800 dark:text-stone-200 mb-6">
-            Choose Your Role
-          </h2>
-          <p className="text-xl text-stone-700 dark:text-stone-300 max-w-2xl mx-auto">
-            Select your role to access the appropriate dashboard and features
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Job Seeker Card */}
-          <div className="group transform transition-all duration-300 hover:scale-[1.02]">
-            <Card className="relative overflow-hidden bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-blue-400"></div>
-
-              <CardHeader className="text-center pb-6 relative z-10">
-                <div className="w-16 h-16 bg-blue-600 dark:bg-blue-700 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
-                  <User className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl font-bold text-stone-800 dark:text-stone-200 mb-3">
-                  Job Seeker
-                </CardTitle>
-                <CardDescription className="text-stone-600 dark:text-stone-400 text-base">
-                  Discover your dream career with personalized job matching
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-6 relative z-10">
-                <div className="space-y-3">
-                  {[
-                    "AI-powered job recommendations",
-                    "Career development resources",
-                    "Application tracking system",
-                    "Professional networking tools",
-                  ].map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                      <span className="text-stone-700 dark:text-stone-300 text-sm">
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <Button
-                  onClick={() => onRoleSelected("JOB_SEEKER")}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300"
-                >
-                  <span className="mr-2">Find Your Dream Job</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Company Card */}
-          <div className="group transform transition-all duration-300 hover:scale-[1.02]">
-            <Card className="relative overflow-hidden bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-stone-700 to-stone-500"></div>
-
-              <CardHeader className="text-center pb-6 relative z-10">
-                <div className="w-16 h-16 bg-stone-900 dark:bg-stone-700 rounded-xl flex items-center justify-center mx-auto shadow-lg mb-4 transform group-hover:scale-110 transition-all duration-300">
-                  <Building2 className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl font-bold text-stone-800 dark:text-stone-200 mb-3">
-                  Company
-                </CardTitle>
-                <CardDescription className="text-stone-600 dark:text-stone-400 text-base">
-                  Build exceptional teams with advanced recruitment tools
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="space-y-6 relative z-10">
-                <div className="space-y-3">
-                  {[
-                    "Intelligent candidate matching",
-                    "Comprehensive talent analytics",
-                    "Streamlined hiring process",
-                    "Employer branding tools",
-                  ].map((feature, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-stone-700 rounded-full"></div>
-                      <span className="text-stone-700 dark:text-stone-300 text-sm">
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <Button
-                  onClick={() => onRoleSelected("COMPANY")}
-                  className="w-full bg-gradient-to-r from-stone-700 to-stone-600 hover:from-stone-800 hover:to-stone-700 text-white font-semibold py-3 rounded-lg shadow-md hover:shadow-lg transform hover:scale-[1.02] transition-all duration-300"
-                >
-                  <span className="mr-2">Find Top Talent</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

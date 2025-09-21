@@ -1,3 +1,4 @@
+ 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   CreditCard, 
   Shield, 
@@ -25,6 +27,8 @@ const JobPostingPayment = () => {
   const [selectedPlan, setSelectedPlan] = useState('');
   const [pricingPlans, setPricingPlans] = useState([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const [showFeaturesDialog, setShowFeaturesDialog] = useState(false);
+  const [featuresPlan, setFeaturesPlan] = useState(null);
   
   // Get job posting data from navigation state
   const jobData = location.state?.jobData || null;
@@ -327,7 +331,7 @@ const JobPostingPayment = () => {
                     selectedPlan === plan.id
                       ? 'ring-2 ring-stone-600 dark:ring-stone-400 shadow-lg'
                       : 'hover:shadow-md'
-                  } ${plan.popular ? 'border-stone-600 dark:border-stone-400' : ''}`}
+                  } ${plan.popular ? 'border-stone-600 dark:border-stone-400' : ''} min-h-[260px] flex flex-col`}
                   onClick={() => setSelectedPlan(plan.id)}
                 >
                   {plan.popular && (
@@ -354,9 +358,9 @@ const JobPostingPayment = () => {
                     </div>
                   </CardHeader>
 
-                  <CardContent>
+                  <CardContent className="flex-1">
                     <ul className="space-y-3">
-                      {plan.features.map((feature, index) => (
+                      {Array.isArray(plan.features) && plan.features.slice(0, 3).map((feature, index) => (
                         <li key={index} className="flex items-start space-x-3">
                           <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                           <span className="text-sm text-stone-700 dark:text-stone-300">
@@ -364,6 +368,17 @@ const JobPostingPayment = () => {
                           </span>
                         </li>
                       ))}
+                      {Array.isArray(plan.features) && plan.features.length > 3 && (
+                        <li>
+                          <button
+                            type="button"
+                            className="text-sm text-stone-700 dark:text-stone-300 underline"
+                            onClick={(e) => { e.stopPropagation(); setFeaturesPlan(plan); setShowFeaturesDialog(true); }}
+                          >
+                            View all features
+                          </button>
+                        </li>
+                      )}
                     </ul>
                   </CardContent>
                 </Card>
