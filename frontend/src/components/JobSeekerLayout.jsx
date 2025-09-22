@@ -84,33 +84,33 @@ export default function JobSeekerLayout({
             : "bg-white/50 dark:bg-slate-900/50 backdrop-blur-md"
         )}
       >
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo and Brand */}
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="flex items-center space-x-3"
+              className="flex items-center space-x-2 sm:space-x-3"
             >
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-50" />
                 <AppLogo
-                  size="w-10 h-10"
+                  size="w-8 h-8 sm:w-10 sm:h-10"
                   rounded="rounded-xl"
                   className="relative"
                 />
               </div>
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <div className="hidden xs:block">
+                <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Job Gujarat
                 </h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
+                <p className="text-xs text-slate-600 dark:text-slate-400 hidden sm:block">
                   Find Your Dream Job
                 </p>
               </div>
             </motion.div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-1">
+            <nav className="hidden lg:flex items-center space-x-1">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeView === item.id;
@@ -121,28 +121,53 @@ export default function JobSeekerLayout({
                     whileTap={{ scale: 0.95 }}
                     onClick={() => onNavigate(item.id)}
                     className={cn(
-                      "px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2",
+                      "px-3 lg:px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 text-sm lg:text-base",
                       isActive
                         ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                     )}
                   >
                     <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
+                    <span className="hidden xl:inline">{item.label}</span>
+                  </motion.button>
+                );
+              })}
+            </nav>
+
+            {/* Tablet Navigation - Icon Only */}
+            <nav className="hidden md:flex lg:hidden items-center space-x-1">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeView === item.id;
+                return (
+                  <motion.button
+                    key={item.id}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => onNavigate(item.id)}
+                    className={cn(
+                      "p-2 rounded-xl transition-all duration-200",
+                      isActive
+                        ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    )}
+                    title={item.label}
+                  >
+                    <Icon className="w-5 h-5" />
                   </motion.button>
                 );
               })}
             </nav>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-3">
-              {/* Notifications */}
+            <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
+              {/* Notifications - Hidden on small screens */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hidden sm:block"
               >
-                <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-400" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
               </motion.button>
 
@@ -151,12 +176,12 @@ export default function JobSeekerLayout({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={toggleTheme}
-                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hidden sm:block"
               >
                 {isDark ? (
-                  <Sun className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-400" />
                 ) : (
-                  <Moon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-400" />
                 )}
               </motion.button>
 
@@ -165,7 +190,7 @@ export default function JobSeekerLayout({
                 <DropdownMenuTrigger asChild>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
-                    className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="flex items-center space-x-1 sm:space-x-2 p-1 sm:p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                   >
                     <div className="relative">
                       <img
@@ -176,11 +201,11 @@ export default function JobSeekerLayout({
                           }`
                         }
                         alt="Profile"
-                        className="w-8 h-8 rounded-lg object-cover border-2 border-gradient-to-r from-blue-600 to-purple-600"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover border-2 border-gradient-to-r from-blue-600 to-purple-600"
                       />
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-slate-900" />
+                      <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-white dark:border-slate-900" />
                     </div>
-                    <ChevronDown className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                    <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400 hidden sm:block" />
                   </motion.button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -235,7 +260,7 @@ export default function JobSeekerLayout({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="md:hidden py-4 border-t border-slate-200 dark:border-slate-700"
+                className="md:hidden py-3 sm:py-4 border-t border-slate-200 dark:border-slate-700"
               >
                 {navigationItems.map((item) => {
                   const Icon = item.icon;
@@ -250,17 +275,44 @@ export default function JobSeekerLayout({
                         setMobileMenuOpen(false);
                       }}
                       className={cn(
-                        "w-full px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-3 mb-2",
+                        "w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-3 mb-1.5 sm:mb-2 text-sm sm:text-base",
                         isActive
                           ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
                           : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                       )}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span>{item.label}</span>
                     </motion.button>
                   );
                 })}
+                
+                {/* Mobile-only actions */}
+                <div className="flex items-center justify-center space-x-4 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  {/* Theme Toggle for Mobile */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={toggleTheme}
+                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    {isDark ? (
+                      <Sun className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                    ) : (
+                      <Moon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                    )}
+                  </motion.button>
+                  
+                  {/* Notifications for Mobile */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                  </motion.button>
+                </div>
               </motion.nav>
             )}
           </AnimatePresence>
@@ -268,18 +320,8 @@ export default function JobSeekerLayout({
       </motion.header>
 
       {/* Main Content */}
-      <main className="pt-20 min-h-screen">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeView}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+      <main className="pt-16 sm:pt-20 min-h-screen">
+        {children}
       </main>
     </div>
   );

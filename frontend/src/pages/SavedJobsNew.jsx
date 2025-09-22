@@ -14,7 +14,6 @@ import {
   Clock,
   DollarSign,
   Calendar,
-  Trash2,
   ExternalLink,
   BookmarkCheck,
   Filter,
@@ -41,6 +40,7 @@ import {
 import { cn } from "@/lib/utils";
 import { API_URL } from "@/config";
 import { savedJobsAPI } from "../api/savedJobs";
+import JobApplicationModal from "../components/JobApplicationModal";
 import { useToast } from "@/hooks/use-toast";
 import LoadingOverlay from "../components/LoadingOverlay";
 import useDelayedTrue from "../hooks/useDelayedTrue";
@@ -53,7 +53,8 @@ export default function SavedJobsNew() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("recent");
   const [filterBy, setFilterBy] = useState("all");
-  const [selectedJobs, setSelectedJobs] = useState(new Set());
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
 
   useEffect(() => {
     fetchSavedJobs();
@@ -66,11 +67,8 @@ export default function SavedJobsNew() {
       setSavedJobs(response.savedJobs || []);
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch saved jobs",
-        variant: "destructive",
-      });
+      // Set empty data on error (handles 403 for new users)
+      setSavedJobs([]);
     } finally {
       setLoading(false);
     }
@@ -79,8 +77,10 @@ export default function SavedJobsNew() {
   const handleRemoveJob = async (jobId) => {
     try {
       const token = await getAccessTokenSilently();
-      await savedJobsAPI.removeSavedJob(token, jobId);
-      setSavedJobs(prev => prev.filter(job => job.id !== jobId));
+      await savedJobsAPI.unsaveJob(jobId, token);
+      setSavedJobs((prev) =>
+        prev.filter((savedJob) => savedJob.job?.id !== jobId)
+      );
       toast({
         title: "Removed",
         description: "Job removed from saved list",
@@ -95,70 +95,44 @@ export default function SavedJobsNew() {
     }
   };
 
-  const handleBulkRemove = async () => {
-    if (selectedJobs.size === 0) return;
-    
-    try {
-      const token = await getAccessTokenSilently();
-      for (const jobId of selectedJobs) {
-        await savedJobsAPI.removeSavedJob(token, jobId);
-      }
-      setSavedJobs(prev => prev.filter(job => !selectedJobs.has(job.id)));
-      setSelectedJobs(new Set());
-      toast({
-        title: "Success",
-        description: `Removed ${selectedJobs.size} jobs from saved list`,
-      });
-    } catch (error) {
-      console.error("Error removing jobs:", error);
-      toast({
-        title: "Error",
-        description: "Failed to remove selected jobs",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleJobSelection = (jobId) => {
-    setSelectedJobs(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(jobId)) {
-        newSet.delete(jobId);
-      } else {
-        newSet.add(jobId);
-      }
-      return newSet;
-    });
-  };
-
   const getFilteredAndSortedJobs = () => {
     let filtered = [...savedJobs];
 
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(
-        job =>
-          job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          job.company?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          job.location?.toLowerCase().includes(searchTerm.toLowerCase())
+        (savedJob) =>
+          savedJob.job?.title
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          savedJob.job?.company?.name
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          savedJob.job?.location
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
     }
 
     // Apply category filter
     if (filterBy !== "all") {
-      filtered = filtered.filter(job => job.type === filterBy);
+      filtered = filtered.filter((savedJob) => savedJob.job?.type === filterBy);
     }
 
     // Apply sorting
     switch (sortBy) {
       case "recent":
-        filtered.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         break;
       case "salary":
-        filtered.sort((a, b) => (b.minSalary || 0) - (a.minSalary || 0));
+        filtered.sort(
+          (a, b) => (b.job?.minSalary || 0) - (a.job?.minSalary || 0)
+        );
         break;
       case "company":
-        filtered.sort((a, b) => (a.company?.name || "").localeCompare(b.company?.name || ""));
+        filtered.sort((a, b) =>
+          (a.job?.company?.name || "").localeCompare(b.job?.company?.name || "")
+        );
         break;
       default:
         break;
@@ -167,12 +141,16 @@ export default function SavedJobsNew() {
     return filtered;
   };
 
-  const SavedJobCard = ({ job, index }) => {
-    const isNew = new Date() - new Date(job.createdAt) < 7 * 24 * 60 * 60 * 1000;
-    const isExpiringSoon = job.applicationDeadline && 
+  const SavedJobCard = ({ job: savedJob, index }) => {
+    const job = savedJob.job || savedJob; // Handle both nested and direct job objects
+    const isNew =
+      new Date() - new Date(savedJob.createdAt) < 7 * 24 * 60 * 60 * 1000;
+    const isExpiringSoon =
+      job.applicationDeadline &&
       new Date(job.applicationDeadline) - new Date() < 3 * 24 * 60 * 60 * 1000;
-    const isSelected = selectedJobs.has(job.id);
-    const daysSaved = Math.floor((new Date() - new Date(job.savedAt)) / (1000 * 60 * 60 * 24));
+    const daysSaved = Math.floor(
+      (new Date() - new Date(savedJob.createdAt)) / (1000 * 60 * 60 * 24)
+    );
 
     return (
       <motion.div
@@ -186,30 +164,14 @@ export default function SavedJobsNew() {
         <Card
           className={cn(
             "group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300",
-            "bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm",
-            isSelected && "ring-2 ring-blue-500"
+            "bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm"
           )}
         >
-          {/* Selection checkbox */}
-          <div className="absolute top-4 left-4 z-10">
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => toggleJobSelection(job.id)}
-                className="w-5 h-5 rounded border-2 border-slate-300 text-blue-600 focus:ring-blue-500"
-              />
-            </motion.div>
-          </div>
-
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           {/* Badges */}
-          <div className="absolute top-4 right-4 flex gap-2 z-10">
+          {/* <div className="absolute top-4 right-4 flex gap-2 z-10">
             {isNew && (
               <motion.div
                 initial={{ scale: 0 }}
@@ -234,19 +196,15 @@ export default function SavedJobsNew() {
                 </Badge>
               </motion.div>
             )}
-          </div>
+          </div> */}
 
           <CardHeader className="pb-3 pl-14">
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-4">
                 {/* Company Logo */}
-                <motion.div
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.5 }}
-                  className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold shadow-lg"
-                >
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold shadow-lg">
                   {job.company?.name?.[0] || "C"}
-                </motion.div>
+                </div>
 
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
@@ -266,7 +224,7 @@ export default function SavedJobsNew() {
                 onClick={() => handleRemoveJob(job.id)}
                 className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
               >
-                <Trash2 className="w-5 h-5" />
+                <Heart className="w-5 h-5 fill-current" />
               </motion.button>
             </div>
           </CardHeader>
@@ -284,16 +242,22 @@ export default function SavedJobsNew() {
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <DollarSign className="w-4 h-4 text-green-500" />
-                <span>₹{(job.minSalary || 0).toLocaleString()}</span>
+                <span>
+                  {job.minSalary && job.maxSalary
+                    ? `₹${job.minSalary.toLocaleString()} - ₹${job.maxSalary.toLocaleString()}`
+                    : job.minSalary
+                    ? `₹${job.minSalary.toLocaleString()}+`
+                    : "Salary not specified"}
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+              {/* <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <BookmarkCheck className="w-4 h-4 text-orange-500" />
                 <span>Saved {daysSaved}d ago</span>
-              </div>
+              </div> */}
             </div>
 
             {/* Skills */}
-            <div className="flex flex-wrap gap-2 mb-4">
+            {/* <div className="flex flex-wrap gap-2 mb-4">
               {job.skills?.slice(0, 4).map((skill, idx) => (
                 <Badge
                   key={idx}
@@ -303,10 +267,10 @@ export default function SavedJobsNew() {
                   {skill}
                 </Badge>
               ))}
-            </div>
+            </div> */}
 
             {/* Priority Indicator */}
-            <div className="flex items-center justify-between mb-4">
+            {/* <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
@@ -314,31 +278,47 @@ export default function SavedJobsNew() {
                       key={i}
                       className={cn(
                         "w-4 h-4",
-                        i < 3 ? "text-yellow-500 fill-current" : "text-slate-300"
+                        i < 3
+                          ? "text-yellow-500 fill-current"
+                          : "text-slate-300"
                       )}
                     />
                   ))}
                 </div>
-                <span className="text-xs text-slate-600 dark:text-slate-400">Priority</span>
+                <span className="text-xs text-slate-600 dark:text-slate-400">
+                  Priority
+                </span>
               </div>
               {job.applicationDeadline && (
                 <span className="text-xs text-slate-600 dark:text-slate-400">
-                  Deadline: {new Date(job.applicationDeadline).toLocaleDateString()}
+                  Deadline:{" "}
+                  {new Date(job.applicationDeadline).toLocaleDateString()}
                 </span>
               )}
-            </div>
+            </div> */}
 
             {/* Action Buttons */}
             <div className="flex gap-2">
               <Button
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 group"
+                type="button"
+                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 group cursor-pointer"
+                onClick={() => {
+                  setSelectedJob(job);
+                  setIsApplicationModalOpen(true);
+                }}
               >
                 Apply Now
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="outline" size="icon">
-                <ExternalLink className="w-4 h-4" />
-              </Button>
+              {/* <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="cursor-pointer"
+                onClick={() => handleRemoveJob(job.id)}
+              >
+                <Heart className="w-4 h-4 fill-current" />
+              </Button> */}
             </div>
           </CardContent>
         </Card>
@@ -347,20 +327,24 @@ export default function SavedJobsNew() {
   };
 
   const StatsCard = ({ icon: Icon, label, value, color }) => (
-    <motion.div
-      whileHover={{ scale: 1.05 }}
-      transition={{ duration: 0.2 }}
-    >
+    <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
       <Card className="border-0 shadow-lg bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">{label}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                {label}
+              </p>
               <p className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 {value}
               </p>
             </div>
-            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", color)}>
+            <div
+              className={cn(
+                "w-10 h-10 rounded-lg flex items-center justify-center",
+                color
+              )}
+            >
               <Icon className="w-5 h-5 text-white" />
             </div>
           </div>
@@ -369,9 +353,8 @@ export default function SavedJobsNew() {
     </motion.div>
   );
 
-  const showLoader = useDelayedTrue(loading, 600);
-  if (showLoader) {
-    return <LoadingOverlay message="Loading..." />;
+  if (loading) {
+    return <LoadingOverlay message="Loading saved jobs..." />;
   }
 
   return (
@@ -383,25 +366,25 @@ export default function SavedJobsNew() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 py-8 relative">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 relative">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <h1 className="text-4xl font-bold mb-2">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
             <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Saved Jobs
             </span>
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
             Your curated collection of {savedJobs.length} job opportunities
           </p>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <StatsCard
             icon={Heart}
             label="Total Saved"
@@ -411,13 +394,25 @@ export default function SavedJobsNew() {
           <StatsCard
             icon={Sparkles}
             label="New This Week"
-            value={savedJobs.filter(j => new Date() - new Date(j.savedAt) < 7 * 24 * 60 * 60 * 1000).length}
+            value={
+              savedJobs.filter(
+                (j) =>
+                  new Date() - new Date(j.savedAt) < 7 * 24 * 60 * 60 * 1000
+              ).length
+            }
             color="bg-gradient-to-br from-blue-500 to-cyan-500"
           />
           <StatsCard
             icon={Timer}
             label="Apply Soon"
-            value={savedJobs.filter(j => j.applicationDeadline && new Date(j.applicationDeadline) - new Date() < 7 * 24 * 60 * 60 * 1000).length}
+            value={
+              savedJobs.filter(
+                (j) =>
+                  j.applicationDeadline &&
+                  new Date(j.applicationDeadline) - new Date() <
+                    7 * 24 * 60 * 60 * 1000
+              ).length
+            }
             color="bg-gradient-to-br from-orange-500 to-red-500"
           />
           <StatsCard
@@ -426,7 +421,7 @@ export default function SavedJobsNew() {
             value={Math.floor(savedJobs.length * 0.3)}
             color="bg-gradient-to-br from-green-500 to-emerald-500"
           />
-        </div>
+        </div> */}
 
         {/* Actions Bar */}
         <Card className="border-0 shadow-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm mb-6">
@@ -470,34 +465,13 @@ export default function SavedJobsNew() {
                   <SelectItem value="internship">Internship</SelectItem>
                 </SelectContent>
               </Select>
-
-              {/* Bulk Actions */}
-              {selectedJobs.size > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex items-center gap-2"
-                >
-                  <span className="text-sm text-slate-600 dark:text-slate-400">
-                    {selectedJobs.size} selected
-                  </span>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleBulkRemove}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remove Selected
-                  </Button>
-                </motion.div>
-              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Jobs Grid */}
         <AnimatePresence mode="popLayout">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {getFilteredAndSortedJobs().map((job, index) => (
               <SavedJobCard key={job.id} job={job} index={index} />
             ))}
@@ -530,6 +504,26 @@ export default function SavedJobsNew() {
           </motion.div>
         )}
       </div>
+
+      {/* Job Application Modal */}
+      {selectedJob && (
+        <JobApplicationModal
+          job={selectedJob}
+          isOpen={isApplicationModalOpen}
+          onClose={() => setIsApplicationModalOpen(false)}
+          onApplicationSubmitted={(application) => {
+            const jobTitle =
+              application?.job?.title ||
+              application?.title ||
+              selectedJob?.title ||
+              "this job";
+            toast({
+              title: "Success",
+              description: `Application submitted successfully for "${jobTitle}"!`,
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

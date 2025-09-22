@@ -106,50 +106,26 @@ export default function JobPortalApp() {
     }
   }
 
-  // Helper function to refresh auth meta with optimized retry logic
-  async function refreshAuthMetaWithRetry(expectedRole, maxRetries = 3) {
-    console.log(`Starting auth refresh for expected role: ${expectedRole}`);
+  // Simplified refresh with single attempt - no more retry loops
+  async function refreshAuthMetaWithRetry(expectedRole, maxRetries = 1) {
+    console.log(`Refreshing auth for expected role: ${expectedRole}`);
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      console.log(`Refresh attempt ${attempt}/${maxRetries}`);
+    try {
+      // Single refresh attempt
+      const freshData = await refreshAuthMeta();
+      const currentRole = freshData?.role || null;
+      console.log("Fresh role from API:", currentRole);
 
-      try {
-        // Call refresh and get the fresh data directly
-        const freshData = await refreshAuthMeta();
-
-        // Check the returned data instead of relying on stale state
-        const currentRole = freshData?.role || null;
-        console.log("Fresh role from API:", currentRole);
-
-        if (currentRole === expectedRole) {
-          console.log(`✅ Role successfully updated to: ${expectedRole}`);
-          return;
-        }
-
-        // Only retry if this isn't the last attempt
-        if (attempt < maxRetries) {
-          const delay = 1500; // Fixed 1.5s delay instead of progressive
-          console.log(
-            `Role still ${
-              currentRole || "null"
-            }, waiting ${delay}ms before retry...`
-          );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-      } catch (error) {
-        console.error(`Error on refresh attempt ${attempt}:`, error);
-        if (attempt === maxRetries) {
-          console.warn("Max retries reached. Continuing with current state.");
-          return; // Don't throw, let the app continue
-        }
-        // Short delay before retry on error
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (currentRole === expectedRole) {
+        console.log(`✅ Role successfully updated to: ${expectedRole}`);
+        return;
+      } else {
+        console.log(`Role is ${currentRole}, expected ${expectedRole}. Continuing anyway.`);
       }
+    } catch (error) {
+      console.error("Error refreshing auth metadata:", error);
+      // Continue anyway - don't block the UI
     }
-
-    console.warn(
-      `⚠ Max retries (${maxRetries}) reached. Continuing with current state.`
-    );
   }
 
   const handleGetStarted = () => {
@@ -180,8 +156,11 @@ export default function JobPortalApp() {
   // Unified loading handling to avoid flicker
   const authLoading = auth0Loading || loading;
 
-  // While initializing Auth0 or fetching role metadata, keep a single overlay
-  if (authLoading) {
+  // Call hooks at the top level - never conditionally
+  const showInitialLoader = useDelayedTrue(auth0Loading, 300);
+
+  // Show overlay only during initial Auth0 loading
+  if (showInitialLoader) {
     return (
       <LogoProvider>
         <LoadingOverlay message="Loading..." />
@@ -198,12 +177,21 @@ export default function JobPortalApp() {
     );
   }
 
-  // Authenticated and metadata loaded: if role is still missing, show role selection
-  if (!role) {
+  // Show loading while auth metadata is being fetched
+  if (loading) {
+    return (
+      <LogoProvider>
+        <LoadingOverlay message="Loading..." />
+      </LogoProvider>
+    );
+  }
+
+  // Only show role selection if user is authenticated but has no role
+  if (!role && isAuthenticated) {
     return (
       <LogoProvider>
         <RoleSelection
-          onRoleSelected={handleRoleSelected}
+          onRoleSelected={handleRoleSelect}
           onBackToLanding={handleBackToLanding}
         />
       </LogoProvider>
