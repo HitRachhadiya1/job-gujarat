@@ -1,23 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Users, Filter, Calendar, MapPin, Briefcase, ChevronDown, CheckCircle, Clock, UserCheck, XCircle, FileText } from 'lucide-react';
-import Spinner from '@/components/Spinner';
-<<<<<<< HEAD
-import ThemeToggle from '@/components/ThemeToggle';
-import AppLogo from '@/components/AppLogo';
-=======
-import { API_URL } from '@/config';
->>>>>>> 95725481755de0b5ce290d5ffb5a9da6340b9e28
+import React, { useEffect, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Users,
+  Filter,
+  Calendar,
+  MapPin,
+  Briefcase,
+  ChevronDown,
+  CheckCircle,
+  Clock,
+  UserCheck,
+  XCircle,
+  FileText,
+} from "lucide-react";
+import Spinner from "@/components/Spinner";
+import ThemeToggle from "@/components/ThemeToggle";
+import AppLogo from "@/components/AppLogo";
 
 const CompanyApplications = () => {
   const { getAccessTokenSilently } = useAuth0();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('');
-  const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 20, totalPages: 1 });
+  const [filter, setFilter] = useState("");
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 20,
+    totalPages: 1,
+  });
   const [updatingStatus, setUpdatingStatus] = useState({});
 
   useEffect(() => {
@@ -30,9 +49,9 @@ const CompanyApplications = () => {
       setLoading(true);
       const token = await getAccessTokenSilently();
       const url = new URL(`${API_URL}/applications/company/all`);
-      url.searchParams.set('page', page.toString());
-      url.searchParams.set('limit', '20');
-      if (filter) url.searchParams.set('status', filter);
+      url.searchParams.set("page", page.toString());
+      url.searchParams.set("limit", "20");
+      if (filter) url.searchParams.set("status", filter);
 
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -40,78 +59,94 @@ const CompanyApplications = () => {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to fetch applications');
+        throw new Error(err.error || "Failed to fetch applications");
       }
 
       const data = await res.json();
       setApplications(data.applications || []);
-      setPagination(data.pagination || { total: 0, page: 1, limit: 20, totalPages: 1 });
+      setPagination(
+        data.pagination || { total: 0, page: 1, limit: 20, totalPages: 1 }
+      );
     } catch (e) {
-      console.error('Error fetching company applications:', e);
+      console.error("Error fetching company applications:", e);
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric', month: 'short', day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const updateApplicationStatus = async (applicationId, newStatus) => {
     try {
-      setUpdatingStatus(prev => ({ ...prev, [applicationId]: true }));
+      setUpdatingStatus((prev) => ({ ...prev, [applicationId]: true }));
       const token = await getAccessTokenSilently();
-      
-      const response = await fetch(`${API_URL}/applications/${applicationId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
+
+      const response = await fetch(
+        `${API_URL}/applications/${applicationId}/status`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new Error(error.error || 'Failed to update status');
+        throw new Error(error.error || "Failed to update status");
       }
 
       // Update the local state
-      setApplications(prev => 
-        prev.map(app => 
-          app.id === applicationId 
+      setApplications((prev) =>
+        prev.map((app) =>
+          app.id === applicationId
             ? { ...app, status: newStatus, updatedAt: new Date().toISOString() }
             : app
         )
       );
-
     } catch (error) {
-      console.error('Error updating application status:', error);
-      alert('Failed to update application status. Please try again.');
+      console.error("Error updating application status:", error);
+      alert("Failed to update application status. Please try again.");
     } finally {
-      setUpdatingStatus(prev => ({ ...prev, [applicationId]: false }));
+      setUpdatingStatus((prev) => ({ ...prev, [applicationId]: false }));
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'APPLIED': return <Clock className="w-4 h-4" />;
-      case 'INTERVIEW': return <UserCheck className="w-4 h-4" />;
-      case 'HIRED': return <CheckCircle className="w-4 h-4" />;
-      case 'REJECTED': return <XCircle className="w-4 h-4" />;
-      default: return <Clock className="w-4 h-4" />;
+      case "APPLIED":
+        return <Clock className="w-4 h-4" />;
+      case "INTERVIEW":
+        return <UserCheck className="w-4 h-4" />;
+      case "HIRED":
+        return <CheckCircle className="w-4 h-4" />;
+      case "REJECTED":
+        return <XCircle className="w-4 h-4" />;
+      default:
+        return <Clock className="w-4 h-4" />;
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'APPLIED': return 'bg-stone-200/80 text-stone-800 dark:bg-stone-800/50 dark:text-stone-300';
-      case 'INTERVIEW': return 'bg-stone-300/80 text-stone-800 dark:bg-stone-700/50 dark:text-stone-300';
-      case 'HIRED': return 'bg-stone-200/80 text-stone-900 dark:bg-stone-800/50 dark:text-stone-200';
-      case 'REJECTED': return 'bg-stone-300/80 text-stone-700 dark:bg-stone-700/50 dark:text-stone-400';
-      default: return 'bg-stone-200/80 text-stone-800 dark:bg-stone-800/50 dark:text-stone-300';
+      case "APPLIED":
+        return "bg-stone-200/80 text-stone-800 dark:bg-stone-800/50 dark:text-stone-300";
+      case "INTERVIEW":
+        return "bg-stone-300/80 text-stone-800 dark:bg-stone-700/50 dark:text-stone-300";
+      case "HIRED":
+        return "bg-stone-200/80 text-stone-900 dark:bg-stone-800/50 dark:text-stone-200";
+      case "REJECTED":
+        return "bg-stone-300/80 text-stone-700 dark:bg-stone-700/50 dark:text-stone-400";
+      default:
+        return "bg-stone-200/80 text-stone-800 dark:bg-stone-800/50 dark:text-stone-300";
     }
   };
 
@@ -120,7 +155,9 @@ const CompanyApplications = () => {
       <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
         <div className="flex flex-col items-center space-y-4">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-400 border-t-stone-700 dark:border-stone-600 dark:border-t-stone-200"></div>
-          <p className="text-stone-600 dark:text-stone-300 font-medium">Loading applications...</p>
+          <p className="text-stone-600 dark:text-stone-300 font-medium">
+            Loading applications...
+          </p>
         </div>
       </div>
     );
@@ -136,8 +173,12 @@ const CompanyApplications = () => {
             <div className="flex items-center gap-3">
               <AppLogo size="w-10 h-10" rounded="rounded-lg" mode="contain" />
               <div className="leading-tight">
-                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">Job Gujarat</h1>
-                <p className="text-[10px] md:text-xs text-white/90">Employer Portal</p>
+                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                  Job Gujarat
+                </h1>
+                <p className="text-[10px] md:text-xs text-white/90">
+                  Employer Portal
+                </p>
               </div>
             </div>
             <span className="hidden md:inline-block text-white/60">|</span>
@@ -161,14 +202,21 @@ const CompanyApplications = () => {
             <Users className="w-8 h-8 text-stone-800 dark:text-stone-300" />
             <span>Applications for Your Jobs</span>
           </h1>
-          <p className="text-lg text-stone-700 dark:text-stone-400 font-medium">Review and manage candidates who applied to your postings</p>
+          <p className="text-lg text-stone-700 dark:text-stone-400 font-medium">
+            Review and manage candidates who applied to your postings
+          </p>
         </div>
 
         <Card className="mb-6 bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-lg rounded-2xl">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <Filter className="w-5 h-5 text-stone-600 dark:text-stone-400" />
-              <label htmlFor="statusFilter" className="text-sm font-medium text-stone-700 dark:text-stone-300">Filter by Status:</label>
+              <label
+                htmlFor="statusFilter"
+                className="text-sm font-medium text-stone-700 dark:text-stone-300"
+              >
+                Filter by Status:
+              </label>
               <select
                 id="statusFilter"
                 className="px-3 py-2 border border-[#77BEE0] dark:border-[#155AA4] rounded-md bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#0574EE]"
@@ -192,14 +240,21 @@ const CompanyApplications = () => {
           <Card className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-lg rounded-2xl">
             <CardContent className="p-12 text-center">
               <Users className="w-16 h-16 text-stone-500 dark:text-stone-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">No applications</h3>
-              <p className="text-stone-700 dark:text-stone-400 font-medium">No candidates found for the selected filter.</p>
+              <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">
+                No applications
+              </h3>
+              <p className="text-stone-700 dark:text-stone-400 font-medium">
+                No candidates found for the selected filter.
+              </p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             {applications.map((app) => (
-              <Card key={app.id} className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 hover:shadow-xl transition-all duration-200 shadow-lg rounded-2xl">
+              <Card
+                key={app.id}
+                className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 hover:shadow-xl transition-all duration-200 shadow-lg rounded-2xl"
+              >
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
@@ -218,16 +273,22 @@ const CompanyApplications = () => {
                       </div>
                     </div>
                     <div className="flex-shrink-0 flex items-center gap-3">
-                      <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(app.status)}`}>
+                      <div
+                        className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                          app.status
+                        )}`}
+                      >
                         {getStatusIcon(app.status)}
                         <span className="uppercase">{app.status}</span>
                       </div>
-                      
+
                       {/* Status Update Dropdown */}
                       <div className="relative">
                         <select
                           value={app.status}
-                          onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
+                          onChange={(e) =>
+                            updateApplicationStatus(app.id, e.target.value)
+                          }
                           disabled={updatingStatus[app.id]}
                           className="appearance-none bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] rounded-md px-3 py-1 text-sm font-medium text-stone-700 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-[#0574EE] disabled:opacity-50 disabled:cursor-not-allowed pr-8"
                         >
@@ -255,13 +316,17 @@ const CompanyApplications = () => {
                     </div>
                     <div>
                       <div className="text-sm">
-                        <span className="font-medium text-stone-700 dark:text-stone-300">Candidate:</span>{' '}
+                        <span className="font-medium text-stone-700 dark:text-stone-300">
+                          Candidate:
+                        </span>{" "}
                         {app.jobSeeker?.fullName} · {app.jobSeeker?.location}
                       </div>
                       {app.jobSeeker?.skills?.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-2">
                           {app.jobSeeker.skills.slice(0, 5).map((s, idx) => (
-                            <Badge key={idx} variant="secondary">{s}</Badge>
+                            <Badge key={idx} variant="secondary">
+                              {s}
+                            </Badge>
                           ))}
                         </div>
                       )}
@@ -270,7 +335,9 @@ const CompanyApplications = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(app.resumeSnapshot, '_blank')}
+                            onClick={() =>
+                              window.open(app.resumeSnapshot, "_blank")
+                            }
                             className="flex items-center gap-2 text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100"
                           >
                             <FileText className="w-4 h-4" />

@@ -3,27 +3,31 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
 import { useLogo } from "@/context/LogoContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Building2, 
-  Globe, 
+import { API_URL as API_BASE_URL } from "@/config";
+
+import {
+  Building2,
+  Globe,
   Settings,
-  Briefcase, 
-  Users, 
-  CheckCircle, 
+  Briefcase,
+  Users,
+  CheckCircle,
   Clock,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
 } from "lucide-react";
 import Spinner from "./Spinner";
-<<<<<<< HEAD
 import ThemeToggle from "./ThemeToggle";
 import AppLogo from "./AppLogo";
-=======
-import { API_URL, resolveAssetUrl } from "@/config";
->>>>>>> 95725481755de0b5ce290d5ffb5a9da6340b9e28
 
 function CompanyDashboard() {
   const { isDark, toggleTheme } = useTheme();
@@ -37,7 +41,7 @@ function CompanyDashboard() {
   const [applicationsTotal, setApplicationsTotal] = useState(0);
   const [recentApplicants, setRecentApplicants] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
-  
+
   // Resolve logo source to include backend host for relative '/uploads/..' paths
   const resolveLogoSrc = (value) => {
     return resolveAssetUrl(value);
@@ -54,7 +58,7 @@ function CompanyDashboard() {
   const fetchCompanyData = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/company`, {
+      const response = await fetch(`${API_BASE_URL}/company`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -97,7 +101,9 @@ function CompanyDashboard() {
       if (appsRes.ok) {
         const data = await appsRes.json();
         setApplicationsTotal(data.pagination?.total || 0);
-        setRecentApplicants(Array.isArray(data.applications) ? data.applications : []);
+        setRecentApplicants(
+          Array.isArray(data.applications) ? data.applications : []
+        );
       }
     } catch (e) {
       // Non-blocking for dashboard stats
@@ -112,7 +118,9 @@ function CompanyDashboard() {
       <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
         <div className="flex flex-col items-center space-y-4">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-400 border-t-stone-700 dark:border-stone-600 dark:border-t-stone-200"></div>
-          <p className="text-stone-600 dark:text-stone-300 font-medium">Loading dashboard...</p>
+          <p className="text-stone-600 dark:text-stone-300 font-medium">
+            Loading dashboard...
+          </p>
         </div>
       </div>
     );
@@ -124,9 +132,16 @@ function CompanyDashboard() {
         <Card className="max-w-md mx-auto bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
           <CardContent className="p-8 text-center">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">Error Loading Dashboard</h2>
-            <p className="text-stone-800 dark:text-stone-400 mb-4 font-medium">{error}</p>
-            <Button onClick={fetchCompanyData} className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl">
+            <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">
+              Error Loading Dashboard
+            </h2>
+            <p className="text-stone-800 dark:text-stone-400 mb-4 font-medium">
+              {error}
+            </p>
+            <Button
+              onClick={fetchCompanyData}
+              className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
               Try Again
             </Button>
           </CardContent>
@@ -145,13 +160,19 @@ function CompanyDashboard() {
             <div className="flex items-center gap-3">
               <AppLogo size="w-10 h-10" rounded="rounded-lg" mode="contain" />
               <div className="leading-tight">
-                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">Job Gujarat</h1>
-                <p className="text-[10px] md:text-xs text-white/90">Employer Portal</p>
+                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                  Job Gujarat
+                </h1>
+                <p className="text-[10px] md:text-xs text-white/90">
+                  Employer Portal
+                </p>
               </div>
             </div>
             <span className="hidden md:inline-block text-white/60">|</span>
             <h2 className="hidden md:block text-base md:text-lg font-semibold text-white/90">
-              {`Welcome, ${user?.given_name || user?.name?.split(" ")[0] || "User"}`}
+              {`Welcome, ${
+                user?.given_name || user?.name?.split(" ")[0] || "User"
+              }`}
             </h2>
           </div>
 
@@ -198,14 +219,20 @@ function CompanyDashboard() {
                         Verified
                       </Badge>
                     ) : (
-                      <Badge variant="secondary" className="bg-stone-300/80 text-stone-800 border-stone-500/50 dark:bg-stone-700/50 dark:text-stone-400 dark:border-stone-600/50">
+                      <Badge
+                        variant="secondary"
+                        className="bg-stone-300/80 text-stone-800 border-stone-500/50 dark:bg-stone-700/50 dark:text-stone-400 dark:border-stone-600/50"
+                      >
                         <Clock className="w-3 h-3 mr-1" />
                         Pending
                       </Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
-                    <Badge variant="secondary" className="text-sm bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50">
+                    <Badge
+                      variant="secondary"
+                      className="text-sm bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50"
+                    >
                       <Building2 className="w-4 h-4 mr-1" />
                       {company.industry}
                     </Badge>
@@ -224,8 +251,8 @@ function CompanyDashboard() {
                   </div>
                 </div>
               </div>
-              <Button 
-                onClick={() => navigate('/company-setup')} 
+              <Button
+                onClick={() => navigate("/company-setup")}
                 className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
               >
                 <Settings className="w-4 h-4" />
@@ -254,12 +281,16 @@ function CompanyDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="bg-white/80 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-300/70 dark:border-stone-800/60 shadow-md hover:shadow-lg transition-all duration-200 rounded-2xl">
             <CardHeader>
-              <CardTitle className="text-sm text-stone-500 dark:text-stone-400">Active Jobs</CardTitle>
+              <CardTitle className="text-sm text-stone-500 dark:text-stone-400">
+                Active Jobs
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-4xl font-bold text-stone-900 dark:text-stone-100">
-                  {statsLoading ? '—' : jobs.filter(j => j.status === 'PUBLISHED').length}
+                  {statsLoading
+                    ? "—"
+                    : jobs.filter((j) => j.status === "PUBLISHED").length}
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-stone-200/80 dark:bg-stone-800/50 flex items-center justify-center">
                   <Briefcase className="w-5 h-5 text-stone-700 dark:text-stone-300" />
@@ -270,12 +301,14 @@ function CompanyDashboard() {
 
           <Card className="bg-white/80 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-300/70 dark:border-stone-800/60 shadow-md hover:shadow-lg transition-all duration-200 rounded-2xl">
             <CardHeader>
-              <CardTitle className="text-sm text-stone-500 dark:text-stone-400">Total Applications</CardTitle>
+              <CardTitle className="text-sm text-stone-500 dark:text-stone-400">
+                Total Applications
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-4xl font-bold text-stone-900 dark:text-stone-100">
-                  {statsLoading ? '—' : applicationsTotal}
+                  {statsLoading ? "—" : applicationsTotal}
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-stone-200/80 dark:bg-stone-800/50 flex items-center justify-center">
                   <Users className="w-5 h-5 text-stone-700 dark:text-stone-300" />
@@ -298,19 +331,32 @@ function CompanyDashboard() {
           </CardHeader>
           <CardContent>
             {statsLoading ? (
-              <div className="text-stone-600 dark:text-stone-300">Loading...</div>
+              <div className="text-stone-600 dark:text-stone-300">
+                Loading...
+              </div>
             ) : recentApplicants.length === 0 ? (
-              <div className="text-stone-700 dark:text-stone-400 font-medium">No recent applications.</div>
+              <div className="text-stone-700 dark:text-stone-400 font-medium">
+                No recent applications.
+              </div>
             ) : (
               <div className="divide-y divide-stone-300/60 dark:divide-stone-800/60">
-                {recentApplicants.slice(0,3).map((app) => (
-                  <div key={app.id} className="py-4 flex items-center justify-between">
+                {recentApplicants.slice(0, 3).map((app) => (
+                  <div
+                    key={app.id}
+                    className="py-4 flex items-center justify-between"
+                  >
                     <div className="min-w-0">
-                      <div className="text-stone-900 dark:text-stone-100 font-semibold truncate">{app.jobSeeker?.fullName}</div>
-                      <div className="text-sm text-stone-600 dark:text-stone-400 truncate">{app.job?.title}</div>
+                      <div className="text-stone-900 dark:text-stone-100 font-semibold truncate">
+                        {app.jobSeeker?.fullName}
+                      </div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400 truncate">
+                        {app.job?.title}
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge className="uppercase bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50">{app.status}</Badge>
+                      <Badge className="uppercase bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50">
+                        {app.status}
+                      </Badge>
                       <div className="text-sm text-stone-600 dark:text-stone-400">
                         {new Date(app.appliedAt).toLocaleDateString()}
                       </div>
@@ -320,9 +366,9 @@ function CompanyDashboard() {
               </div>
             )}
             <div className="mt-4 flex justify-end">
-              <Button 
+              <Button
                 variant="outline"
-                onClick={() => navigate('/company/applications')}
+                onClick={() => navigate("/company/applications")}
                 className="border-stone-400 dark:border-stone-700 text-stone-800 dark:text-stone-200 hover:bg-stone-200 dark:hover:bg-stone-800 rounded-xl"
               >
                 View All Applications
@@ -330,8 +376,6 @@ function CompanyDashboard() {
             </div>
           </CardContent>
         </Card>
-
-        
       </div>
     </div>
   );

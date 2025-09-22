@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { API_URL } from '@/config';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { API_URL } from "@/config";
 
 const AuthMetaContext = createContext();
 
@@ -10,8 +16,8 @@ export const AuthMetaProvider = ({ children }) => {
     role: null,
     companyStatus: null,
     userStatus: null,
-    loading: false,
-    error: null
+    loading: true, // Start with loading true
+    error: null,
   });
   const fetchingRef = useRef(false);
   const cacheRef = useRef({ data: null, timestamp: 0 });
@@ -24,7 +30,7 @@ export const AuthMetaProvider = ({ children }) => {
         companyStatus: null,
         userStatus: null,
         loading: false,
-        error: null
+        error: null,
       });
       cacheRef.current = { data: null, timestamp: 0 };
       return;
@@ -32,21 +38,25 @@ export const AuthMetaProvider = ({ children }) => {
 
     // Check if we're already fetching to prevent multiple concurrent calls
     if (fetchingRef.current && !forceRefresh) {
-      console.log('Already fetching auth metadata, skipping duplicate call');
+      console.log("Already fetching auth metadata, skipping duplicate call");
       return;
     }
 
     // Check cache first (unless forcing refresh)
     const now = Date.now();
     const cachedData = cacheRef.current;
-    if (!forceRefresh && cachedData.data && (now - cachedData.timestamp) < CACHE_DURATION) {
-      console.log('Using cached auth metadata');
+    if (
+      !forceRefresh &&
+      cachedData.data &&
+      now - cachedData.timestamp < CACHE_DURATION
+    ) {
+      console.log("Using cached auth metadata");
       setAuthMeta({
         role: cachedData.data.role,
         companyStatus: cachedData.data.companyStatus,
         userStatus: cachedData.data.userStatus,
         loading: false,
-        error: null
+        error: null,
       });
       return cachedData.data;
     }
@@ -54,18 +64,21 @@ export const AuthMetaProvider = ({ children }) => {
     fetchingRef.current = true;
 
     try {
-      setAuthMeta(prev => ({ ...prev, loading: true, error: null }));
-      
+      setAuthMeta((prev) => ({ ...prev, loading: true, error: null }));
+
       // Use cached token unless forcing refresh
       const token = await getAccessTokenSilently({
-        cacheMode: forceRefresh ? 'off' : 'cache-only'
+        cacheMode: forceRefresh ? "off" : "cache-only",
       });
-      
-      console.log('Fetching fresh auth metadata...', retryCount > 0 ? `(retry ${retryCount})` : '');
+
+      console.log(
+        "Fetching fresh auth metadata...",
+        retryCount > 0 ? `(retry ${retryCount})` : ""
+      );
       const response = await fetch(`${API_URL}/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -74,7 +87,7 @@ export const AuthMetaProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      console.log('Fresh auth metadata fetched:', data);
+      console.log("Fresh auth metadata fetched:", data);
 
       // Update cache
       cacheRef.current = { data, timestamp: now };
@@ -84,18 +97,18 @@ export const AuthMetaProvider = ({ children }) => {
         companyStatus: data.companyStatus,
         userStatus: data.userStatus,
         loading: false,
-        error: null
+        error: null,
       });
-      
+
       return data; // Return the fetched data
     } catch (error) {
-      console.error('Error fetching auth metadata:', error);
+      console.error("Error fetching auth metadata:", error);
       setAuthMeta({
         role: null,
         companyStatus: null,
         userStatus: null,
         loading: false,
-        error: error.message
+        error: error.message,
       });
       throw error; // Re-throw for retry logic
     } finally {
@@ -105,25 +118,42 @@ export const AuthMetaProvider = ({ children }) => {
 
   // Fetch auth meta when authentication status changes
   useEffect(() => {
-    fetchAuthMeta();
-  }, [isAuthenticated]);
+    if (isAuthenticated && user?.sub) {
+      // Set loading immediately
+      setAuthMeta(prev => ({ ...prev, loading: true }));
+      // Small delay to ensure Auth0 is fully ready
+      const timer = setTimeout(() => {
+        fetchAuthMeta();
+      }, 100);
+      return () => clearTimeout(timer);
+    } else if (!isAuthenticated) {
+      // Clear loading when not authenticated
+      setAuthMeta({
+        role: null,
+        companyStatus: null,
+        userStatus: null,
+        loading: false,
+        error: null,
+      });
+    }
+  }, [isAuthenticated, user?.sub]);
 
   // Function to refresh auth meta (useful after role assignment or company creation)
   const refreshAuthMeta = () => {
-    console.log('Forcing auth metadata refresh...');
+    console.log("Forcing auth metadata refresh...");
     return fetchAuthMeta(true); // Force refresh and return the promise
   };
 
   // Function to clear cache and refresh
   const clearCacheAndRefresh = () => {
-    console.log('Clearing cache and refreshing auth metadata...');
+    console.log("Clearing cache and refreshing auth metadata...");
     cacheRef.current = { data: null, timestamp: 0 };
     fetchAuthMeta(true);
   };
 
   // Function to update auth meta locally (optimistic updates)
   const updateAuthMeta = (updates) => {
-    setAuthMeta(prev => ({ ...prev, ...updates }));
+    setAuthMeta((prev) => ({ ...prev, ...updates }));
   };
 
   const value = {
@@ -133,7 +163,7 @@ export const AuthMetaProvider = ({ children }) => {
     loading: authMeta.loading,
     error: authMeta.error,
     refreshAuthMeta,
-    updateAuthMeta
+    updateAuthMeta,
   };
 
   return (
@@ -146,7 +176,7 @@ export const AuthMetaProvider = ({ children }) => {
 export const useAuthMeta = () => {
   const context = useContext(AuthMetaContext);
   if (context === undefined) {
-    throw new Error('useAuthMeta must be used within an AuthMetaProvider');
+    throw new Error("useAuthMeta must be used within an AuthMetaProvider");
   }
   return context;
 };
