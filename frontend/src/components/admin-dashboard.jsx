@@ -70,8 +70,9 @@ import {
   Mail,
 } from "lucide-react";
 import { toast } from "sonner";
-import ThemeToggle from "./ThemeToggle";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { API_URL } from "@/config";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 export default function AdminDashboard({ onLogout }) {
   const { isDark, toggleTheme } = useTheme();
@@ -656,31 +657,26 @@ export default function AdminDashboard({ onLogout }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300 dark:from-stone-900 dark:via-stone-900 dark:to-stone-950 relative overflow-hidden transition-colors duration-300">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-stone-200/30 to-stone-300/30 dark:from-stone-800/20 dark:to-stone-700/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-stone-200/30 to-stone-300/30 dark:from-stone-800/20 dark:to-stone-900/20 rounded-full blur-3xl"></div>
-      </div>
+    <div className="min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] relative overflow-hidden transition-colors duration-300">
+      <div className="hidden"></div>
 
       {/* Header */}
       <header className="relative z-10 backdrop-blur-sm bg-stone-100/90 dark:bg-stone-900/90 border-b border-stone-300/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-colors duration-300">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <AppLogo size="w-12 h-12" rounded="rounded-xl" mode="contain" />
-              <div>
-                <h1 className="text-3xl font-bold text-stone-800 dark:text-stone-200">
-                  Admin Control Center
-                </h1>
-                <p className="text-xs text-stone-600 dark:text-stone-400">
-                  Job Gujarat Administration Panel
-                </p>
-              </div>
+            <AppLogo size="w-11 h-11" rounded="rounded-xl" mode="contain" />
+            <div>
+              <h1 className="text-2xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight">
+                Job Gujarat
+              </h1>
+              <p className="text-xs text-stone-700 dark:text-stone-400 font-medium">
+                Connecting you to What's Next
+              </p>
             </div>
+          </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-stone-200/60 dark:bg-stone-700/40 rounded-lg p-1 border border-stone-300/60 dark:border-stone-700/60">
-                <ThemeToggle />
-              </div>
+              <AnimatedThemeToggler className="p-2 rounded-lg hover:bg-stone-200/60 dark:hover:bg-stone-700/40 transition-colors" />
               
               <Button
                 variant="outline"
@@ -708,10 +704,12 @@ export default function AdminDashboard({ onLogout }) {
         </div>
       </header>
 
+      {loading && <LoadingOverlay message="Loading..." />}
+
       {/* Main Content */}
       <main className="relative z-10 container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7 mb-4 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg rounded-xl p-2">
+          <TabsList className="grid w-full grid-cols-7 mb-4 bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 rounded-xl p-2 shadow">
             <TabsTrigger
               value="overview"
               className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700"
@@ -768,7 +766,7 @@ export default function AdminDashboard({ onLogout }) {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-stone-600 dark:text-stone-300">
                     Job Seekers
@@ -787,7 +785,7 @@ export default function AdminDashboard({ onLogout }) {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-stone-600 dark:text-stone-300">
                     Companies
@@ -806,7 +804,7 @@ export default function AdminDashboard({ onLogout }) {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-stone-600 dark:text-stone-300">
                     Active Jobs
@@ -825,7 +823,7 @@ export default function AdminDashboard({ onLogout }) {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300">
+              <Card className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-stone-600 dark:text-stone-300">
                     Total Revenue
@@ -847,7 +845,7 @@ export default function AdminDashboard({ onLogout }) {
 
             {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg">
+              <Card className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-stone-800 dark:text-white flex items-center">
                     <Users className="w-5 h-5 mr-2" />
@@ -894,7 +892,7 @@ export default function AdminDashboard({ onLogout }) {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg">
+              <Card className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-stone-800 dark:text-white flex items-center">
                     <Briefcase className="w-5 h-5 mr-2" />
@@ -960,11 +958,11 @@ export default function AdminDashboard({ onLogout }) {
                     placeholder="Search companies..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600"
+                    className="pl-10 w-64 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl"
                   />
                 </div>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-40 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600">
+                  <SelectTrigger className="w-40 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] rounded-xl">
                     <SelectValue placeholder="Filter status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -981,7 +979,7 @@ export default function AdminDashboard({ onLogout }) {
               {filteredCompanies.map((company) => (
                 <Card
                   key={company.id}
-                  className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
@@ -1117,7 +1115,7 @@ export default function AdminDashboard({ onLogout }) {
                     placeholder="Search job seekers..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600"
+                    className="pl-10 w-64 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl"
                   />
                 </div>
               </div>
@@ -1127,7 +1125,7 @@ export default function AdminDashboard({ onLogout }) {
               {filteredUsers.map((user) => (
                 <Card
                   key={user.id}
-                  className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
@@ -1184,7 +1182,7 @@ export default function AdminDashboard({ onLogout }) {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="bg-white/50 dark:bg-stone-800/50"
+                          className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700"
                           onClick={() => openUserProfile(user)}
                         >
                           <Eye className="h-4 w-4 mr-1" />
@@ -1367,11 +1365,11 @@ export default function AdminDashboard({ onLogout }) {
                     placeholder="Search jobs..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600"
+                    className="pl-10 w-64 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl"
                   />
                 </div>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-40 bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border-stone-300 dark:border-stone-600">
+                  <SelectTrigger className="w-40 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] rounded-xl">
                     <SelectValue placeholder="Filter status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1390,7 +1388,7 @@ export default function AdminDashboard({ onLogout }) {
               {filteredJobs.map((job) => (
                 <Card
                   key={job.id}
-                  className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
@@ -1464,7 +1462,7 @@ export default function AdminDashboard({ onLogout }) {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="bg-white/50 dark:bg-stone-800/50"
+                          className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700"
                           onClick={() => {
                             setSelectedJob(job);
                             setShowJobDialog(true);

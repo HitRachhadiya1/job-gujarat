@@ -19,6 +19,8 @@ import {
   Zap
 } from 'lucide-react';
 import { API_URL, PUBLIC_API_URL } from "@/config";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import PaymentSuccessAlert from "@/components/comp-271";
 
 const JobPostingPayment = () => {
   const navigate = useNavigate();
@@ -30,6 +32,7 @@ const JobPostingPayment = () => {
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [showFeaturesDialog, setShowFeaturesDialog] = useState(false);
   const [featuresPlan, setFeaturesPlan] = useState(null);
+  const [success, setSuccess] = useState(false);
   
   // Get job posting data from navigation state
   const jobData = location.state?.jobData || null;
@@ -173,13 +176,28 @@ const JobPostingPayment = () => {
   const handlePayment = async () => {
     setLoading(true);
     try {
-      // 1) Get publishable key (no auth required)
-      const keyRes = await fetch(`${API_URL}/payment/key`);
-      const { key } = await keyRes.json();
+      // 1) Get Razorpay key: prefer env var; fallback to public endpoint if available
+      let key = import.meta.env.VITE_RAZORPAY_KEY_ID || import.meta.env.REACT_APP_RAZORPAY_KEY_ID || "";
+      if (!key) {
+        const fallbackUrl = `${API_URL}/payments/key`;
+        const keyRes = await fetch(fallbackUrl);
+        const contentType = keyRes.headers.get('content-type') || '';
+        if (!keyRes.ok) {
+          const text = await keyRes.text();
+          throw new Error(`Failed to fetch Razorpay key (${keyRes.status}): ${text.slice(0,200)}`);
+        }
+        if (!contentType.includes('application/json')) {
+          const text = await keyRes.text();
+          throw new Error(`Unexpected response for Razorpay key: ${text.slice(0,120)}`);
+        }
+        const json = await keyRes.json();
+        key = json.key;
+      }
+      if (!key) throw new Error("Razorpay key not configured. Set VITE_RAZORPAY_KEY_ID in frontend env or provide a public API endpoint.");
 
       // 2) Create order on backend (auth required)
       const token = await getAccessTokenSilently();
-      const orderRes = await fetch(`${API_URL}/payment/create-order`, {
+      const orderRes = await fetch(`${API_URL}/payments/create-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -205,8 +223,10 @@ const JobPostingPayment = () => {
         order_id: order.id,
         handler: async (response) => {
           try {
+            // Show success banner immediately when Razorpay returns success
+            setSuccess(true);
             // 4) Verify payment on backend
-            const verifyRes = await fetch(`${API_URL}/payment/verify`, {
+            const verifyRes = await fetch(`${API_URL}/payments/verify`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -217,11 +237,12 @@ const JobPostingPayment = () => {
             const verifyData = await verifyRes.json();
             if (!verifyRes.ok || !verifyData.success) {
               alert(verifyData.message || "Verification failed");
+              setSuccess(false);
               return;
             }
 
             // 5) Confirm and publish job atomically on backend
-            const confirmRes = await fetch(`${API_URL}/payment/confirm-and-publish`, {
+            const confirmRes = await fetch(`${API_URL}/payments/confirm-and-publish`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -232,26 +253,30 @@ const JobPostingPayment = () => {
                 order,
                 amount: selectedPlanData.price,
                 jobData,
+                pricingPlanId: selectedPlan || undefined,
               }),
             });
             const confirmData = await confirmRes.json();
             if (!confirmRes.ok) {
               console.error("Confirm-and-publish error:", confirmData);
               alert(confirmData.error || "Could not publish job after payment");
+              setSuccess(false);
               return;
             }
 
-            alert("Payment verified and job published successfully!");
-            navigate("/jobs");
+            // Navigate after a short delay to give the user visible success feedback
+            setTimeout(() => navigate("/jobs"), 1600);
           } catch (e) {
             console.error("Verification/Publish error:", e);
             alert("Verification failed");
+            setSuccess(false);
           }
         },
         prefill: {},
         theme: { color: "#2b2b2b" },
       };
 
+      if (!window.Razorpay) throw new Error("Razorpay script not loaded. Please ensure checkout script is included in index.html.");
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
@@ -269,7 +294,13 @@ const JobPostingPayment = () => {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950 py-8">
+    <div className="h-screen overflow-hidden bg-[#EAF6F9] dark:bg-[#0B1F3B] py-6 relative">
+      {loading && <LoadingOverlay message="Processing payment..." />}
+      {success && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+          <PaymentSuccessAlert message="Payment successful! Publishing your job..." />
+        </div>
+      )}
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
@@ -293,9 +324,9 @@ const JobPostingPayment = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-8 max-h-[calc(100vh-180px)] overflow-hidden">
           {/* Pricing Plans */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 overflow-y-auto pr-1">
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-2">
                 Select Your Plan
@@ -328,16 +359,16 @@ const JobPostingPayment = () => {
                 pricingPlans.map((plan) => (
                 <Card
                   key={plan.id}
-                  className={`relative cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                  className={`relative cursor-pointer transition-all duration-200 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 rounded-2xl ${
                     selectedPlan === plan.id
-                      ? 'ring-2 ring-stone-600 dark:ring-stone-400 shadow-lg'
+                      ? 'ring-2 ring-[#155AA4] dark:ring-[#77BEE0] shadow-xl'
                       : 'hover:shadow-md'
-                  } ${plan.popular ? 'border-stone-600 dark:border-stone-400' : ''} min-h-[260px] flex flex-col`}
+                  } ${plan.popular ? 'border-[#155AA4]' : ''} min-h-[260px] flex flex-col`}
                   onClick={() => setSelectedPlan(plan.id)}
                 >
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <Badge className="bg-stone-900 dark:bg-stone-700 text-white px-3 py-1">
+                      <Badge className="bg-[#155AA4] dark:bg-[#155AA4] text-white px-3 py-1 shadow">
                         Most Popular
                       </Badge>
                     </div>
@@ -423,7 +454,7 @@ const JobPostingPayment = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-8">
+            <Card className="sticky top-2">
               <CardHeader>
                 <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100">
                   Order Summary

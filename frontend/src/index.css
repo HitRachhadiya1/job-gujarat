@@ -139,3 +139,7 @@
 .bg-gradient-conic {
   background: conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops));
 }
+::view-transition-old(root), ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}

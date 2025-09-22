@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Building2, 
   Globe, 
@@ -21,7 +23,7 @@ import {
   FileText
 } from "lucide-react";
 import CompanyDetailsForm from "../components/CompanyDetailsForm";
-import Spinner from "../components/Spinner";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import { useAuthMeta } from "../context/AuthMetaContext";
 import { API_URL, resolveAssetUrl } from "@/config";
 
@@ -33,6 +35,7 @@ const CompanySettings = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDescOpen, setIsDescOpen] = useState(false);
 
   // Resolve logo source to include backend host for relative '/uploads/..' paths
   const resolveLogoSrc = (value) => {
@@ -84,19 +87,12 @@ const CompanySettings = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-400 border-t-stone-700 dark:border-stone-600 dark:border-t-stone-200"></div>
-          <p className="text-stone-600 dark:text-stone-300 font-medium">Loading company settings...</p>
-        </div>
-      </div>
-    );
+    return <LoadingOverlay message="Loading Company profile" />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center p-4 transition-colors duration-500">
+      <div className="min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] flex items-center justify-center p-4 transition-colors duration-500">
         <Card className="max-w-md mx-auto bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
           <CardContent className="p-8 text-center">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -113,7 +109,7 @@ const CompanySettings = () => {
 
   if (isEditing || !company) {
     return (
-      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 transition-colors duration-500">
+      <div className="min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] transition-colors duration-500">
         <CompanyDetailsForm
           existingCompany={company}
           onSuccess={company ? handleUpdateSuccess : handleCreateSuccess}
@@ -128,17 +124,19 @@ const CompanySettings = () => {
     );
   }
 
+  const isDescLong = !!company?.description && company.description.length > 180;
+
   return (
-    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 py-8 transition-colors duration-500">
+    <div className="min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] py-8 transition-colors duration-500">
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-stone-900 dark:text-stone-100 mb-2 tracking-tight">Company Settings</h1>
-          <p className="text-stone-700 dark:text-stone-400 font-medium">Manage your company profile and information</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-[#155AA4] to-[#0574EE] bg-clip-text text-transparent mb-2 tracking-tight">Company Settings</h1>
+          <p className="text-stone-700 dark:text-stone-300 font-medium">Manage your company profile and information</p>
         </div>
 
         {/* Company Profile Card */}
-        <Card className="mb-8 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-400/70 dark:border-stone-800/50 shadow-xl rounded-2xl">
+        <Card className="mb-8 bg-white/95 dark:bg-stone-900/80 backdrop-blur-xl border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-2xl rounded-2xl">
           <CardHeader className="pb-6">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div>
@@ -151,7 +149,7 @@ const CompanySettings = () => {
               </div>
               <Button 
                 onClick={() => setIsEditing(true)} 
-                className="bg-stone-900 hover:bg-stone-800 text-white flex items-center space-x-2 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="bg-gradient-to-r from-[#155AA4] to-[#0574EE] hover:from-[#155AA4] hover:to-[#0574EE]/90 text-white flex items-center space-x-2 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <Edit3 className="w-4 h-4" />
                 <span>Edit Company Details</span>
@@ -167,7 +165,7 @@ const CompanySettings = () => {
                   <img
                     src={resolveLogoSrc(company.logoUrl)}
                     alt={`${company.name} logo`}
-                    className="rounded-xl object-contain border-2 border-stone-400 dark:border-stone-600 shadow-md bg-white"
+                    className="rounded-xl object-contain border-2 border-[#77BEE0]/60 dark:border-[#155AA4]/60 shadow-md bg-white"
                     style={{ maxWidth: '80px', maxHeight: '80px' }}
                   />
                 </div>
@@ -177,7 +175,7 @@ const CompanySettings = () => {
                   <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
                     {company.name}
                   </h2>
-                  <Badge variant="secondary" className="text-sm bg-stone-200 text-stone-800 dark:bg-stone-800 dark:text-stone-200">
+                  <Badge variant="secondary" className="text-sm bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800">
                     <Building2 className="w-4 h-4 mr-1" />
                     {company.industry}
                   </Badge>
@@ -198,7 +196,7 @@ const CompanySettings = () => {
                     href={company.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-1 text-stone-800 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100 transition-colors font-medium"
+                    className="inline-flex items-center space-x-1 text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 transition-colors font-medium"
                   >
                     <Globe className="w-4 h-4" />
                     <span>Visit Website</span>
@@ -216,9 +214,21 @@ const CompanySettings = () => {
                 <FileText className="w-5 h-5 mr-2 text-stone-700 dark:text-stone-400" />
                 About Company
               </h3>
-              <p className="text-stone-800 dark:text-stone-300 leading-relaxed font-medium">
-                {company.description}
-              </p>
+              <div className="relative bg-stone-50 dark:bg-stone-800/40 rounded-2xl p-6 border border-[#77BEE0]/40 dark:border-[#155AA4]/40">
+                <p
+                  className="text-stone-800 dark:text-stone-300 leading-relaxed font-medium break-words whitespace-pre-wrap"
+                  style={{ display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 4, overflow: 'hidden' }}
+                >
+                  {company.description}
+                </p>
+                {isDescLong && (
+                  <div className="mt-4 flex justify-end">
+                    <Button size="sm" variant="outline" className="border-[#77BEE0] dark:border-[#155AA4]" onClick={() => setIsDescOpen(true)}>
+                      Read more
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <Separator />
@@ -283,6 +293,20 @@ const CompanySettings = () => {
           </CardContent>
         </Card>
 
+        {/* Full Description Modal */}
+        {company?.description && (
+          <Dialog open={isDescOpen} onOpenChange={setIsDescOpen}>
+            <DialogContent className="max-w-2xl bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40">
+              <DialogHeader>
+                <DialogTitle className="text-stone-900 dark:text-white">About {company.name}</DialogTitle>
+                <DialogDescription className="text-stone-600 dark:text-stone-400">Company description</DialogDescription>
+              </DialogHeader>
+              <div className="text-stone-800 dark:text-stone-300 whitespace-pre-wrap break-words leading-relaxed">
+                {company.description}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
         
       </div>
     </div>

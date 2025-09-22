@@ -179,10 +179,9 @@ export default function JobPortalApp() {
 
   // Unified loading handling to avoid flicker
   const authLoading = auth0Loading || loading;
-  const showLoader = useDelayedTrue(authLoading, 600);
 
-  // Show overlay while Auth0 or auth meta are initializing
-  if (showLoader && !isAuthenticated) {
+  // While initializing Auth0 or fetching role metadata, keep a single overlay
+  if (authLoading) {
     return (
       <LogoProvider>
         <LoadingOverlay message="Loading..." />
@@ -199,11 +198,8 @@ export default function JobPortalApp() {
     );
   }
 
-  // Authenticated but metadata loading
-  if (showLoader && isAuthenticated) {
-    return <LoadingOverlay message="Loading..." />;
-  }
-  if (!role)
+  // Authenticated and metadata loaded: if role is still missing, show role selection
+  if (!role) {
     return (
       <LogoProvider>
         <RoleSelection
@@ -212,6 +208,7 @@ export default function JobPortalApp() {
         />
       </LogoProvider>
     );
+  }
 
   // Debug logging
   console.log("App rendering with role:", role);

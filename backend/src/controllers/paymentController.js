@@ -69,7 +69,7 @@ async function confirmAndPublish(req, res) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const { payment, jobData, amount, order } = req.body || {};
+    const { payment, jobData, amount, order, pricingPlanId } = req.body || {};
     if (!payment?.razorpay_order_id || !payment?.razorpay_payment_id || !payment?.razorpay_signature) {
       return res.status(400).json({ error: "Missing payment fields" });
     }
@@ -94,9 +94,36 @@ async function confirmAndPublish(req, res) {
       return res.status(403).json({ error: "Company profile not found" });
     }
 
-    const totalAmount = Number(amount);
+    // Fetch Razorpay order to capture accurate amount & currency (robust fallbacks)
+    let capturedAmount = 0;
+    let capturedCurrency = "INR";
+    try {
+      const fetchedOrder = await razorpay.orders.fetch(payment.razorpay_order_id);
+      if (fetchedOrder?.amount) {
+        capturedAmount = fetchedOrder.amount / 100; // paise -> rupees
+        capturedCurrency = fetchedOrder.currency || "INR";
+      }
+    } catch (e) {
+      console.warn("Could not fetch order details from Razorpay:", e.message);
+      if (order?.amount) {
+        capturedAmount = Number(order.amount) / 100; // Razorpay order amounts are in paise
+        capturedCurrency = order.currency || "INR";
+      } else {
+        capturedAmount = Number(amount) || 0;
+      }
+    }
 
     const result = await prisma.$transaction(async (tx) => {
+      // Validate pricing plan exists (optional)
+      let planIdToUse = null;
+      if (pricingPlanId) {
+        try {
+          const plan = await tx.pricingPlan.findUnique({ where: { id: pricingPlanId } });
+          if (plan) planIdToUse = plan.id;
+        } catch (e) {
+          // ignore missing plan
+        }
+      }
       const job = await tx.jobPosting.create({
         data: {
           companyId: user.Company.id,
@@ -111,18 +138,43 @@ async function confirmAndPublish(req, res) {
         },
       });
 
-      await tx.paymentTransaction.create({
-        data: {
-          companyId: user.Company.id,
-          jobPostingId: job.id,
-          paymentType: "JOB_POSTING_FEE",
-          gateway: "Razorpay",
-          transactionId: payment.razorpay_payment_id,
-          amount: new Prisma.Decimal(totalAmount),
-          currency: "INR",
-          status: "SUCCESS",
-        },
+      // Ensure idempotency: if a record with the same transactionId exists, update/link it
+      const existingTx = await tx.paymentTransaction.findUnique({
+        where: { transactionId: payment.razorpay_payment_id },
       });
+
+      if (!existingTx) {
+        await tx.paymentTransaction.create({
+          data: {
+            companyId: user.Company.id,
+            jobPostingId: job.id,
+            ...(planIdToUse ? { pricingPlanId: planIdToUse } : {}),
+            paymentType: "JOB_POSTING_FEE",
+            gateway: "razorpay",
+            transactionId: payment.razorpay_payment_id,
+            amount: new Prisma.Decimal(capturedAmount),
+            currency: capturedCurrency,
+            status: "SUCCESS",
+            completedAt: new Date(),
+          },
+        });
+      } else {
+        await tx.paymentTransaction.update({
+          where: { transactionId: payment.razorpay_payment_id },
+          data: {
+            companyId: user.Company.id,
+            jobPostingId: job.id,
+            ...(planIdToUse ? { pricingPlanId: planIdToUse } : {}),
+            paymentType: "JOB_POSTING_FEE",
+            gateway: "razorpay",
+            // Only overwrite amount/currency if missing
+            ...(existingTx.amount == null ? { amount: new Prisma.Decimal(capturedAmount) } : {}),
+            ...(existingTx.currency ? {} : { currency: capturedCurrency }),
+            status: "SUCCESS",
+            completedAt: existingTx.completedAt || new Date(),
+          },
+        });
+      }
 
       return job;
     });

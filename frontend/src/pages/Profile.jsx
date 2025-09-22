@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import Spinner from '@/components/Spinner';
+import LoadingOverlay from '@/components/LoadingOverlay';
 import JobSeekerProfileForm from '../components/JobSeekerProfileForm';
 import JobSeekerProfileView from '@/components/JobSeekerProfileView';
 import { API_URL } from '@/config';
@@ -37,7 +37,7 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading) return <LoadingOverlay message="Loading profile..." />;
 
   if (editing) {
     return (

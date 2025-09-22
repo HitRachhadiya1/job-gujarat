@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Filter, Calendar, MapPin, Briefcase, ChevronDown, CheckCircle, Clock, UserCheck, XCircle, FileText } from 'lucide-react';
-import Spinner from '@/components/Spinner';
-<<<<<<< HEAD
-import ThemeToggle from '@/components/ThemeToggle';
-import AppLogo from '@/components/AppLogo';
-=======
 import { API_URL } from '@/config';
->>>>>>> 95725481755de0b5ce290d5ffb5a9da6340b9e28
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 const CompanyApplications = () => {
   const { getAccessTokenSilently } = useAuth0();
@@ -116,45 +112,11 @@ const CompanyApplications = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-stone-400 border-t-stone-700 dark:border-stone-600 dark:border-t-stone-200"></div>
-          <p className="text-stone-600 dark:text-stone-300 font-medium">Loading applications...</p>
-        </div>
-      </div>
-    );
+    return <LoadingOverlay message="Loading Applications..." />;
   }
 
   return (
-    <div className="min-h-screen bg-[#EAF6F9] dark:bg-stone-950 pt-24 py-8 transition-colors duration-500">
-      {/* Header - Solid Professional Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-40 h-20 bg-[#155AA4] dark:bg-[#155AA4] border-b border-[#77BEE0]/40 shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
-        <div className="h-full flex items-center justify-between px-6 md:px-8">
-          {/* Brand + Title */}
-          <div className="flex items-center gap-4 md:gap-6">
-            <div className="flex items-center gap-3">
-              <AppLogo size="w-10 h-10" rounded="rounded-lg" mode="contain" />
-              <div className="leading-tight">
-                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">Job Gujarat</h1>
-                <p className="text-[10px] md:text-xs text-white/90">Employer Portal</p>
-              </div>
-            </div>
-            <span className="hidden md:inline-block text-white/60">|</span>
-            <h2 className="hidden md:block text-base md:text-lg font-semibold text-white/90">
-              Applications
-            </h2>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="bg-white/10 rounded-lg p-1 border border-white/20">
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] pt-8 py-8 transition-colors duration-500">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-stone-900 dark:text-stone-100 mb-2 flex items-center gap-3 tracking-tight">

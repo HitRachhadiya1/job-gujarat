@@ -14,7 +14,7 @@ import {
   ExternalLink,
   FileText,
 } from 'lucide-react';
-import Spinner from '../components/Spinner';
+import LoadingOverlay from '@/components/LoadingOverlay';
 import { savedJobsAPI } from '../api/savedJobs';
 import JobApplicationModal from '../components/JobApplicationModal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -113,7 +113,7 @@ const SavedJobs = () => {
   };
 
   if (loading) {
-    return <Spinner />;
+    return <LoadingOverlay message="Loading saved jobs..." />;
   }
 
   return (

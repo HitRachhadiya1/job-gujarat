@@ -250,9 +250,9 @@ const CompanyDetailsForm = ({
   };
 
   return (
-    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 py-6 transition-colors duration-500">
+    <div className="min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] py-6 transition-colors duration-500">
       <div className="container mx-auto px-4 max-w-2xl">
-        <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-400/70 dark:border-stone-800/50 shadow-xl rounded-2xl">
+        <Card className="bg-white/95 dark:bg-stone-900/80 backdrop-blur-xl border border-[#77BEE0]/50 dark:border-[#155AA4]/40 shadow-xl rounded-2xl">
           <CardHeader className="space-y-1 relative">
             <CardTitle className="text-2xl font-bold text-stone-900 dark:text-stone-100 flex items-center space-x-2 tracking-tight">
               <Building2 className="w-6 h-6 text-stone-700 dark:text-stone-400" />

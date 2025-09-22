@@ -18,7 +18,7 @@ import {
   FileText,
 } from 'lucide-react';
 import JobApplicationModal from '../components/JobApplicationModal';
-import Spinner from '../components/Spinner';
+import LoadingOverlay from "@/components/LoadingOverlay";
 import { savedJobsAPI } from '../api/savedJobs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { API_URL } from "@/config";
@@ -148,7 +148,7 @@ const BrowseJobs = () => {
   };
 
   if (loading) {
-    return <Spinner />;
+    return <LoadingOverlay message="Loading jobs..." />;
   }
 
   return (

@@ -24,7 +24,7 @@ import {
   XCircle,
   Users,
 } from "lucide-react";
-import Spinner from "../components/Spinner";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import ApprovalProcessModal from "../components/ApprovalProcessModal";
 import { API_URL } from "@/config";
 
@@ -177,7 +177,7 @@ const MyApplications = () => {
   };
 
   if (loading) {
-    return <Spinner />;
+    return <LoadingOverlay message="Loading applications..." />;
   }
 
   return (

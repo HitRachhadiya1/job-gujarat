@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@/components/ui/button";
@@ -23,9 +24,10 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Plus, Edit2, Trash2, MapPin, IndianRupee, Calendar, Users } from "lucide-react";
+import { Loader2, Plus, Edit2, Trash2, MapPin, IndianRupee, Calendar, Users, FileText, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { API_URL } from "@/config";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 const JobManagement = () => {
   const navigate = useNavigate();
@@ -122,6 +124,17 @@ const JobManagement = () => {
     if (!formData.title || !formData.description || !formData.jobType) {
       toast.error("Please fill in all required fields");
       return;
+    }
+
+    // Validate expiry date: must be strictly greater than today
+    if (formData.expiresAt) {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const selected = new Date(formData.expiresAt + 'T00:00:00');
+      if (selected <= today) {
+        toast.error("Application deadline must be a future date (after today)");
+        return;
+      }
     }
 
     try {
@@ -222,19 +235,12 @@ const JobManagement = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center transition-colors duration-500">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-stone-700 dark:text-stone-200" />
-          <p className="text-stone-600 dark:text-stone-300 font-medium">Loading job postings...</p>
-        </div>
-      </div>
-    );
+    return <LoadingOverlay message="Loading Job Management" />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-stone-300 dark:bg-stone-950 flex items-center justify-center p-6 transition-colors duration-500">
+      <div className="min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] flex items-center justify-center p-6 transition-colors duration-500">
         <Card className="w-full max-w-md bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
           <CardHeader>
             <CardTitle className="text-red-600 dark:text-red-400 tracking-tight">Error Loading Jobs</CardTitle>
@@ -251,7 +257,7 @@ const JobManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#EAF6F9] dark:bg-stone-950 pt-8 pb-10 px-6 transition-colors duration-500">
+    <div className="min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] pt-8 pb-10 px-6 transition-colors duration-500">
       <div className="container mx-auto max-w-7xl space-y-8">
         {/* Enhanced Header Section */}
         <div className="relative">
@@ -291,35 +297,43 @@ const JobManagement = () => {
                         Create New Job
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-2xl sm:rounded-xl">
-              <DialogHeader className="text-center space-y-3 pb-6">
-                <div className="mx-auto w-16 h-16 bg-[#155AA4] rounded-full flex items-center justify-center">
-                  {editingJob ? (
-                    <Edit2 className="h-8 w-8 text-white" />
-                  ) : (
-                    <Plus className="h-8 w-8 text-white" />
-                  )}
+                    <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl border-0 shadow-2xl rounded-3xl">
+              <DialogHeader className="text-center space-y-4 pb-8 border-b border-stone-200/50 dark:border-stone-700/30">
+                <div className="relative mx-auto">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#155AA4]/20 to-[#0574EE]/20 rounded-3xl blur-xl opacity-60" />
+                  <div className="relative w-20 h-20 bg-gradient-to-br from-[#155AA4] to-[#0574EE] rounded-3xl flex items-center justify-center shadow-2xl">
+                    {editingJob ? (
+                      <Edit2 className="h-10 w-10 text-white" />
+                    ) : (
+                      <Plus className="h-10 w-10 text-white" />
+                    )}
+                  </div>
                 </div>
-                <DialogTitle className="text-2xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
+                <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-stone-900 via-stone-800 to-stone-700 dark:from-white dark:via-stone-100 dark:to-stone-200 bg-clip-text text-transparent leading-tight">
                   {editingJob ? "Edit Job Posting" : "Create New Job Posting"}
                 </DialogTitle>
-                <DialogDescription className="text-stone-700 dark:text-stone-400 text-base font-medium">
-                  {editingJob ? "Update your job posting details to attract the right candidates" : "Fill in the details below to create an attractive job posting"}
+                <DialogDescription className="text-stone-600 dark:text-stone-400 text-lg font-medium max-w-2xl mx-auto leading-relaxed">
+                  {editingJob ? "Update your job posting details to attract the right candidates and grow your team" : "Fill in the details below to create an attractive job posting that stands out to top talent"}
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleSubmit} className="space-y-8">
+              <form onSubmit={handleSubmit} className="space-y-10 pt-8">
                 {/* Basic Information Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-6 bg-[#155AA4] rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Basic Information</h3>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#155AA4] to-[#0574EE] rounded-2xl flex items-center justify-center shadow-lg">
+                      <Users className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">Basic Information</h3>
+                      <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">Essential details about the position</p>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Label htmlFor="title" className="text-stone-700 dark:text-stone-200 font-medium flex items-center gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <Label htmlFor="title" className="text-stone-700 dark:text-stone-200 font-semibold text-base flex items-center gap-2">
                         Job Title *
-                        <span className="text-xs text-stone-500 dark:text-stone-400">(Be specific and descriptive)</span>
+                        <span className="text-xs text-stone-500 dark:text-stone-400 font-normal">(Be specific and descriptive)</span>
                       </Label>
                       <Input
                         id="title"
@@ -327,43 +341,43 @@ const JobManagement = () => {
                         value={formData.title}
                         onChange={handleInputChange}
                         placeholder="e.g. Senior React Developer"
-                        className="h-12 bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] focus:border-[#0574EE] focus:ring-0"
+                        className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base font-medium shadow-sm transition-all duration-200"
                         required
                       />
                     </div>
 
-                    <div className="space-y-3">
-                      <Label htmlFor="jobType" className="text-slate-700 dark:text-slate-200 font-medium">Job Type *</Label>
+                    <div className="space-y-4">
+                      <Label htmlFor="jobType" className="text-stone-700 dark:text-stone-200 font-semibold text-base">Job Type *</Label>
                       <Select
                         value={formData.jobType}
                         onValueChange={(value) => setFormData(prev => ({ ...prev, jobType: value }))}
                       >
-                        <SelectTrigger className="h-12 bg-white dark:bg-stone-900 border border-[#77BEe0] dark:border-[#155AA4] focus:border-[#0574EE]">
+                        <SelectTrigger className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] rounded-xl text-base font-medium shadow-sm">
                           <SelectValue placeholder="Select employment type" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="FULL_TIME" className="cursor-pointer">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                              Full Time
+                        <SelectContent className="rounded-xl border-2 border-stone-200 dark:border-stone-700 shadow-xl">
+                          <SelectItem value="FULL_TIME" className="cursor-pointer py-3 px-4 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-sm"></div>
+                              <span className="font-medium">Full Time</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="PART_TIME" className="cursor-pointer">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              Part Time
+                          <SelectItem value="PART_TIME" className="cursor-pointer py-3 px-4 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full shadow-sm"></div>
+                              <span className="font-medium">Part Time</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="CONTRACT" className="cursor-pointer">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                              Contract
+                          <SelectItem value="CONTRACT" className="cursor-pointer py-3 px-4 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 bg-orange-500 rounded-full shadow-sm"></div>
+                              <span className="font-medium">Contract</span>
                             </div>
                           </SelectItem>
-                          <SelectItem value="INTERNSHIP" className="cursor-pointer">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                              Internship
+                          <SelectItem value="INTERNSHIP" className="cursor-pointer py-3 px-4 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-3 h-3 bg-purple-500 rounded-full shadow-sm"></div>
+                              <span className="font-medium">Internship</span>
                             </div>
                           </SelectItem>
                         </SelectContent>
@@ -373,14 +387,19 @@ const JobManagement = () => {
                 </div>
 
                 {/* Location & Compensation Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-6 bg-[#155AA4] rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Location & Compensation</h3>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <MapPin className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">Location & Compensation</h3>
+                      <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">Where and how much you'll pay</p>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Label htmlFor="location" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <Label htmlFor="location" className="text-stone-700 dark:text-stone-200 font-semibold text-base flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
                         Work Location
                       </Label>
@@ -390,12 +409,12 @@ const JobManagement = () => {
                         value={formData.location}
                         onChange={handleInputChange}
                         placeholder="e.g. Ahmedabad, Gujarat or Remote"
-                        className="h-12 bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] focus:border-[#0574EE] focus:ring-0"
+                        className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base font-medium shadow-sm transition-all duration-200"
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="salaryRange" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
+                    <div className="space-y-4">
+                      <Label htmlFor="salaryRange" className="text-stone-700 dark:text-stone-200 font-semibold text-base flex items-center gap-2">
                         <IndianRupee className="h-4 w-4" />
                         Monthly Salary (INR)
                       </Label>
@@ -415,25 +434,30 @@ const JobManagement = () => {
                           }
                         }}
                         placeholder="e.g. 25000"
-                        className="h-12 bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] focus:border-[#0574EE] focus:ring-0"
+                        className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base font-medium shadow-sm transition-all duration-200"
                       />
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
-                        Enter monthly salary amount in INR (numbers only). Do not enter annual package.
+                      <div className="text-sm text-stone-500 dark:text-stone-400 bg-stone-50 dark:bg-stone-800/50 p-3 rounded-lg">
+                        💡 Enter monthly salary amount in INR (numbers only). Do not enter annual package.
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Job Description Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-6 bg-[#155AA4] rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Job Description</h3>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <FileText className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">Job Description</h3>
+                      <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">Outline responsibilities, culture, and growth</p>
+                    </div>
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="description" className="text-slate-700 dark:text-slate-200 font-medium">
+                    <Label htmlFor="description" className="text-stone-700 dark:text-stone-200 font-semibold text-base">
                       Detailed Description *
-                      <span className="text-xs text-slate-500 font-normal ml-2">
+                      <span className="text-xs text-stone-500 font-normal ml-2">
                         (Include role responsibilities, team culture, growth opportunities)
                       </span>
                     </Label>
@@ -442,12 +466,10 @@ const JobManagement = () => {
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      placeholder="We are looking for a passionate developer to join our growing team...\n\nKey Responsibilities:\n• Develop and maintain web applications\n• Collaborate with cross-functional teams\n• Write clean, maintainable code\n\nWhat we offer:\n• Competitive salary and benefits\n• Flexible working hours\n• Professional development opportunities"
-                      rows={8}
-                      className="bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] focus:border-[#0574EE] focus:ring-0 resize-none"
+                      className="h-40 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base shadow-sm resize-none"
                       required
                     />
-                    <div className="text-xs text-slate-500 dark:text-slate-400 flex justify-between">
+                    <div className="text-xs text-stone-600 dark:text-stone-400 flex justify-between">
                       <span>{formData.description.length} characters</span>
                       <span>Minimum 50 characters recommended</span>
                     </div>
@@ -455,10 +477,15 @@ const JobManagement = () => {
                 </div>
 
                 {/* Requirements Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-6 bg-[#155AA4] rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Requirements & Skills</h3>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <Tag className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">Requirements & Skills</h3>
+                      <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">List key qualifications and desired skills</p>
+                    </div>
                   </div>
                   <div className="space-y-4">
                     <Label className="text-slate-700 dark:text-slate-200 font-medium">
@@ -473,13 +500,13 @@ const JobManagement = () => {
                           value={newRequirement}
                           onChange={(e) => setNewRequirement(e.target.value)}
                           placeholder="e.g. 3+ years React experience, Bachelor's degree, etc."
-                          className="h-12 bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] focus:border-[#0574EE] focus:ring-0 pr-20"
+                          className="h-12 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 pr-24 rounded-xl"
                           onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addRequirement())}
                         />
                         <Button 
                           type="button" 
                           onClick={addRequirement} 
-                          className="absolute right-1 top-1 h-10 px-4 bg-[#0574EE] hover:bg-[#155AA4]"
+                          className="absolute right-1 top-1 h-10 px-4 bg-[#0574EE] hover:bg-[#155AA4] rounded-lg"
                           disabled={!newRequirement.trim()}
                         >
                           Add
@@ -488,13 +515,13 @@ const JobManagement = () => {
                     </div>
                     {formData.requirements.length > 0 && (
                       <div className="space-y-2">
-                        <Label className="text-sm text-slate-600 dark:text-slate-300">Added Requirements:</Label>
-                        <div className="flex flex-wrap gap-2 p-4 bg-slate-50 dark:bg-slate-900/40 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <Label className="text-sm text-stone-700 dark:text-stone-300 font-semibold">Added Requirements:</Label>
+                        <div className="flex flex-wrap gap-2 p-4 bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 shadow-sm">
                           {formData.requirements.map((req, index) => (
                             <Badge 
                               key={index} 
                               variant="secondary" 
-                              className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+                              className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-0 hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
                             >
                               <span>{req}</span>
                               <button
@@ -513,16 +540,21 @@ const JobManagement = () => {
                 </div>
 
                 {/* Additional Details Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-6 bg-[#155AA4] rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">Additional Details</h3>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <Calendar className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">Additional Details</h3>
+                      <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">Optional settings to refine your posting</p>
+                    </div>
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="expiresAt" className="text-slate-700 dark:text-slate-200 font-medium flex items-center gap-2">
+                    <Label htmlFor="expiresAt" className="text-stone-700 dark:text-stone-200 font-semibold text-base flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
                       Application Deadline
-                      <span className="text-xs text-slate-500 font-normal">(Optional)</span>
+                      <span className="text-xs text-stone-500 font-normal">(Optional)</span>
                     </Label>
                     <Input
                       type="date"
@@ -530,11 +562,11 @@ const JobManagement = () => {
                       name="expiresAt"
                       value={formData.expiresAt}
                       onChange={handleInputChange}
-                      className="h-12 bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] focus:border-[#0574EE] focus:ring-0 max-w-xs"
-                      min={new Date().toISOString().split('T')[0]}
+                      className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base shadow-sm max-w-xs"
+                      min={(() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })()}
                     />
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      Leave empty for no deadline
+                    <div className="text-sm text-stone-600 dark:text-stone-400 bg-stone-50 dark:bg-stone-800/50 p-3 rounded-lg">
+                      Leave empty if you don't want to set an application deadline
                     </div>
                   </div>
                 </div>

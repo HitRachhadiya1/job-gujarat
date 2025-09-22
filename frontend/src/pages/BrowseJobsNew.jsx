@@ -62,6 +62,13 @@ export default function BrowseJobsNew() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
 
+  const isExpired = (expiresAt) => {
+    if (!expiresAt) return false;
+    const endOfDay = new Date(expiresAt);
+    endOfDay.setHours(23, 59, 59, 999);
+    return new Date() > endOfDay;
+  };
+
   useEffect(() => {
     fetchJobs();
     fetchSavedJobs();
@@ -179,6 +186,7 @@ export default function BrowseJobsNew() {
       new Date() - new Date(job.createdAt) < 7 * 24 * 60 * 60 * 1000;
     const isSaved = savedJobs.has(job.id);
     const isHot = Math.random() > 0.7; // Simulate hot jobs
+    const expired = isExpired(job.expiresAt);
 
     return (
       <motion.div
@@ -239,6 +247,18 @@ export default function BrowseJobsNew() {
                 <Heart className={cn("w-5 h-5", isSaved && "fill-current")} />
               </motion.button>
             </div>
+            {/* Status badges */}
+            <div className="mt-2 flex items-center gap-2">
+              {expired && (
+                <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-0">Closed</Badge>
+              )}
+              {job.expiresAt && !expired && (
+                <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-0 flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  Ends {new Date(job.expiresAt).toLocaleDateString()}
+                </Badge>
+              )}
+            </div>
           </CardHeader>
 
           <CardContent>
@@ -282,11 +302,12 @@ export default function BrowseJobsNew() {
 
             {/* Apply Button */}
             <Button
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 group"
-              onClick={() => { setSelectedJob(job); setIsApplicationModalOpen(true); }}
+              className={cn("w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 group", expired && "opacity-60 cursor-not-allowed")}
+              onClick={() => { if (!expired) { setSelectedJob(job); setIsApplicationModalOpen(true); } }}
+              disabled={expired}
             >
-              Apply Now
-              <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              {expired ? "Applications Closed" : "Apply Now"}
+              {!expired && <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
             </Button>
           </CardContent>
         </Card>

@@ -176,8 +176,27 @@ async function deleteJobPosting(req, res) {
       return res.status(403).json({ error: "You can only delete your own job postings" });
     }
 
-    await prisma.jobPosting.delete({
-      where: { id }
+    // Delete related records first to avoid foreign key constraint errors
+    await prisma.$transaction(async (tx) => {
+      // Delete payment transactions associated with this job
+      await tx.paymentTransaction.deleteMany({
+        where: { jobPostingId: id }
+      });
+
+      // Delete job applications associated with this job
+      await tx.jobApplication.deleteMany({
+        where: { jobId: id }
+      });
+
+      // Delete saved jobs associated with this job
+      await tx.savedJob.deleteMany({
+        where: { jobId: id }
+      });
+
+      // Finally delete the job posting
+      await tx.jobPosting.delete({
+        where: { id }
+      });
     });
 
     res.json({ success: true, message: "Job posting deleted successfully" });

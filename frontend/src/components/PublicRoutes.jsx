@@ -9,6 +9,8 @@ import {
 } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { useLogo } from "../context/LogoContext";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+
 import AppLogo from "./AppLogo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -259,21 +261,18 @@ export default function PublicRoutes({ onGetStarted }) {
               whileHover={{ scale: 1.05 }}
               className="flex items-center space-x-3"
             >
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-lg opacity-50" />
-                <AppLogo
-                  size="w-12 h-12"
-                  rounded="rounded-2xl"
-                  mode="contain"
-                  className="relative"
-                />
-              </div>
+              <AppLogo
+                size="w-11 h-11"
+                rounded="rounded-xl"
+                mode="contain"
+                className="relative"
+              />
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-xl md:text-2xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight">
                   Job Gujarat
                 </h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Your Career Partner
+                <p className="text-[11px] md:text-xs leading-tight text-stone-700 dark:text-stone-400 font-medium">
+                  Connecting you to What's Next
                 </p>
               </div>
             </motion.div>
@@ -297,18 +296,8 @@ export default function PublicRoutes({ onGetStarted }) {
               >
                 How it Works
               </a>
-              <Button
-                onClick={toggleDarkMode}
-                variant="ghost"
-                size="sm"
-                className="p-2"
-              >
-                {isDarkMode ? (
-                  <Sun className="w-5 h-5" />
-                ) : (
-                  <Moon className="w-5 h-5" />
-                )}
-              </Button>
+              <AnimatedThemeToggler className="p-2 rounded-lg hover:bg-[#77BEE0]/20 dark:hover:bg-white/10 transition-colors" />
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -339,7 +328,7 @@ export default function PublicRoutes({ onGetStarted }) {
             className="text-center max-w-5xl mx-auto"
           >
             {/* Floating Badge */}
-            <motion.div
+            {/* <motion.div
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -349,7 +338,7 @@ export default function PublicRoutes({ onGetStarted }) {
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Gujarat's #1 Job Portal
               </span>
-            </motion.div>
+            </motion.div> */}
 
             {/* Main Headline */}
             <motion.h1
@@ -737,7 +726,7 @@ export default function PublicRoutes({ onGetStarted }) {
                 2025 Job Gujarat. All rights reserved.
               </p>
               <p className="text-slate-400 text-sm mt-4 md:mt-0">
-                Made with in Gujarat
+                Made in Gujarat
               </p>
             </div>
           </div>
