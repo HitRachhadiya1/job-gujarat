@@ -1,273 +1,748 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useMotionValue,
+  useSpring,
+} from "framer-motion";
+import { useInView } from "react-intersection-observer";
 import { useLogo } from "../context/LogoContext";
 import AppLogo from "./AppLogo";
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { 
-  Users, 
-  Building2, 
-  ArrowRight, 
-  Briefcase, 
-  TrendingUp, 
-  UserCheck, 
-  Award, 
-  Globe, 
-  Moon, 
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import {
+  Users,
+  Building2,
+  ArrowRight,
+  Briefcase,
+  TrendingUp,
+  UserCheck,
+  Award,
+  Globe,
+  Moon,
   Sun,
   CheckCircle,
   Star,
   Shield,
   Zap,
   Target,
-  Search,
-  Heart,
-  Sparkles,
+  MapPin,
+  DollarSign,
   Clock,
-  Brain,
-  Rocket,
-  Lock,
-  Eye,
+  Search,
   Filter,
+  BookOpen,
+  Mail,
+  Phone,
+  Lock,
   Linkedin,
   Twitter,
   Instagram,
-  Facebook
-} from "lucide-react"
+  Facebook,
+  Sparkles,
+  BarChart3,
+  MousePointerClick,
+  Menu,
+  X,
+  ChevronRight,
+  ArrowUpRight,
+  Code2,
+  Palette,
+  Cpu,
+  Database,
+  MessageSquare,
+  FileText,
+  Github,
+  Layers,
+} from "lucide-react";
 
 export default function PublicRoutes({ onGetStarted }) {
   const { loginWithRedirect } = useAuth0();
-  const { appLogo } = useLogo();
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const { logo } = useLogo();
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { scrollYProgress } = useScroll();
+  const scaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  // Animation variants
+  const fadeUpVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 1 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  // Counter animation state
+  const [counters, setCounters] = useState({
+    jobs: 0,
+    companies: 0,
+    seekers: 0,
+    placements: 0,
+  });
+
+  const { ref: statsRef, inView: statsInView } = useInView({
+    threshold: 0.3,
+    triggerOnce: true,
+  });
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme")
+    const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
-      setIsDarkMode(true)
-      document.documentElement.classList.add("dark")
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
     }
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    if (statsInView) {
+      // Animate counters
+      const duration = 2000;
+      const steps = 60;
+      const stepDuration = duration / steps;
+
+      let currentStep = 0;
+      const timer = setInterval(() => {
+        currentStep++;
+        const progress = currentStep / steps;
+
+        setCounters({
+          jobs: Math.floor(12450 * progress),
+          companies: Math.floor(850 * progress),
+          seekers: Math.floor(45000 * progress),
+          placements: Math.floor(8900 * progress),
+        });
+
+        if (currentStep >= steps) {
+          clearInterval(timer);
+        }
+      }, stepDuration);
+
+      return () => clearInterval(timer);
+    }
+  }, [statsInView]);
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
+    setIsDarkMode(!isDarkMode);
     if (!isDarkMode) {
-      document.documentElement.classList.add("dark")
-      localStorage.setItem("theme", "dark")
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.classList.remove("dark")
-      localStorage.setItem("theme", "light")
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
-  }
+  };
 
   const handleGetStarted = () => {
     loginWithRedirect();
-  }
+  };
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+  };
 
   const features = [
     {
       icon: Search,
-      title: "Browse & Apply",
-      description: "Search jobs and submit applications with your resume."
-    },
-    {
-      icon: UserCheck,
-      title: "Profile & Resume Upload",
-      description: "Create your profile, upload resume and photo securely."
+      title: "Smart Job Matching",
+      description:
+        "AI-powered recommendations that match your skills with the perfect opportunities",
+      color: "from-blue-500 to-cyan-500",
+      size: "large",
     },
     {
       icon: Shield,
-      title: "Aadhaar Documents",
-      description: "Upload Aadhaar after hire to complete the approval process."
+      title: "Verified Profiles",
+      description: "Aadhaar verification ensures authentic candidates",
+      color: "from-purple-500 to-pink-500",
+      size: "small",
     },
     {
       icon: Zap,
-      title: "Razorpay Payments",
-      description: "Secure approval fee payments integrated with Razorpay."
-    }
-  ]
+      title: "Instant Applications",
+      description: "One-click apply with saved profiles",
+      color: "from-orange-500 to-red-500",
+      size: "small",
+    },
+    {
+      icon: BarChart3,
+      title: "Real-time Analytics",
+      description:
+        "Track application status, view count, and company responses instantly",
+      color: "from-green-500 to-emerald-500",
+      size: "medium",
+    },
+    {
+      icon: Globe,
+      title: "Gujarat Focused",
+      description: "Exclusive opportunities from top companies",
+      color: "from-indigo-500 to-blue-500",
+      size: "small",
+    },
+    {
+      icon: Building2,
+      title: "500+ Companies",
+      description: "Partner with industry leaders",
+      color: "from-yellow-500 to-orange-500",
+      size: "small",
+    },
+  ];
 
   const highlights = [
     {
       icon: Building2,
       title: "Company Job Posting",
-      description: "Post jobs and manage applicants from a unified dashboard."
+      description: "Post jobs and manage applicants from a unified dashboard.",
     },
     {
       icon: TrendingUp,
       title: "Application Tracking",
-      description: "Track your applications and statuses in one place."
+      description: "Track your applications and statuses in one place.",
     },
     {
       icon: CheckCircle,
       title: "Admin Verified",
-      description: "Verified companies and moderated listings."
+      description: "Verified companies and moderated listings.",
     },
     {
       icon: Lock,
       title: "Secure Login",
-      description: "Auth0 authentication with role-based access."
-    }
-  ]
+      description: "Auth0 authentication with role-based access.",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#EAF6F9] dark:bg-[#0B1F3B] relative overflow-hidden transition-colors duration-500">
-      {/* Subtle background accents with brand colors */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#77BEE0]/30 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#0574EE]/15 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#0B1F3B]/15 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+      {/* Progress Bar */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-purple-600 transform-origin-0 z-50"
+        style={{ scaleX }}
+      />
+
+      {/* Animated Background */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
+        <div className="absolute inset-0 bg-grid-slate-100/[0.03] bg-[size:50px_50px]" />
+
+        {/* Gradient Orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-conic from-purple-400 via-pink-500 to-blue-500 rounded-full filter blur-3xl opacity-20 animate-spin-slow" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-conic from-green-400 via-blue-500 to-purple-500 rounded-full filter blur-3xl opacity-20 animate-spin-slow animation-delay-4000" />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 bg-white/80 dark:bg-[#0B1F3B]/90 backdrop-blur-md border-b border-[#77BEE0]/40 shadow-lg">
-        <div className="container mx-auto px-8 py-5">
+      {/* Modern Glassmorphism Header */}
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="fixed top-0 w-full backdrop-blur-xl bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/50 dark:border-slate-700/50 z-40"
+      >
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-5">
-              <AppLogo size="w-14 h-14" rounded="rounded-3xl" mode="contain" className="shadow-xl border border-[#77BEE0]/30" />
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="flex items-center space-x-3"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-lg opacity-50" />
+                <AppLogo
+                  size="w-12 h-12"
+                  rounded="rounded-2xl"
+                  mode="contain"
+                  className="relative"
+                />
+              </div>
               <div>
-                <h1 className="text-3xl font-bold text-[#155AA4] dark:text-white tracking-tight">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Job Gujarat
                 </h1>
-                <p className="inline-block px-3 py-1 rounded-full bg-[#77BEE0]/20 text-[#155AA4]/90 dark:bg-white/10 dark:text-[#EAF6F9]/90 text-xs font-semibold tracking-wider">ગુજરાતની કારકિર્દીનો હબ</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Your Career Partner
+                </p>
               </div>
-            </div>
-            <div className="flex items-center space-x-4">
+            </motion.div>
+
+            <nav className="hidden md:flex items-center space-x-8">
+              <a
+                href="#features"
+                className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors"
+              >
+                Features
+              </a>
+              <a
+                href="#stats"
+                className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors"
+              >
+                Statistics
+              </a>
+              <a
+                href="#process"
+                className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors"
+              >
+                How it Works
+              </a>
               <Button
                 onClick={toggleDarkMode}
                 variant="ghost"
                 size="sm"
-                className="text-[#155AA4] dark:text-[#EAF6F9] hover:text-[#0574EE] dark:hover:text-white hover:bg-[#77BEE0]/20 dark:hover:bg-white/10 rounded-xl p-3 transition-all duration-300"
+                className="p-2"
               >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {isDarkMode ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
               </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <section className="relative z-10">
-        <div className="container mx-auto px-8 py-10">
-          <div className="max-w-5xl mx-auto text-center min-h-[40vh] flex flex-col items-center justify-center">
-            <div className="mb-2">
-              <h2 className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#155AA4] dark:text-white leading-tight tracking-tight">
-                Elite Career
-                <span className="block text-[#0574EE] dark:text-[#77BEE0] font-light text-6xl md:text-7xl lg:text-8xl">Connections</span>
-              </h2>
-            </div>
-
-            {/* Primary CTA centered mid-screen */}
-            <div className="max-w-md w-full mx-auto mt-4">
-              <Button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleGetStarted}
-                size="lg"
-                className="w-full bg-gradient-to-r from-[#155AA4] to-[#0574EE] hover:from-[#155AA4] hover:to-[#0574EE]/90 text-white font-semibold py-5 px-8 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-medium text-sm hover:shadow-lg transition-shadow"
               >
-                <span className="mr-3">Begin Your Journey</span>
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-            </div>
+                Get Started
+              </motion.button>
+            </nav>
 
-            <p className="mt-8 mb-10 text-xl md:text-2xl text-[#155AA4]/80 dark:text-[#EAF6F9]/90 max-w-3xl mx-auto leading-relaxed font-light tracking-wide">
-              Where exceptional talent meets extraordinary opportunities in Gujarat's premier career ecosystem.
-            </p>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 text-slate-700 dark:text-slate-300"
+            >
+              {isMenuOpen ? <X /> : <Menu />}
+            </button>
           </div>
+        </div>
+      </motion.header>
 
-          {/* Highlights Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {highlights.map((highlight, index) => (
-              <Card key={index} className="bg-white/90 dark:bg-[#0B1F3B]/50 backdrop-blur-sm border border-[#77BEE0]/40 shadow-lg hover:shadow-xl hover:border-[#0574EE]/60 transition-all duration-500 group">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 bg-[#EAF6F9] dark:bg-[#77BEE0]/20 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <highlight.icon className="w-8 h-8 text-[#155AA4] dark:text-white" />
-                  </div>
-                  <h3 className="text-lg font-bold text-[#155AA4] dark:text-white mb-2 tracking-tight">{highlight.title}</h3>
-                  <p className="text-[#155AA4]/80 dark:text-[#EAF6F9]/90 leading-relaxed font-light text-sm">{highlight.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* Modern Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center pt-20">
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-5xl mx-auto"
+          >
+            {/* Floating Badge */}
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 mb-8"
+            >
+              <Sparkles className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Gujarat's #1 Job Portal
+              </span>
+            </motion.div>
 
-          
+            {/* Main Headline */}
+            <motion.h1
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6"
+            >
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Find Your Dream Job
+              </span>
+              <br />
+              <span className="text-slate-900 dark:text-white">
+                Build Your Career
+              </span>
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto"
+            >
+              Connect with top companies, apply instantly, and track your
+              applications in real-time. Your next opportunity is just a click
+              away.
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleGetStarted}
+                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-medium text-lg hover:shadow-xl transition-shadow flex items-center justify-center"
+              >
+                Get Started Free
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleGetStarted}
+                className="px-8 py-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-full font-medium text-lg hover:shadow-xl transition-shadow border border-slate-200 dark:border-slate-700"
+              >
+                Hire Talent
+              </motion.button>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="relative z-10 container mx-auto px-6 py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h3 className="text-4xl md:text-5xl font-bold text-[#155AA4] dark:text-white mb-6 tracking-tight">
-              Enterprise-Grade Solutions
-            </h3>
-            <p className="text-xl text-[#155AA4]/80 dark:text-[#EAF6F9]/90 max-w-3xl mx-auto font-light leading-relaxed tracking-wide">
-              Sophisticated technology and premium services designed for discerning professionals who demand excellence in their career advancement.
-            </p>
-          </div>
+      {/* Animated Statistics Section */}
+      <section
+        id="stats"
+        className="relative py-20 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-900 dark:to-slate-800"
+      >
+        <div className="container mx-auto px-6" ref={statsRef}>
+          <motion.div
+            initial="hidden"
+            animate={statsInView ? "visible" : "hidden"}
+            variants={staggerContainer}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+          >
+            <motion.div variants={fadeUpVariants} className="text-center">
+              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {counters.jobs.toLocaleString()}+
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 mt-2">
+                Active Jobs
+              </p>
+            </motion.div>
+            <motion.div variants={fadeUpVariants} className="text-center">
+              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                {counters.companies.toLocaleString()}+
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 mt-2">
+                Companies
+              </p>
+            </motion.div>
+            <motion.div variants={fadeUpVariants} className="text-center">
+              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-pink-600 to-orange-600 bg-clip-text text-transparent">
+                {counters.seekers.toLocaleString()}+
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 mt-2">
+                Job Seekers
+              </p>
+            </motion.div>
+            <motion.div variants={fadeUpVariants} className="text-center">
+              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                {counters.placements.toLocaleString()}+
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 mt-2">
+                Successful Placements
+              </p>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="bg-white/90 dark:bg-[#0B1F3B]/50 backdrop-blur-sm border border-[#77BEE0]/40 hover:border-[#0574EE]/60 transition-all duration-500 shadow-xl hover:shadow-2xl group">
-                <CardContent className="p-8 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-[#77BEE0]/40 to-[#EAF6F9] dark:from-[#77BEE0]/20 dark:to-[#0574EE]/20 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-500 shadow-lg">
-                    <feature.icon className="w-10 h-10 text-[#155AA4] dark:text-white" />
+      {/* Modern Bento Grid Features */}
+      <section id="features" className="relative py-20">
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Everything You Need
+              </span>
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              Powerful features to accelerate your job search and hiring process
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto">
+            {/* Large featured card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              viewport={{ once: true }}
+              className={cn(
+                "md:col-span-2 md:row-span-1",
+                "group relative overflow-hidden rounded-3xl p-8",
+                "bg-gradient-to-br from-blue-500 to-purple-600",
+                "hover:scale-[1.02] transition-all duration-300"
+              )}
+            >
+              <div className="relative z-10">
+                <Search className="w-12 h-12 text-white/90 mb-4" />
+                <h3 className="text-2xl font-bold text-white mb-2">
+                  All types of Job
+                </h3>
+                <p className="text-white/80 text-lg">
+                  Jobs from all types of industries that match your skills with
+                  the perfect opportunities. Get hired in company with right
+                  skills.
+                </p>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+            </motion.div>
+
+            {/* Smaller cards */}
+            {features.slice(1, 4).map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className={cn(
+                  "group relative overflow-hidden rounded-3xl p-6",
+                  "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700",
+                  "hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-12 h-12 rounded-2xl mb-4 flex items-center justify-center",
+                    "bg-gradient-to-br",
+                    feature.color
+                  )}
+                >
+                  <feature.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400">
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
+
+            {/* Bottom cards */}
+            {features.slice(4).map((feature, index) => (
+              <motion.div
+                key={index + 4}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: (index + 4) * 0.1 }}
+                viewport={{ once: true }}
+                className={cn(
+                  "group relative overflow-hidden rounded-3xl p-6",
+                  "bg-gradient-to-br",
+                  feature.color,
+                  "hover:scale-[1.02] transition-all duration-300"
+                )}
+              >
+                <feature.icon className="w-10 h-10 text-white/90 mb-3" />
+                <h3 className="text-lg font-bold text-white mb-1">
+                  {feature.title}
+                </h3>
+                <p className="text-white/80 text-sm">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section
+        id="process"
+        className="relative py-20 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-800"
+      >
+        <div className="container mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                How It Works
+              </span>
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              Get started with your job search in 4 simple steps
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            {[
+              {
+                number: "01",
+                title: "Create Profile",
+                description: "Sign up and build your professional profile",
+                icon: UserCheck,
+              },
+              {
+                number: "02",
+                title: "Browse Jobs",
+                description: "Explore opportunities matching your skills",
+                icon: Search,
+              },
+              {
+                number: "03",
+                title: "Apply Instantly",
+                description: "Submit applications with one click",
+                icon: MousePointerClick,
+              },
+              {
+                number: "04",
+                title: "Get Hired",
+                description: "Interview and land your dream job",
+                icon: Briefcase,
+              },
+            ].map((step, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="relative"
+              >
+                {/* Connector line */}
+                {index < 3 && (
+                  <div className="hidden md:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-blue-600 to-purple-600" />
+                )}
+
+                <div className="text-center">
+                  <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 p-1 mb-4">
+                    <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center">
+                      <step.icon className="w-10 h-10 text-blue-600" />
+                    </div>
                   </div>
-                  <h4 className="text-xl font-bold text-[#155AA4] dark:text-white mb-3 tracking-tight">
-                    {feature.title}
-                  </h4>
-                  <p className="text-[#155AA4]/80 dark:text-[#EAF6F9]/90 leading-relaxed font-light text-base">
-                    {feature.description}
+                  <div className="text-sm font-bold text-blue-600 mb-2">
+                    {step.number}
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {step.description}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 bg-white/80 dark:bg-[#0B1F3B]/90 backdrop-blur-md border-t border-[#77BEE0]/40 mt-20">
-        <div className="container mx-auto px-8 py-12">
-          <div className="flex flex-col lg:flex-row items-start justify-between gap-8">
-            {/* Brand */}
+      {/* Modern Footer */}
+      <footer className="relative bg-slate-900 dark:bg-black mt-20">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
+        <div className="container mx-auto px-6 py-12 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Brand Section */}
+            <div className="col-span-1 md:col-span-2">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-50" />
+                  <AppLogo
+                    size="w-10 h-10"
+                    rounded="rounded-xl"
+                    mode="contain"
+                    className="relative"
+                  />
+                </div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  Job Gujarat
+                </span>
+              </div>
+              <p className="text-slate-400 mb-4">
+                Your trusted partner in building careers and finding talent
+                across Gujarat.
+              </p>
+              <div className="flex space-x-3">
+                {[
+                  { icon: Github, href: "#" },
+                  { icon: Linkedin, href: "#" },
+                  { icon: Twitter, href: "#" },
+                  { icon: Instagram, href: "#" },
+                ].map((social, index) => (
+                  <motion.a
+                    key={index}
+                    href={social.href}
+                    whileHover={{ scale: 1.1 }}
+                    className="w-10 h-10 rounded-full bg-slate-800 dark:bg-slate-900 flex items-center justify-center text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-blue-600 hover:to-purple-600 transition-colors"
+                  >
+                    <social.icon className="w-5 h-5" />
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick Links */}
             <div>
-              <div className="flex items-center space-x-3 mb-3">
-                <AppLogo size="w-12 h-12" rounded="rounded-2xl" mode="contain" className="shadow-xl" />
-                <span className="text-xl font-bold text-[#155AA4] dark:text-white tracking-tight">Job Gujarat</span>
-              </div>
-              <p className="text-sm text-[#155AA4]/80 dark:text-[#EAF6F9]/80">ગુજરાતની કારકિર્દીનો હબ</p>
+              <h3 className="text-white font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-2">
+                {["About Us", "Careers", "Blog", "Contact"].map((link) => (
+                  <li key={link}>
+                    <a
+                      href="#"
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* Social icons */}
-            <div className="flex flex-col">
-              <h5 className="text-sm font-semibold text-[#155AA4] dark:text-white tracking-wider mb-2">Connect</h5>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-[#77BEE0]/20 text-[#155AA4] dark:text-white dark:bg-white/10" aria-label="LinkedIn">
-                  <Linkedin className="w-5 h-5" />
-                </div>
-                <div className="p-2 rounded-xl bg-[#77BEE0]/20 text-[#155AA4] dark:text-white dark:bg-white/10" aria-label="Twitter">
-                  <Twitter className="w-5 h-5" />
-                </div>
-                <div className="p-2 rounded-xl bg-[#77BEE0]/20 text-[#155AA4] dark:text-white dark:bg-white/10" aria-label="Instagram">
-                  <Instagram className="w-5 h-5" />
-                </div>
-                <div className="p-2 rounded-xl bg-[#77BEE0]/20 text-[#155AA4] dark:text-white dark:bg-white/10" aria-label="Facebook">
-                  <Facebook className="w-5 h-5" />
-                </div>
-              </div>
+            {/* Resources */}
+            <div>
+              <h3 className="text-white font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2">
+                {[
+                  "Help Center",
+                  "Privacy Policy",
+                  "Terms of Service",
+                  "FAQ",
+                ].map((link) => (
+                  <li key={link}>
+                    <a
+                      href="#"
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
-
-            
           </div>
 
-          <div className="mt-8 pt-4 border-t border-[#77BEE0]/30 flex flex-col sm:flex-row items-center justify-between text-xs text-[#155AA4]/80 dark:text-[#EAF6F9]/70">
-            <span>© 2025 Job Gujarat</span>
-            <div className="mt-2 sm:mt-0 flex items-center space-x-4">
-              <span>Made in Gujarat</span>
+          <div className="mt-12 pt-8 border-t border-slate-800">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <p className="text-slate-400 text-sm">
+                2025 Job Gujarat. All rights reserved.
+              </p>
+              <p className="text-slate-400 text-sm mt-4 md:mt-0">
+                Made with in Gujarat
+              </p>
             </div>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }

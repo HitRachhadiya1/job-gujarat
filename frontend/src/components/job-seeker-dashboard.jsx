@@ -5,6 +5,8 @@ import { useLocation } from "react-router-dom";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuthMeta } from "@/context/AuthMetaContext";
 import { useLogo } from "@/context/LogoContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -54,7 +56,7 @@ import {
 } from "lucide-react";
 import Spinner from "./Spinner";
 import ThemeToggle from "./ThemeToggle";
-import Profile from "../pages/Profile";
+import ProfileNew from "../pages/ProfileNew";
 import BrowseJobs from "../pages/BrowseJobs";
 import MyApplications from "../pages/MyApplications";
 import SavedJobs from "../pages/SavedJobs";
@@ -143,7 +145,7 @@ export default function JobSeekerDashboard({ onLogout }) {
   const renderActiveView = () => {
     switch (activeView) {
       case "profile":
-        return <Profile />;
+        return <ProfileNew />;
       case "browse-jobs":
         return <BrowseJobs />;
       case "applications":
@@ -173,332 +175,400 @@ export default function JobSeekerDashboard({ onLogout }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Stats and Content */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Stats Cards */}
+          {/* Modern Stats Cards with Gradients */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-4 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
-                    <Briefcase className="w-6 h-6 text-stone-900 dark:text-stone-300" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                      {stats.appliedJobs}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+                <CardContent className="p-6 relative">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-3xl font-bold text-white">
+                        {stats.appliedJobs}
+                      </div>
+                      <div className="text-sm text-white/80 font-medium mt-1">
+                        Applied Jobs
+                      </div>
                     </div>
-                    <div className="text-sm text-stone-800 dark:text-stone-400 font-medium">
-                      Applied Jobs
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+                      <Briefcase className="w-8 h-8 text-white" />
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-4 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
-                    <Heart className="w-6 h-6 text-stone-900 dark:text-stone-300" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                      {stats.savedJobs}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-pink-600 border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+                <CardContent className="p-6 relative">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-3xl font-bold text-white">
+                        {stats.savedJobs}
+                      </div>
+                      <div className="text-sm text-white/80 font-medium mt-1">
+                        Saved Jobs
+                      </div>
                     </div>
-                    <div className="text-sm text-stone-800 dark:text-stone-400 font-medium">
-                      Saved Jobs
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+                      <Heart className="w-8 h-8 text-white" />
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg hover:shadow-xl transition-all duration-200 group">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-4 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-3xl shadow-lg group-hover:scale-110 transition-transform duration-200">
-                    <Calendar className="w-6 h-6 text-stone-900 dark:text-stone-300" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                      {stats.interviewSchedule}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              whileHover={{ scale: 1.02 }}
+            >
+              <Card className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-red-600 border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+                <CardContent className="p-6 relative">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-3xl font-bold text-white">
+                        {stats.interviewSchedule}
+                      </div>
+                      <div className="text-sm text-white/80 font-medium mt-1">
+                        Interviews
+                      </div>
                     </div>
-                    <div className="text-sm text-stone-800 dark:text-stone-400 font-medium">
-                      Interviews
+                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+                      <Calendar className="w-8 h-8 text-white" />
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
 
-          {/* My Applications Table */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-                  My Applications
-                </CardTitle>
-                <p className="text-sm text-stone-800 dark:text-stone-400 font-medium">
-                  Track your job application progress
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                className="text-stone-800 hover:text-stone-900 hover:bg-stone-200/50 rounded-xl font-semibold transition-all duration-200"
-                onClick={() => handleNavigation("applications")}
-              >
-                View All
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {applications.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-stone-400/50 dark:border-stone-700">
-                        <th className="text-left py-4 text-sm font-bold text-stone-800 dark:text-stone-300">
-                          Company
-                        </th>
-                        <th className="text-center py-4 text-sm font-bold text-stone-800 dark:text-stone-300">
-                          Status
-                        </th>
-                        <th className="text-center py-4 text-sm font-bold text-stone-800 dark:text-stone-300">
-                          Applied Date
-                        </th>
-                        {/* <th className="text-center py-3 text-sm font-medium text-slate-500 dark:text-slate-400">
-                          Actions
-                        </th> */}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {applications.slice(0, 3).map((app) => (
-                        <tr
-                          key={app.id}
-                          className="border-b border-stone-300/30 dark:border-stone-800 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors duration-200"
-                        >
-                          <td className="py-4">
-                            <div className="flex items-center space-x-4">
-                              <div className="w-12 h-12 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-2xl flex items-center justify-center shadow-md">
-                                <Building2 className="w-6 h-6 text-stone-900 dark:text-stone-300" />
+          {/* Modern Applications Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Recent Applications
+                  </CardTitle>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Track your job application progress
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl font-semibold transition-all duration-200"
+                  onClick={() => handleNavigation("applications")}
+                >
+                  View All →
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {applications.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-700">
+                          <th className="text-left py-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            Company
+                          </th>
+                          <th className="text-center py-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            Status
+                          </th>
+                          <th className="text-center py-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            Applied Date
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {applications.slice(0, 3).map((app, index) => (
+                          <motion.tr
+                            key={app.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                            className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-200"
+                          >
+                            <td className="py-4">
+                              <div className="flex items-center space-x-4">
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                  <Building2 className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-slate-900 dark:text-slate-100">
+                                    {typeof (
+                                      app.job?.company ??
+                                      app.jobPosting?.company
+                                    ) === "object"
+                                      ? app.job?.company?.name ??
+                                        app.jobPosting?.company?.name ??
+                                        "Company"
+                                      : (app.job?.company ??
+                                          app.jobPosting?.company) ||
+                                        "Company"}
+                                  </div>
+                                  <div className="text-sm text-slate-600 dark:text-slate-400">
+                                    {app.job?.title ||
+                                      app.jobPosting?.title ||
+                                      "Job Title"}
+                                  </div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-bold text-stone-900 dark:text-stone-100">
-                                  {typeof (app.job?.company ?? app.jobPosting?.company) === 'object'
-                                    ? (app.job?.company?.name ?? app.jobPosting?.company?.name ?? 'Company')
-                                    : ((app.job?.company ?? app.jobPosting?.company) || 'Company')}
-                                </div>
-                                <div className="text-sm text-stone-700 dark:text-stone-400 font-medium">
-                                  {app.job?.title || app.jobPosting?.title || "Job Title"}
-                                </div>
+                            </td>
+                            <td className="text-center py-4">
+                              <Badge
+                                className={cn(
+                                  "font-medium px-3 py-1",
+                                  app.status === "PENDING" &&
+                                    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+                                  app.status === "ACCEPTED" &&
+                                    "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+                                  app.status === "REJECTED" &&
+                                    "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
+                                  app.status === "REVIEWED" &&
+                                    "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                                )}
+                              >
+                                {app.status.replace("_", " ")}
+                              </Badge>
+                            </td>
+                            <td className="text-center py-4 text-sm text-slate-600 dark:text-slate-400">
+                              {app.createdAt ||
+                              app.appliedAt ||
+                              app.applicationDate
+                                ? new Date(
+                                    app.createdAt ||
+                                      app.appliedAt ||
+                                      app.applicationDate
+                                  ).toLocaleDateString()
+                                : new Date().toLocaleDateString()}
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200 }}
+                    >
+                      <FileText className="w-16 h-16 text-slate-400 mx-auto mb-6" />
+                    </motion.div>
+                    <p className="text-slate-600 dark:text-slate-400 text-lg mb-6">
+                      No applications yet
+                    </p>
+                    <Button
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+                      onClick={() => handleNavigation("browse-jobs")}
+                    >
+                      Browse Jobs
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+          {/* Modern Recent Jobs Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-700 shadow-xl">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Recommended Jobs
+                  </CardTitle>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Latest opportunities matching your profile
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl font-semibold transition-all duration-200"
+                  onClick={() => handleNavigation("browse-jobs")}
+                >
+                  View All →
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {jobs.length > 0 ? (
+                  <div className="space-y-4">
+                    {jobs.slice(0, 3).map((job, index) => (
+                      <motion.div
+                        key={job.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02 }}
+                        className="group relative overflow-hidden p-6 border border-slate-200 dark:border-slate-700 rounded-2xl hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900/50"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-5">
+                            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                              <Briefcase className="w-7 h-7 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                                {job.title}
+                              </h3>
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                {typeof job.company === "object"
+                                  ? job.company?.name
+                                  : job.company}
+                              </p>
+                              <div className="flex items-center space-x-2 mt-2">
+                                <MapPin className="w-4 h-4 text-purple-500" />
+                                <span className="text-sm text-slate-600 dark:text-slate-400">
+                                  {job.location}
+                                </span>
                               </div>
                             </div>
-                          </td>
-                          <td className="text-center py-4">
-                            <Badge
-                              variant="outline"
-                              className="bg-stone-200/80 text-stone-900 border-stone-400/50 dark:bg-stone-800/50 dark:text-stone-300 dark:border-stone-600/50 font-semibold px-3 py-1 rounded-xl"
-                            >
-                              {app.status.replace("_", " ").toUpperCase()}
-                            </Badge>
-                          </td>
-                          <td className="text-center py-4 text-sm text-stone-800 dark:text-stone-400 font-medium">
-                            {app.createdAt || app.appliedAt || app.applicationDate
-                              ? new Date(app.createdAt || app.appliedAt || app.applicationDate).toLocaleDateString()
-                              : new Date().toLocaleDateString()}
-                          </td>
-                          {/* <td className="text-center py-4">
+                          </div>
+                          <div className="flex items-center space-x-2">
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-blue-600 hover:text-blue-700"
+                              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl"
+                              onClick={() => handleNavigation("browse-jobs")}
                             >
-                              View
+                              View Details
                             </Button>
-                          </td> */}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <FileText className="w-16 h-16 text-stone-500 mx-auto mb-6" />
-                  <p className="text-stone-800 dark:text-stone-400 text-lg font-medium mb-6">
-                    No applications yet
-                  </p>
-                  <Button
-                    className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                    onClick={() => handleNavigation("browse-jobs")}
-                  >
-                    Browse Jobs
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Jobs Section */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border-stone-400/70 dark:border-stone-800/50 shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-                  Recent Jobs
-                </CardTitle>
-                <p className="text-sm text-stone-800 dark:text-stone-400 font-medium">
-                  Latest job opportunities for you
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                className="text-stone-800 hover:text-stone-900 hover:bg-stone-200/50 rounded-xl font-semibold transition-all duration-200"
-                onClick={() => handleNavigation("browse-jobs")}
-              >
-                View All
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {jobs.length > 0 ? (
-                <div className="space-y-4">
-                  {jobs.slice(0, 3).map((job) => (
-                    <div
-                      key={job.id}
-                      className="flex items-center justify-between p-6 border border-stone-400/50 dark:border-stone-700 rounded-2xl hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-all duration-200 shadow-sm hover:shadow-md"
-                    >
-                      <div className="flex items-center space-x-5">
-                        <div className="w-14 h-14 bg-gradient-to-br from-stone-300/90 to-stone-400/70 dark:from-stone-800 dark:to-stone-700 rounded-2xl flex items-center justify-center shadow-md">
-                          <Briefcase className="w-7 h-7 text-stone-900 dark:text-stone-300" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-stone-900 dark:text-stone-100 text-lg">
-                            {job.title}
-                          </h3>
-                          <p className="text-sm text-stone-700 dark:text-stone-400 font-medium">
-                            {typeof job.company === "object"
-                              ? job.company?.name
-                              : job.company}
-                          </p>
-                          <div className="flex items-center space-x-2 mt-2">
-                            <MapPin className="w-4 h-4 text-stone-600 dark:text-stone-500" />
-                            <span className="text-sm text-stone-600 dark:text-stone-500 font-medium">
-                              {job.location}
-                            </span>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {/* <Badge variant="outline" className="text-xs">
-                          {job.type}
-                        </Badge> */}
-                        {/* <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleNavigation("browse-jobs")}
-                        >
-                          View
-                        </Button> */}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Search className="w-16 h-16 text-stone-500 mx-auto mb-6" />
-                  <p className="text-stone-800 dark:text-stone-400 text-lg font-medium mb-6">
-                    No jobs available
-                  </p>
-                  <Button
-                    className="bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                    onClick={() => handleNavigation("browse-jobs")}
-                  >
-                    Browse Jobs
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200 }}
+                    >
+                      <Briefcase className="w-16 h-16 text-slate-400 mx-auto mb-6" />
+                    </motion.div>
+                    <p className="text-slate-600 dark:text-slate-400 text-lg mb-6">
+                      No jobs available
+                    </p>
+                    <Button
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+                      onClick={() => handleNavigation("browse-jobs")}
+                    >
+                      Explore Jobs
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
-        {/* Right Sidebar - Profile Card */}
+        {/* Right Sidebar - Modern Profile Card */}
         <div className="space-y-8">
-          {/* Profile Card */}
-          <Card className="bg-stone-100/95 dark:bg-stone-900/60 border-stone-400/70 dark:border-stone-800/50 shadow-lg">
-            <CardContent className="p-8 text-center">
-              <img
-                src={
-                  profileImageUrl ||
-                  user?.picture ||
-                  "https://via.placeholder.com/96/78716c/FFFFFF?text=U"
-                }
-                alt="Profile"
-                className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-stone-400 dark:border-stone-500 shadow-md"
-              />
-              <h3 className="font-bold text-xl text-stone-900 dark:text-stone-100 tracking-tight mb-2">
-                {profileFullName || user?.name || "User"}
-              </h3>
-              <p className="text-sm text-stone-700 dark:text-stone-400 font-medium mb-8">Job Seeker</p>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="text-center p-4 bg-stone-200/50 dark:bg-stone-800/30 rounded-2xl">
-                  <div className="text-xl font-bold text-stone-900 dark:text-stone-100">
-                    {stats.appliedJobs}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <Card className="relative overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 border-0 shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
+              <CardContent className="p-8 text-center relative">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <img
+                    src={
+                      profileImageUrl ||
+                      user?.picture ||
+                      "https://ui-avatars.com/api/?name=" +
+                        encodeURIComponent(
+                          profileFullName || user?.name || "User"
+                        )
+                    }
+                    alt="Profile"
+                    className="w-32 h-32 rounded-full mx-auto mb-6 border-4 border-white/30 shadow-2xl"
+                    onError={(e) => {
+                      e.target.src =
+                        "https://ui-avatars.com/api/?name=" +
+                        encodeURIComponent(
+                          profileFullName || user?.name || "User"
+                        );
+                    }}
+                  />
+                </motion.div>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  {profileFullName || user?.name || "User"}
+                </h3>
+                <p className="text-sm text-white/80 mb-1">
+                  {user?.email || "email@example.com"}
+                </p>
+                <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 mb-6">
+                  Job Seeker
+                </Badge>
+                <div className="space-y-5 mb-6">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="font-medium text-white/90">
+                        Profile Completion
+                      </span>
+                      <span className="font-bold text-white">
+                        {profileStatus.completionPercentage}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-white/20 backdrop-blur-sm rounded-full h-3 overflow-hidden">
+                      <motion.div
+                        className="bg-gradient-to-r from-white to-yellow-300 h-full rounded-full shadow-md"
+                        initial={{ width: 0 }}
+                        animate={{
+                          width: `${profileStatus.completionPercentage}%`,
+                        }}
+                        transition={{ duration: 1, delay: 0.5 }}
+                      />
+                    </div>
                   </div>
-                  <div className="text-sm text-stone-700 dark:text-stone-400 font-medium">
-                    Applications
-                  </div>
+                  {!profileStatus.isComplete && (
+                    <p className="text-xs text-white/70 mt-3 leading-relaxed">
+                      {profileStatus.message}
+                    </p>
+                  )}
                 </div>
-                <div className="text-center p-4 bg-stone-200/50 dark:bg-stone-800/30 rounded-2xl">
-                  <div className="text-xl font-bold text-stone-900 dark:text-stone-100">
-                    {stats.savedJobs}
-                  </div>
-                  <div className="text-sm text-stone-700 dark:text-stone-400 font-medium">
-                    Saved Jobs
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="space-y-4">
                 <Button
-                  className="w-full bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                  className="w-full bg-white text-indigo-600 hover:bg-white/90 font-semibold py-3 px-6 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
                   onClick={() => handleNavigation("profile")}
                 >
-                  <Edit className="w-5 h-5 mr-3" />
-                  Edit Profile
+                  {profileStatus.isComplete
+                    ? "View Profile"
+                    : "Complete Profile"}
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full border-stone-400/70 dark:border-stone-600 text-stone-800 dark:text-stone-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/30"
-                  onClick={() => handleNavigation("browse-jobs")}
-                >
-                  <Search className="w-5 h-5 mr-3" />
-                  Find Jobs
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          {/* Quick Links */}
-          {/* <Card className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-slate-200/50 dark:border-slate-700/50 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-slate-900 dark:text-slate-100">Quick Links</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {navigationItems.slice(1).map((item) => {
-                const Icon = item.icon
-                return (
-                  <Button
-                    key={item.id}
-                    variant="ghost"
-                    className="w-full justify-start text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-                    onClick={() => handleNavigation(item.id)}
-                  >
-                    <Icon className="w-4 h-4 mr-3" />
-                    <span className="text-sm">{item.label}</span>
-                  </Button>
-                )
-              })}
-            </CardContent>
-          </Card> */}
+          {/* Quick Links (commented out) */}
         </div>
       </div>
     </div>
@@ -512,7 +582,7 @@ export default function JobSeekerDashboard({ onLogout }) {
         // Fetch applications
         let appliedJobsCount = 0;
         let interviewCount = 0;
-        
+
         try {
           const appsResponse = await fetch(
             `${API_URL}/applications/my-applications`,
@@ -533,11 +603,14 @@ export default function JobSeekerDashboard({ onLogout }) {
             appliedJobsCount = applications.length;
             interviewCount = applications.filter(
               (app) =>
-                app.status === "INTERVIEW" || app.status === "interview_scheduled"
+                app.status === "INTERVIEW" ||
+                app.status === "interview_scheduled"
             ).length;
           } else if (appsResponse.status === 403) {
             // No profile exists yet, set empty applications
-            console.log("No job seeker profile found, setting empty applications");
+            console.log(
+              "No job seeker profile found, setting empty applications"
+            );
             setApplications([]);
             appliedJobsCount = 0;
             interviewCount = 0;
@@ -564,14 +637,11 @@ export default function JobSeekerDashboard({ onLogout }) {
 
         // Fetch profile status
         try {
-          const profileResponse = await fetch(
-            `${API_URL}/jobseeker/status`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          const profileResponse = await fetch(`${API_URL}/jobseeker/status`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
           if (profileResponse.ok) {
             const profileData = await profileResponse.json();
@@ -658,14 +728,11 @@ export default function JobSeekerDashboard({ onLogout }) {
         });
 
         // Fetch recent jobs
-        const jobsResponse = await fetch(
-          `${API_URL}/job-postings?limit=5`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const jobsResponse = await fetch(`${API_URL}/job-postings?limit=5`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (jobsResponse.ok) {
           const jobsData = await jobsResponse.json();
           setJobs(jobsData);
@@ -704,12 +771,12 @@ export default function JobSeekerDashboard({ onLogout }) {
   // Listen for application updates to refresh dashboard
   useEffect(() => {
     const handler = () => setRefreshTick((t) => t + 1);
-    window.addEventListener('applicationsUpdated', handler);
+    window.addEventListener("applicationsUpdated", handler);
     // Also refresh when profile is updated
-    window.addEventListener('profileUpdated', handler);
+    window.addEventListener("profileUpdated", handler);
     return () => {
-      window.removeEventListener('applicationsUpdated', handler);
-      window.removeEventListener('profileUpdated', handler);
+      window.removeEventListener("applicationsUpdated", handler);
+      window.removeEventListener("profileUpdated", handler);
     };
   }, []);
 
@@ -763,7 +830,8 @@ export default function JobSeekerDashboard({ onLogout }) {
               </CardTitle>
             </div>
             <CardDescription className="text-stone-700 dark:text-stone-300">
-              Your account has been suspended by an administrator. You cannot access the dashboard at this time.
+              Your account has been suspended by an administrator. You cannot
+              access the dashboard at this time.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -783,109 +851,190 @@ export default function JobSeekerDashboard({ onLogout }) {
   }
 
   return (
-    <div className="h-screen bg-stone-300 dark:bg-stone-950 flex transition-colors duration-500 overflow-hidden m-0 p-0 pt-20">
-      {/* Sidebar */}
-      <div
-        className={`${sidebarCollapsed ? "w-16" : "w-64"} bg-stone-800/95 dark:bg-stone-900/95 backdrop-blur-md border-r border-stone-700 dark:border-stone-800/60 shadow-xl flex flex-col transition-all duration-500 ease-out relative transform`}
-      >
-        {/* Sidebar Top (Collapse Toggle Only) */}
-  
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-stone-900 dark:bg-stone-700 border border-stone-600 dark:border-stone-600 text-white hover:text-white hover:bg-stone-800 dark:hover:bg-stone-600 rounded-full p-2 transition-all duration-300 hover:scale-[1.03] shadow-xl z-20"
-            title={sidebarCollapsed ? 'Expand' : 'Collapse'}
-          >
-            {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 transition-colors duration-500">
+      {/* Sidebar wrapper: use an aside (or motion.div) so JSX is balanced */}
+      <aside className="fixed left-6 top-28 bottom-8 w-72 hidden md:block z-20">
+        {/* Collapse Toggle Button */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full p-2 transition-all duration-300 shadow-xl z-20 hover:shadow-2xl"
+          title={sidebarCollapsed ? "Expand" : "Collapse"}
+        >
+          {sidebarCollapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
+          )}
+        </motion.button>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto mt-4 md:mt-9">
-          {navigationItems.map((item) => {
+        <nav className="flex-1 p-3 space-y-2 overflow-y-auto mt-4 md:mt-9">
+          {navigationItems.map((item, index) => {
             const Icon = item.icon;
+            const isActive = activeView === item.id;
             return (
-              <Button
+              <motion.button
                 key={item.id}
-                variant="ghost"
-                className={`w-full ${
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.02, x: 5 }}
+                whileTap={{ scale: 0.98 }}
+                className={cn(
+                  "w-full flex items-center transition-all duration-300 ease-out rounded-xl font-medium group relative overflow-hidden",
                   sidebarCollapsed
                     ? "justify-center px-2 h-12"
-                    : "justify-start px-3 h-11"
-                } text-left transition-all duration-300 ease-out rounded-lg font-medium group ${
-                  activeView === item.id
-                    ? "bg-stone-100/20 text-stone-100 shadow-md border border-stone-600/30 hover:bg-stone-100/30 border-l-2 border-l-stone-200 pl-2"
-                    : "text-stone-300 hover:text-stone-100 hover:bg-stone-700/40"
-                }`}
+                    : "justify-start px-4 h-12",
+                  isActive
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                )}
                 onClick={() => handleNavigation(item.id)}
                 title={sidebarCollapsed ? item.label : undefined}
               >
-                <Icon className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4'} transition-all duration-300`} />
+                <div
+                  className={cn(
+                    "absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 opacity-0 transition-opacity",
+                    !isActive && "group-hover:opacity-100"
+                  )}
+                />
+                <Icon
+                  className={cn(
+                    "transition-all duration-300",
+                    sidebarCollapsed ? "w-5 h-5" : "w-5 h-5",
+                    isActive
+                      ? "text-white"
+                      : "group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                  )}
+                />
                 {!sidebarCollapsed && (
-                  <span className="text-sm font-medium ml-3 transition-all duration-300">{item.label}</span>
+                  <span className="text-sm font-medium ml-3 transition-all duration-300">
+                    {item.label}
+                  </span>
                 )}
-              </Button>
+                {isActive && !sidebarCollapsed && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className="absolute left-0 top-0 bottom-0 w-1 bg-white"
+                  />
+                )}
+              </motion.button>
             );
           })}
         </nav>
-        
+
         {/* Logout Button */}
-        <div className="p-3 border-t border-stone-700 dark:border-stone-800/60">
-          <Button
-            variant="ghost"
+        <div className="p-3 border-t border-slate-200 dark:border-slate-700 mt-4">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleLogout}
-            className={`w-full ${
-              sidebarCollapsed ? "justify-center px-2 h-12" : "justify-start px-3 h-11"
-            } text-stone-300 hover:text-red-400 hover:bg-red-900/20 transition-all duration-300 rounded-lg font-medium group`}
-          >
-            <LogOut className={`${sidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4'} transition-all duration-300`} />
-            {!sidebarCollapsed && (
-              <span className="text-sm font-medium ml-3 transition-all duration-300">Logout</span>
+            className={cn(
+              "w-full flex items-center transition-all duration-300 rounded-xl font-medium group",
+              sidebarCollapsed
+                ? "justify-center px-2 h-12"
+                : "justify-start px-4 h-12",
+              "text-slate-600 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400"
             )}
-          </Button>
+            title={sidebarCollapsed ? "Logout" : undefined}
+          >
+            <LogOut
+              className={cn(
+                "transition-all duration-300",
+                sidebarCollapsed ? "w-5 h-5" : "w-5 h-5"
+              )}
+            />
+            {!sidebarCollapsed && (
+              <span className="text-sm font-medium ml-3 transition-all duration-300">
+                Logout
+              </span>
+            )}
+          </motion.button>
         </div>
-      </div>
+      </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-40 h-20 bg-gradient-to-r from-stone-600/95 to-stone-700/95 dark:from-stone-800/95 dark:to-stone-900/95 backdrop-blur-md border-b border-stone-500/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
+        {/* Modern Glassmorphism Header */}
+        <motion.header
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="fixed top-0 left-0 right-0 z-40 h-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 shadow-xl"
+        >
           <div className="h-full flex items-center justify-between px-6 md:px-8">
             {/* Brand + Welcome */}
             <div className="flex items-center gap-4 md:gap-6">
-              <div className="flex items-center gap-3">
-                <AppLogo size="w-10 h-10" rounded="rounded-lg" mode="contain" />
-                <span className="text-xl md:text-2xl font-bold text-stone-100 tracking-tight">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center gap-3"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-50" />
+                  <AppLogo
+                    size="w-10 h-10"
+                    rounded="rounded-lg"
+                    mode="contain"
+                    className="relative"
+                  />
+                </div>
+                <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Job Gujarat
                 </span>
-              </div>
-              <span className="hidden md:inline-block text-stone-200/50">|</span>
-              <h2 className="hidden md:block text-base md:text-lg font-semibold text-stone-100/90">
-                {`Welcome, ${user?.given_name || user?.name?.split(" ")[0] || "User"}`}
+              </motion.div>
+              <span className="hidden md:inline-block text-slate-300 dark:text-slate-600">
+                |
+              </span>
+              <h2 className="hidden md:block text-base md:text-lg font-medium text-slate-700 dark:text-slate-300">
+                {`Welcome back, ${
+                  user?.given_name || user?.name?.split(" ")[0] || "User"
+                }`}
               </h2>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-3 md:gap-4">
-              <div className="bg-stone-500/20 dark:bg-stone-700/30 rounded-lg p-1 border border-stone-400/30 dark:border-stone-600/30">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+              </motion.button>
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
                 <ThemeToggle />
               </div>
-              <img
-                src={
-                  user?.picture ||
-                  "https://via.placeholder.com/40/78716c/FFFFFF?text=U"
-                }
-                alt="Profile"
-                className="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-stone-400 dark:border-stone-500 shadow-md"
-              />
+              <motion.div whileHover={{ scale: 1.1 }} className="relative">
+                <img
+                  src={
+                    user?.picture ||
+                    "https://ui-avatars.com/api/?name=" +
+                      encodeURIComponent(user?.name || "User")
+                  }
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full border-2 border-gradient-to-r from-blue-600 to-purple-600 shadow-lg cursor-pointer"
+                  onClick={() => handleNavigation("profile")}
+                />
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+              </motion.div>
             </div>
           </div>
-        </header>
+        </motion.header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-transparent p-8 mt-4">
-          {renderActiveView()}
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 p-8 mt-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeView}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderActiveView()}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </div>

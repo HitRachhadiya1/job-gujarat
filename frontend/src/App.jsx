@@ -34,30 +34,33 @@ import ThemeToggle from "./components/ThemeToggle";
 import { AuthMetaProvider } from "./context/AuthMetaContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LogoProvider } from "./context/LogoContext";
+import { Toaster } from "@/components/ui/toaster";
 
 // Import components from frontend for functionality
 import CompanyDetailsForm from "./components/CompanyDetailsForm";
 import CompanyDashboard from "./components/CompanyDashboard";
 import JobManagement from "./components/JobManagement";
-import BrowseJobs from "./pages/BrowseJobs";
+import BrowseJobsNew from "./pages/BrowseJobsNew";
 import MyApplications from "./pages/MyApplications";
-import Profile from "./pages/Profile";
+import ProfileNew from "./pages/ProfileNew";
 import CompanySettings from "./pages/CompanySettings";
 import CompanyApplications from "./pages/CompanyApplications";
 import JobPostingPayment from "./pages/JobPostingPayment";
 import { useAuthMeta } from "./context/AuthMetaContext";
-import Spinner from "./components/Spinner";
+import LoadingOverlay from "./components/LoadingOverlay";
+import useDelayedTrue from "./hooks/useDelayedTrue";
 import UnknownRole from "./components/UnknownRole";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoutes from "./components/PublicRoutes";
 import { API_URL } from "@/config";
 
 // Import dashboard components with beautiful UI from job-portal(1)
-import JobSeekerDashboard from "./components/job-seeker-dashboard";
+
 import AdminDashboard from "./components/admin-dashboard";
+import JobSeekerDashboardNew from "./components/JobSeekerDashboardNew";
 
 export default function JobPortalApp() {
-  const { isAuthenticated, getAccessTokenSilently, user, logout } = useAuth0();
+  const { isAuthenticated, isLoading: auth0Loading, getAccessTokenSilently, user, logout } = useAuth0();
   const { role, companyStatus, loading, refreshAuthMeta } = useAuthMeta();
   const [currentView, setCurrentView] = useState("landing");
 
@@ -68,17 +71,14 @@ export default function JobPortalApp() {
       const token = await getAccessTokenSilently();
       const { sub: userId } = user;
 
-      const response = await fetch(
-        `${API_URL}/auth/assign-role`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ role: selectedRole, userId }),
-        }
-      );
+      const response = await fetch(`${API_URL}/auth/assign-role`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ role: selectedRole, userId }),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -141,7 +141,9 @@ export default function JobPortalApp() {
       }
     }
 
-    console.warn(`⚠ Max retries (${maxRetries}) reached. Continuing with current state.`);
+    console.warn(
+      `⚠ Max retries (${maxRetries}) reached. Continuing with current state.`
+    );
   }
 
   const handleGetStarted = () => {
@@ -169,13 +171,32 @@ export default function JobPortalApp() {
     setCurrentView("landing");
   };
 
-  // Early returns for unauthenticated users or loading states
-  if (!isAuthenticated) return (
-    <LogoProvider>
-      <PublicRoutes onGetStarted={handleGetStarted} />
-    </LogoProvider>
-  );
-  if (loading) return <Spinner />;
+  // Unified loading handling to avoid flicker
+  const authLoading = auth0Loading || loading;
+  const showLoader = useDelayedTrue(authLoading, 600);
+
+  // Show overlay while Auth0 or auth meta are initializing
+  if (showLoader && !isAuthenticated) {
+    return (
+      <LogoProvider>
+        <LoadingOverlay message="Loading..." />
+      </LogoProvider>
+    );
+  }
+
+  // If not authenticated, show public landing
+  if (!isAuthenticated) {
+    return (
+      <LogoProvider>
+        <PublicRoutes onGetStarted={handleGetStarted} />
+      </LogoProvider>
+    );
+  }
+
+  // Authenticated but metadata loading
+  if (showLoader && isAuthenticated) {
+    return <LoadingOverlay message="Loading..." />;
+  }
   if (!role)
     return (
       <LogoProvider>
@@ -200,176 +221,179 @@ export default function JobPortalApp() {
         {/* Navbar for authenticated users */}
         <Navbar />
         <div className="app-content pt-0 m-0 p-0">
-        <Routes>
-          {/* Home Route - Role-based redirect */}
-          <Route
-            path="/"
-            element={(() => {
-              console.log("Home route rendering with role:", role);
-              if (role === "COMPANY") {
-                return (
-                  <ProtectedRoute roles={["COMPANY"]}>
-                    {companyStatus?.completed ? (
-                      <CompanyDashboard />
-                    ) : (
-                      <CompanyDetailsForm
-                        refreshAuthMeta={refreshAuthMeta}
-                        onSuccess={() => {
-                          console.log("Company details saved successfully");
-                        }}
-                      />
-                    )}
-                  </ProtectedRoute>
-                );
-              } else if (role === "JOB_SEEKER") {
-                console.log("Redirecting job seeker to dashboard");
-                return (
-                  <ProtectedRoute roles={["JOB_SEEKER"]}>
-                    <JobSeekerDashboard onLogout={handleLogout} />
-                  </ProtectedRoute>
-                );
-              } else if (role === "ADMIN") {
-                return <AdminDashboard onLogout={handleLogout} />;
-              } else {
-                console.log("Unknown role, showing UnknownRole component");
-                return <UnknownRole />;
+          <Routes>
+            {/* Home Route - Role-based redirect */}
+            <Route
+              path="/"
+              element={(() => {
+                console.log("Home route rendering with role:", role);
+                if (role === "COMPANY") {
+                  return (
+                    <ProtectedRoute roles={["COMPANY"]}>
+                      {companyStatus?.completed ? (
+                        <CompanyDashboard />
+                      ) : (
+                        <CompanyDetailsForm
+                          refreshAuthMeta={refreshAuthMeta}
+                          onSuccess={() => {
+                            console.log("Company details saved successfully");
+                          }}
+                        />
+                      )}
+                    </ProtectedRoute>
+                  );
+                } else if (role === "JOB_SEEKER") {
+                  console.log("Redirecting job seeker to dashboard");
+                  return (
+                    <ProtectedRoute roles={["JOB_SEEKER"]}>
+                      <JobSeekerDashboardNew onLogout={handleLogout} />
+                    </ProtectedRoute>
+                  );
+                } else if (role === "ADMIN") {
+                  return <AdminDashboard onLogout={handleLogout} />;
+                } else {
+                  console.log("Unknown role, showing UnknownRole component");
+                  return <UnknownRole />;
+                }
+              })()}
+            />
+
+            {/* Company Routes */}
+
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute roles={["COMPANY"]}>
+                  <CompanyDashboard />
+                </ProtectedRoute>
               }
-            })()}
-          />
+            />
 
-          {/* Company Routes */}
+            <Route
+              path="/jobs"
+              element={
+                <ProtectedRoute roles={["COMPANY"]}>
+                  <JobManagement />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute roles={["COMPANY"]}>
-                <CompanyDashboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/company/applications"
+              element={
+                <ProtectedRoute roles={["COMPANY"]}>
+                  <CompanyApplications />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/jobs"
-            element={
-              <ProtectedRoute roles={["COMPANY"]}>
-                <JobManagement />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/company-setup"
+              element={
+                <ProtectedRoute roles={["COMPANY"]}>
+                  <CompanySettings />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/company/applications"
-            element={
-              <ProtectedRoute roles={["COMPANY"]}>
-                <CompanyApplications />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/job-posting-payment"
+              element={
+                <ProtectedRoute roles={["COMPANY"]}>
+                  <JobPostingPayment />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/company-setup"
-            element={
-              <ProtectedRoute roles={["COMPANY"]}>
-                <CompanySettings />
-              </ProtectedRoute>
-            }
-          />
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={["ADMIN"]}>
+                  <AdminDashboard onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/job-posting-payment"
-            element={
-              <ProtectedRoute roles={["COMPANY"]}>
-                <JobPostingPayment />
-              </ProtectedRoute>
-            }
-          />
+            {/* Job Seeker Routes */}
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute roles={["JOB_SEEKER"]}>
+                  <ProfileNew />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Admin Routes */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={["ADMIN"]}>
-                <AdminDashboard onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/browse-jobs"
+              element={
+                <ProtectedRoute roles={["JOB_SEEKER"]}>
+                  <BrowseJobsNew />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Job Seeker Routes */}
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute roles={["JOB_SEEKER"]}>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/applications"
+              element={
+                <ProtectedRoute roles={["JOB_SEEKER"]}>
+                  <MyApplications />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/browse-jobs"
-            element={
-              <ProtectedRoute roles={["JOB_SEEKER"]}>
-                <BrowseJobs />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/saved-jobs"
+              element={
+                <ProtectedRoute roles={["JOB_SEEKER"]}>
+                  <div className="page-container">
+                    Saved Jobs - Coming Soon!
+                  </div>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/applications"
-            element={
-              <ProtectedRoute roles={["JOB_SEEKER"]}>
-                <MyApplications />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/recommendations"
+              element={
+                <ProtectedRoute roles={["JOB_SEEKER"]}>
+                  <div className="page-container">
+                    Job Recommendations - Coming Soon!
+                  </div>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/saved-jobs"
-            element={
-              <ProtectedRoute roles={["JOB_SEEKER"]}>
-                <div className="page-container">Saved Jobs - Coming Soon!</div>
-              </ProtectedRoute>
-            }
-          />
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={["ADMIN"]}>
+                  <AdminDashboard onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/recommendations"
-            element={
-              <ProtectedRoute roles={["JOB_SEEKER"]}>
-                <div className="page-container">
-                  Job Recommendations - Coming Soon!
-                </div>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Admin Routes */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={["ADMIN"]}>
-                <AdminDashboard onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Default redirect based on role */}
-          <Route
-            path="*"
-            element={
-              role === "COMPANY" ? (
-                <Navigate to="/" replace />
-              ) : role === "JOB_SEEKER" ? (
-                <Navigate to="/" replace />
-              ) : role === "ADMIN" ? (
-                <Navigate to="/" replace />
-              ) : (
-                <UnknownRole />
-              )
-            }
-          />
-        </Routes>
-      </div>
-    </Router>
+            {/* Default redirect based on role */}
+            <Route
+              path="*"
+              element={
+                role === "COMPANY" ? (
+                  <Navigate to="/" replace />
+                ) : role === "JOB_SEEKER" ? (
+                  <Navigate to="/" replace />
+                ) : role === "ADMIN" ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <UnknownRole />
+                )
+              }
+            />
+          </Routes>
+        </div>
+      </Router>
+      <Toaster />
     </LogoProvider>
   );
 }
@@ -407,7 +431,9 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
               <div className="w-14 h-14 bg-[#155AA4] dark:bg-[#0574EE] rounded-xl flex items-center justify-center mx-auto shadow-md mb-3">
                 <User className="w-7 h-7 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-[#155AA4] dark:text-white">Job Seeker</CardTitle>
+              <CardTitle className="text-xl font-bold text-[#155AA4] dark:text-white">
+                Job Seeker
+              </CardTitle>
               <CardDescription className="text-[#155AA4]/80 dark:text-[#EAF6F9]/80 text-sm">
                 Browse jobs, upload resume, and apply in minutes
               </CardDescription>
@@ -429,7 +455,9 @@ function RoleSelection({ onRoleSelected, onBackToLanding }) {
               <div className="w-14 h-14 bg-[#0574EE] dark:bg-[#155AA4] rounded-xl flex items-center justify-center mx-auto shadow-md mb-3">
                 <Building2 className="w-7 h-7 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-[#155AA4] dark:text-white">Company</CardTitle>
+              <CardTitle className="text-xl font-bold text-[#155AA4] dark:text-white">
+                Company
+              </CardTitle>
               <CardDescription className="text-[#155AA4]/80 dark:text-[#EAF6F9]/80 text-sm">
                 Post jobs and manage applicants with ease
               </CardDescription>
