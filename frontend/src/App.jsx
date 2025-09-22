@@ -60,7 +60,13 @@ import AdminDashboard from "./components/admin-dashboard";
 import JobSeekerDashboardNew from "./components/JobSeekerDashboardNew";
 
 export default function JobPortalApp() {
-  const { isAuthenticated, isLoading: auth0Loading, getAccessTokenSilently, user, logout } = useAuth0();
+  const {
+    isAuthenticated,
+    isLoading: auth0Loading,
+    getAccessTokenSilently,
+    user,
+    logout,
+  } = useAuth0();
   const { role, companyStatus, loading, refreshAuthMeta } = useAuthMeta();
   const [currentView, setCurrentView] = useState("landing");
 

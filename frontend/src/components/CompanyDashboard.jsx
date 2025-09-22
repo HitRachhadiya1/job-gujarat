@@ -18,7 +18,12 @@ import {
   ExternalLink
 } from "lucide-react";
 import Spinner from "./Spinner";
+<<<<<<< HEAD
+import ThemeToggle from "./ThemeToggle";
+import AppLogo from "./AppLogo";
+=======
 import { API_URL, resolveAssetUrl } from "@/config";
+>>>>>>> 95725481755de0b5ce290d5ffb5a9da6340b9e28
 
 function CompanyDashboard() {
   const { isDark, toggleTheme } = useTheme();
@@ -131,7 +136,42 @@ function CompanyDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-300 dark:bg-stone-950 pt-8 pb-10 transition-colors duration-500">
+    <div className="min-h-screen bg-[#EAF6F9] dark:bg-stone-950 pt-24 pb-10 transition-colors duration-500">
+      {/* Header - Solid Professional Navbar */}
+      <header className="fixed top-0 left-0 right-0 z-40 h-20 bg-[#155AA4] dark:bg-[#155AA4] border-b border-[#77BEE0]/40 shadow-[0_2px_8px_rgba(0,0,0,0.25)]">
+        <div className="h-full flex items-center justify-between px-6 md:px-8">
+          {/* Brand + Welcome */}
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-3">
+              <AppLogo size="w-10 h-10" rounded="rounded-lg" mode="contain" />
+              <div className="leading-tight">
+                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">Job Gujarat</h1>
+                <p className="text-[10px] md:text-xs text-white/90">Employer Portal</p>
+              </div>
+            </div>
+            <span className="hidden md:inline-block text-white/60">|</span>
+            <h2 className="hidden md:block text-base md:text-lg font-semibold text-white/90">
+              {`Welcome, ${user?.given_name || user?.name?.split(" ")[0] || "User"}`}
+            </h2>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="bg-white/10 rounded-lg p-1 border border-white/20">
+              <ThemeToggle />
+            </div>
+            <img
+              src={
+                user?.picture ||
+                "https://via.placeholder.com/40/78716c/FFFFFF?text=U"
+              }
+              alt="Profile"
+              className="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-white/70 shadow-md"
+            />
+          </div>
+        </div>
+      </header>
+
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Company Header */}
         <Card className="mb-8 bg-stone-100/95 dark:bg-stone-900/60 backdrop-blur-sm border border-stone-400/70 dark:border-stone-800/50 shadow-xl rounded-2xl">
