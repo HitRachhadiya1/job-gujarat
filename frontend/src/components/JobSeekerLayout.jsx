@@ -100,11 +100,11 @@ export default function JobSeekerLayout({
                 />
               </div>
               <div className="hidden xs:block">
-                <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-lg sm:text-xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight">
                   Job Gujarat
                 </h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400 hidden sm:block">
-                  Find Your Dream Job
+                <p className="text-xs text-stone-700 dark:text-stone-400 font-medium hidden sm:block">
+                  Connecting you to What's Next
                 </p>
               </div>
             </motion.div>

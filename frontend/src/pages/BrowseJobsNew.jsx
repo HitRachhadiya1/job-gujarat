@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,9 +20,9 @@ import {
   Building2,
   Briefcase,
   Clock,
-  DollarSign,
+  IndianRupee,
   Calendar,
-  Heart,
+  Bookmark,
   Filter,
   X,
   TrendingUp,
@@ -64,7 +64,7 @@ export default function BrowseJobsNew() {
   const [jobType, setJobType] = useState("all");
   const [experienceLevel, setExperienceLevel] = useState("all");
   const [salaryRange, setSalaryRange] = useState([0, 200000]);
-  const [filteredJobs, setFilteredJobs] = useState([]);
+  // Remove filteredJobs state, we'll use useMemo instead
   const [savedJobs, setSavedJobs] = useState(new Set());
   const [selectedJob, setSelectedJob] = useState(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
@@ -85,46 +85,8 @@ export default function BrowseJobsNew() {
     fetchSavedJobs();
   }, []);
 
-  useEffect(() => {
-    filterJobs();
-  }, [jobs, searchTerm, location, jobType, experienceLevel, salaryRange]);
-
-  const fetchJobs = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/job-postings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setJobs(Array.isArray(data) ? data : []);
-      }
-    } catch (error) {
-      console.error("Error fetching jobs:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch jobs",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSavedJobs = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-      const response = await savedJobsAPI.getSavedJobs(token);
-      const savedJobIds = new Set(
-        response.savedJobs.map((savedJob) => savedJob.job.id)
-      );
-      setSavedJobs(savedJobIds);
-    } catch (error) {
-      console.error("Error fetching saved jobs:", error);
-    }
-  };
-
-  const filterJobs = () => {
+  // Memoized filtered jobs to prevent unnecessary re-renders
+  const filteredJobs = useMemo(() => {
     let filtered = [...jobs];
 
     // Search filter
@@ -163,10 +125,47 @@ export default function BrowseJobsNew() {
       return minSalary >= salaryRange[0] && minSalary <= salaryRange[1];
     });
 
-    setFilteredJobs(filtered);
+    return filtered;
+  }, [jobs, searchTerm, location, jobType, experienceLevel, salaryRange]);
+
+  const fetchJobs = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch(`${API_URL}/job-postings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setJobs(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch jobs",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSaveJob = async (jobId) => {
+  const fetchSavedJobs = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await savedJobsAPI.getSavedJobs(token);
+      const savedJobIds = new Set(
+        response.savedJobs.map((savedJob) => savedJob.job.id)
+      );
+      setSavedJobs(savedJobIds);
+    } catch (error) {
+      console.error("Error fetching saved jobs:", error);
+    }
+  };
+
+  // Removed filterJobs function - now using useMemo above
+
+  const handleSaveJob = useCallback(async (jobId) => {
     try {
       setSavingJobs((prev) => new Set([...prev, jobId]));
       const token = await getAccessTokenSilently();
@@ -179,10 +178,18 @@ export default function BrowseJobsNew() {
           newSet.delete(jobId);
           return newSet;
         });
+        toast({
+          title: "Removed",
+          description: "Job removed from saved list",
+        });
       } else {
         // Save the job
         await savedJobsAPI.saveJob(jobId, token);
         setSavedJobs((prev) => new Set([...prev, jobId]));
+        toast({
+          title: "Saved",
+          description: "Job saved to your collection",
+        });
       }
     } catch (error) {
       console.error("Error saving/unsaving job:", error);
@@ -198,7 +205,7 @@ export default function BrowseJobsNew() {
         return newSet;
       });
     }
-  };
+  }, [savedJobs, getAccessTokenSilently, toast]);
 
   const handleApplicationSubmitted = (application) => {
     const jobTitle =
@@ -212,7 +219,7 @@ export default function BrowseJobsNew() {
     });
   };
 
-  const JobCard = ({ job, index }) => {
+  const JobCard = memo(({ job, index }) => {
     const isNew =
       new Date() - new Date(job.createdAt) < 7 * 24 * 60 * 60 * 1000;
     const isSaved = savedJobs.has(job.id);
@@ -270,11 +277,11 @@ export default function BrowseJobsNew() {
                   "p-2 rounded-lg transition-colors cursor-pointer relative z-10",
                   savingJobs.has(job.id) && "cursor-not-allowed opacity-50",
                   isSaved
-                    ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400"
+                    ? "bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400"
                     : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
                 )}
               >
-                <Heart className={cn("w-5 h-5", isSaved && "fill-current")} />
+                <Bookmark className={cn("w-5 h-5", isSaved && "fill-current")} />
               </motion.button>
             </div>
             {/* Status badges */}
@@ -305,12 +312,14 @@ export default function BrowseJobsNew() {
                 <span>{job.type || "Full-time"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                <DollarSign className="w-4 h-4 text-green-500" />
+                <IndianRupee className="w-4 h-4 text-green-500" />
                 <span>
                   {job.minSalary && job.maxSalary
                     ? `₹${job.minSalary.toLocaleString()} - ₹${job.maxSalary.toLocaleString()}`
                     : job.minSalary
                     ? `₹${job.minSalary.toLocaleString()}+`
+                    : job.maxSalary
+                    ? `Up to ₹${job.maxSalary.toLocaleString()}`
                     : "Salary not specified"}
                 </span>
               </div>
@@ -377,7 +386,7 @@ export default function BrowseJobsNew() {
         </Card>
       </motion.div>
     );
-  };
+  });
 
   if (loading) {
     return <LoadingOverlay message="Loading jobs..." />;
