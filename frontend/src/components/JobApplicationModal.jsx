@@ -320,7 +320,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
                       type="button"
                       onClick={() => {
                         onClose();
-                        navigate('/?view=profile');
+                        navigate('/profile');
                       }}
                       className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 font-medium"
                     >

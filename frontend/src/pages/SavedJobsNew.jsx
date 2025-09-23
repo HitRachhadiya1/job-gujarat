@@ -12,7 +12,7 @@ import {
   Building2,
   Briefcase,
   Clock,
-  DollarSign,
+  IndianRupee,
   Calendar,
   ExternalLink,
   BookmarkCheck,
@@ -125,9 +125,9 @@ export default function SavedJobsNew() {
         filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         break;
       case "salary":
-        filtered.sort(
-          (a, b) => (b.job?.minSalary || 0) - (a.job?.minSalary || 0)
-        );
+        // TODO: Parse salaryRange string for proper sorting
+        // For now, sort by job title as fallback
+        filtered.sort((a, b) => (a.job?.title || "").localeCompare(b.job?.title || ""));
         break;
       case "company":
         filtered.sort((a, b) =>
@@ -145,9 +145,16 @@ export default function SavedJobsNew() {
     const job = savedJob.job || savedJob; // Handle both nested and direct job objects
     const isNew =
       new Date() - new Date(savedJob.createdAt) < 7 * 24 * 60 * 60 * 1000;
-    const isExpiringSoon =
-      job.applicationDeadline &&
-      new Date(job.applicationDeadline) - new Date() < 3 * 24 * 60 * 60 * 1000;
+    
+    // Check if job is expired using the same logic as BrowseJobsNew
+    const isExpired = (expiresAt) => {
+      if (!expiresAt) return false;
+      const endOfDay = new Date(expiresAt);
+      endOfDay.setHours(23, 59, 59, 999);
+      return new Date() > endOfDay;
+    };
+    
+    const expired = isExpired(job.expiresAt);
     const daysSaved = Math.floor(
       (new Date() - new Date(savedJob.createdAt)) / (1000 * 60 * 60 * 24)
     );
@@ -163,7 +170,7 @@ export default function SavedJobsNew() {
       >
         <Card
           className={cn(
-            "group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300",
+            "group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col",
             "bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm"
           )}
         >
@@ -229,7 +236,7 @@ export default function SavedJobsNew() {
             </div>
           </CardHeader>
 
-          <CardContent className="pl-14">
+          <CardContent className="pl-14 flex-1 flex flex-col">
             {/* Job Details Grid */}
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -241,13 +248,9 @@ export default function SavedJobsNew() {
                 <span>{job.type || "Full-time"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                <DollarSign className="w-4 h-4 text-green-500" />
+                <IndianRupee className="w-4 h-4 text-green-500" />
                 <span>
-                  {job.minSalary && job.maxSalary
-                    ? `₹${job.minSalary.toLocaleString()} - ₹${job.maxSalary.toLocaleString()}`
-                    : job.minSalary
-                    ? `₹${job.minSalary.toLocaleString()}+`
-                    : "Salary not specified"}
+                  {job.salaryRange || "Salary not specified"}
                 </span>
               </div>
               {/* <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -297,28 +300,29 @@ export default function SavedJobsNew() {
               )}
             </div> */}
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
+            {/* Action Buttons - Push to bottom */}
+            <div className="flex gap-2 mt-auto">
               <Button
                 type="button"
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 group cursor-pointer"
+                className={cn(
+                  "flex-1 group cursor-pointer",
+                  expired
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                )}
                 onClick={() => {
-                  setSelectedJob(job);
-                  setIsApplicationModalOpen(true);
+                  if (!expired) {
+                    setSelectedJob(job);
+                    setIsApplicationModalOpen(true);
+                  }
                 }}
+                disabled={expired}
               >
-                Apply Now
-                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                {expired ? "Applications Closed" : "Apply Now"}
+                {!expired && (
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                )}
               </Button>
-              {/* <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="cursor-pointer"
-                onClick={() => handleRemoveJob(job.id)}
-              >
-                <Heart className="w-4 h-4 fill-current" />
-              </Button> */}
             </div>
           </CardContent>
         </Card>

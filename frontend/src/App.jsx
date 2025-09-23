@@ -43,6 +43,7 @@ import JobManagement from "./components/JobManagement";
 import BrowseJobsNew from "./pages/BrowseJobsNew";
 import MyApplications from "./pages/MyApplications";
 import ProfileNew from "./pages/ProfileNew";
+import SavedJobsNew from "./pages/SavedJobsNew";
 import CompanySettings from "./pages/CompanySettings";
 import CompanyApplications from "./pages/CompanyApplications";
 import JobPostingPayment from "./pages/JobPostingPayment";
@@ -94,9 +95,9 @@ export default function JobPortalApp() {
 
       console.log("Role assigned successfully");
 
-      // Wait for Auth0 metadata to propagate before refreshing
+      // Minimal wait for Auth0 metadata to propagate
       console.log("Waiting for Auth0 metadata to propagate...");
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Reduced to 1 second
+      await new Promise((resolve) => setTimeout(resolve, 200)); // Reduced to 200ms for faster loading
 
       // Try to refresh with retry logic
       await refreshAuthMetaWithRetry(selectedRole);
@@ -157,7 +158,7 @@ export default function JobPortalApp() {
   const authLoading = auth0Loading || loading;
 
   // Call hooks at the top level - never conditionally
-  const showInitialLoader = useDelayedTrue(auth0Loading, 300);
+  const showInitialLoader = useDelayedTrue(auth0Loading, 100); // Reduced delay for faster loading
 
   // Show overlay only during initial Auth0 loading
   if (showInitialLoader) {
@@ -338,9 +339,7 @@ export default function JobPortalApp() {
               path="/saved-jobs"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <div className="page-container">
-                    Saved Jobs - Coming Soon!
-                  </div>
+                  <SavedJobsNew />
                 </ProtectedRoute>
               }
             />

@@ -163,7 +163,7 @@ export default function JobSeekerDashboardNew({ onLogout }) {
   const DashboardContent = () => (
     <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
       {/* Welcome Section */}
-      <div className="mb-6 sm:mb-8">
+      <div className="mb-6 sm:mb-8 text-center max-w-3xl mx-auto">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
           <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Welcome back,{" "}

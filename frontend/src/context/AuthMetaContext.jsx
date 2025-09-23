@@ -121,11 +121,8 @@ export const AuthMetaProvider = ({ children }) => {
     if (isAuthenticated && user?.sub) {
       // Set loading immediately
       setAuthMeta(prev => ({ ...prev, loading: true }));
-      // Small delay to ensure Auth0 is fully ready
-      const timer = setTimeout(() => {
-        fetchAuthMeta();
-      }, 100);
-      return () => clearTimeout(timer);
+      // Fetch immediately without delay for faster loading
+      fetchAuthMeta();
     } else if (!isAuthenticated) {
       // Clear loading when not authenticated
       setAuthMeta({

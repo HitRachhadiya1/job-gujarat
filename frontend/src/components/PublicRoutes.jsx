@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   motion,
@@ -10,6 +11,7 @@ import {
 import { useInView } from "react-intersection-observer";
 import { useLogo } from "../context/LogoContext";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { BackgroundRippleEffect } from "@/components/ui/background-ripple-effect";
 
 import AppLogo from "./AppLogo";
 import { Button } from "@/components/ui/button";
@@ -65,12 +67,9 @@ import {
 export default function PublicRoutes({ onGetStarted }) {
   const { loginWithRedirect } = useAuth0();
   const { logo } = useLogo();
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
 
   // Animation variants
   const fadeUpVariants = {
@@ -102,14 +101,6 @@ export default function PublicRoutes({ onGetStarted }) {
   });
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-    }
-  }, []);
-
-  useEffect(() => {
     if (statsInView) {
       // Animate counters
       const duration = 2000;
@@ -137,25 +128,8 @@ export default function PublicRoutes({ onGetStarted }) {
     }
   }, [statsInView]);
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    if (!isDarkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  };
-
   const handleGetStarted = () => {
     loginWithRedirect();
-  };
-
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
   };
 
   const features = [
@@ -246,6 +220,9 @@ export default function PublicRoutes({ onGetStarted }) {
         {/* Gradient Orbs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-conic from-purple-400 via-pink-500 to-blue-500 rounded-full filter blur-3xl opacity-20 animate-spin-slow" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-conic from-green-400 via-blue-500 to-purple-500 rounded-full filter blur-3xl opacity-20 animate-spin-slow animation-delay-4000" />
+
+        {/* Background ripple with spotlight disabled (no cursor shine), click ripple enabled */}
+        <BackgroundRippleEffect enableSpotlight={false} enableRipple={true} />
       </div>
 
       {/* Modern Glassmorphism Header */}

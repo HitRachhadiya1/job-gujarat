@@ -118,12 +118,13 @@ export default function BrowseJobsNew() {
       );
     }
 
-    // Salary range filter
-    filtered = filtered.filter((job) => {
-      const minSalary = job.minSalary || 0;
-      const maxSalary = job.maxSalary || 999999999;
-      return minSalary >= salaryRange[0] && minSalary <= salaryRange[1];
-    });
+    // Salary range filter - skip for now since salaryRange is a string
+    // TODO: Parse salaryRange string to extract numeric values for filtering
+    // filtered = filtered.filter((job) => {
+    //   const minSalary = job.minSalary || 0;
+    //   const maxSalary = job.maxSalary || 999999999;
+    //   return minSalary >= salaryRange[0] && minSalary <= salaryRange[1];
+    // });
 
     return filtered;
   }, [jobs, searchTerm, location, jobType, experienceLevel, salaryRange]);
@@ -136,6 +137,7 @@ export default function BrowseJobsNew() {
       });
       if (response.ok) {
         const data = await response.json();
+        console.log("Fetched jobs data:", data); // Debug log
         setJobs(Array.isArray(data) ? data : []);
       }
     } catch (error) {
@@ -153,7 +155,8 @@ export default function BrowseJobsNew() {
   const fetchSavedJobs = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await savedJobsAPI.getSavedJobs(token);
+      // Fetch more to cover most users' saved jobs
+      const response = await savedJobsAPI.getSavedJobs(token, 1, 200);
       const savedJobIds = new Set(
         response.savedJobs.map((savedJob) => savedJob.job.id)
       );
@@ -235,7 +238,7 @@ export default function BrowseJobsNew() {
       >
         <Card
           className={cn(
-            "group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300",
+            "group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col",
             "bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm",
             selectedJob?.id === job.id && "ring-2 ring-blue-500"
           )}
@@ -300,7 +303,7 @@ export default function BrowseJobsNew() {
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col">
             {/* Job Details */}
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -314,13 +317,7 @@ export default function BrowseJobsNew() {
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <IndianRupee className="w-4 h-4 text-green-500" />
                 <span>
-                  {job.minSalary && job.maxSalary
-                    ? `₹${job.minSalary.toLocaleString()} - ₹${job.maxSalary.toLocaleString()}`
-                    : job.minSalary
-                    ? `₹${job.minSalary.toLocaleString()}+`
-                    : job.maxSalary
-                    ? `Up to ₹${job.maxSalary.toLocaleString()}`
-                    : "Salary not specified"}
+                  {job.salaryRange || "Salary not specified"}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -356,18 +353,28 @@ export default function BrowseJobsNew() {
               {expired ? "Applications Closed" : "Apply Now"}
               {!expired && <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
             </Button> */}
-            {/* Action Buttons */}
-            <div className="flex gap-2 relative z-10">
+            {/* Action Buttons - Push to bottom */}
+            <div className="flex gap-2 relative z-10 mt-auto">
               <Button
                 type="button"
-                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 group cursor-pointer relative z-10"
+                className={cn(
+                  "flex-1 group cursor-pointer relative z-10",
+                  expired
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                )}
                 onClick={() => {
-                  setSelectedJob(job);
-                  setIsApplicationModalOpen(true);
+                  if (!expired) {
+                    setSelectedJob(job);
+                    setIsApplicationModalOpen(true);
+                  }
                 }}
+                disabled={expired}
               >
-                Apply Now
-                <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                {expired ? "Applications Closed" : "Apply Now"}
+                {!expired && (
+                  <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                )}
               </Button>
               <Button
                 type="button"

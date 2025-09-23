@@ -25,7 +25,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import AppLogo from "./AppLogo";
-import { useTheme } from "@/context/ThemeContext";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +42,6 @@ export default function JobSeekerLayout({
   onLogout,
 }) {
   const { user } = useAuth0();
-  const { isDark, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -91,19 +90,16 @@ export default function JobSeekerLayout({
               whileHover={{ scale: 1.02 }}
               className="flex items-center space-x-2 sm:space-x-3"
             >
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-50" />
-                <AppLogo
-                  size="w-8 h-8 sm:w-10 sm:h-10"
-                  rounded="rounded-xl"
-                  className="relative"
-                />
-              </div>
-              <div className="hidden xs:block">
-                <h1 className="text-lg sm:text-xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight">
+              <AppLogo
+                size="w-8 h-8 sm:w-10 sm:h-10"
+                rounded="rounded-xl"
+                mode="contain"
+              />
+              <div>
+                <h1 className="text-xl md:text-2xl font-extrabold text-stone-900 dark:text-stone-100 tracking-tight">
                   Job Gujarat
                 </h1>
-                <p className="text-xs text-stone-700 dark:text-stone-400 font-medium hidden sm:block">
+                <p className="text-[11px] md:text-xs leading-tight text-stone-700 dark:text-stone-400 font-medium">
                   Connecting you to What's Next
                 </p>
               </div>
@@ -172,18 +168,9 @@ export default function JobSeekerLayout({
               </motion.button> */}
 
               {/* Theme Toggle */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleTheme}
-                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hidden sm:block"
-              >
-                {isDark ? (
-                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-400" />
-                ) : (
-                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-400" />
-                )}
-              </motion.button>
+              <div className="hidden sm:block">
+                <AnimatedThemeToggler className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" />
+              </div>
 
               {/* User Menu */}
               <DropdownMenu>
@@ -290,18 +277,7 @@ export default function JobSeekerLayout({
                 {/* Mobile-only actions */}
                 <div className="flex items-center justify-center space-x-4 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                   {/* Theme Toggle for Mobile */}
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={toggleTheme}
-                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    {isDark ? (
-                      <Sun className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                    ) : (
-                      <Moon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-                    )}
-                  </motion.button>
+                  <AnimatedThemeToggler className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" />
 
                   {/* Notifications for Mobile */}
                   <motion.button

@@ -2,7 +2,12 @@ import React, { useEffect, useRef } from "react";
 
 // Interactive background grid with spotlight and click ripple
 // Designed for use behind hero/CTA sections without interfering with UI interactions.
-export function BackgroundRippleEffect({ gridSize = 60, intensity = 0.16 }) {
+export function BackgroundRippleEffect({
+  gridSize = 60,
+  intensity = 0.16,
+  enableSpotlight = true,
+  enableRipple = true,
+}) {
   const ref = useRef(null);
   const rafRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0 });
@@ -37,14 +42,14 @@ export function BackgroundRippleEffect({ gridSize = 60, intensity = 0.16 }) {
       setTimeout(() => ripple.remove(), 1200);
     };
 
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("click", handleClick);
+    if (enableSpotlight) window.addEventListener("mousemove", handleMove);
+    if (enableRipple) window.addEventListener("click", handleClick);
     return () => {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("click", handleClick);
+      if (enableSpotlight) window.removeEventListener("mousemove", handleMove);
+      if (enableRipple) window.removeEventListener("click", handleClick);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [enableSpotlight, enableRipple]);
 
   return (
     <div
@@ -63,13 +68,15 @@ export function BackgroundRippleEffect({ gridSize = 60, intensity = 0.16 }) {
         }}
       />
 
-      {/* Spotlight following the cursor */}
-      <div
-        className="absolute inset-0 mix-blend-overlay"
-        style={{
-          background: `radial-gradient(600px circle at var(--x) var(--y), rgba(59,130,246,${intensity}), transparent 55%)`,
-        }}
-      />
+      {/* Spotlight following the cursor (optional) */}
+      {enableSpotlight && (
+        <div
+          className="absolute inset-0 mix-blend-overlay"
+          style={{
+            background: `radial-gradient(600px circle at var(--x) var(--y), rgba(59,130,246,${intensity}), transparent 55%)`,
+          }}
+        />
+      )}
 
       {/* Soft vignette to focus center content */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#EAF6F9]/40 dark:to-[#0B1F3B]/40" />
