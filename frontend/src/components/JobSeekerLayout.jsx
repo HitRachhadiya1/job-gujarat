@@ -4,6 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useJobSeekerProfile } from "@/hooks/useJobSeekerProfile";
 import {
   Home,
   Briefcase,
@@ -42,6 +43,7 @@ export default function JobSeekerLayout({
   onLogout,
 }) {
   const { user } = useAuth0();
+  const { profilePhoto } = useJobSeekerProfile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -182,10 +184,11 @@ export default function JobSeekerLayout({
                     <div className="relative">
                       <img
                         src={
+                          profilePhoto ||
                           user?.picture ||
                           `https://ui-avatars.com/api/?name=${
                             user?.name || "User"
-                          }`
+                          }&background=6366f1&color=fff`
                         }
                         alt="Profile"
                         className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover border-2 border-gradient-to-r from-blue-600 to-purple-600"

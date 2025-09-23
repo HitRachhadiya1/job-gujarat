@@ -670,14 +670,65 @@ function ProfileNew() {
                     alt="Profile"
                     className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-2xl border-4 border-white shadow-xl object-cover"
                   />
+                  
+                  {/* Hidden file input for photo - only functional when editing */}
+                  <input
+                    id="profilePhotoMobile"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && editing) {
+                        handlePhotoUpload(file);
+                      } else if (file && !editing) {
+                        // Clear the input if not in edit mode
+                        e.target.value = '';
+                      }
+                    }}
+                    disabled={!editing}
+                  />
+                  
+                  {/* Camera overlay - only visible when editing */}
+                  {editing && (
+                    <label htmlFor="profilePhotoMobile">
+                      <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center cursor-pointer transition-opacity">
+                        <div className="text-center text-white">
+                          <Camera className="w-6 h-6 mx-auto mb-1" />
+                          <span className="text-xs font-medium">
+                            {uploadingPhoto ? "Uploading..." : "Change Photo"}
+                          </span>
+                        </div>
+                      </div>
+                    </label>
+                  )}
                 </div>
-                <div className="text-center sm:text-left pb-0 sm:pb-2">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">
-                    {formData.fullName || user?.name || "Your Name"}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                    {formData.email || user?.email || ""}
-                  </p>
+                
+                <div className="flex flex-col items-center sm:items-start space-y-2">
+                  <div className="text-center sm:text-left">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">
+                      {formData.fullName || user?.name || "Your Name"}
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                      {formData.email || user?.email || ""}
+                    </p>
+                  </div>
+                  
+                  {/* Upload Photo Button - visible when editing */}
+                  {editing && (
+                    <label htmlFor="profilePhotoMobile">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="cursor-pointer"
+                        disabled={uploadingPhoto}
+                      >
+                        <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                        {uploadingPhoto ? "Uploading..." : "Upload Photo"}
+                      </Button>
+                    </label>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
