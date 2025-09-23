@@ -14,7 +14,13 @@ const adminRoutes = require("./routes/adminRoutes");
 const publicRoutes = require("./routes/publicRoutes");
 
 const app = express();
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ 
+  origin: [
+    "http://localhost:5173",
+    "https://job-gujarat.vercel.app"
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Serve uploaded files statically
