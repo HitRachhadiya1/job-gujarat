@@ -55,6 +55,7 @@ export default function SavedJobsNew() {
   const [filterBy, setFilterBy] = useState("all");
   const [selectedJob, setSelectedJob] = useState(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  const [removingJobs, setRemovingJobs] = useState(new Set());
 
   useEffect(() => {
     fetchSavedJobs();
@@ -76,6 +77,11 @@ export default function SavedJobsNew() {
 
   const handleRemoveJob = async (jobId) => {
     try {
+      setRemovingJobs((prev) => {
+        const set = new Set(prev);
+        set.add(jobId);
+        return set;
+      });
       const token = await getAccessTokenSilently();
       await savedJobsAPI.unsaveJob(jobId, token);
       setSavedJobs((prev) =>
@@ -91,6 +97,12 @@ export default function SavedJobsNew() {
         title: "Error",
         description: "Failed to remove job",
         variant: "destructive",
+      });
+    } finally {
+      setRemovingJobs((prev) => {
+        const set = new Set(prev);
+        set.delete(jobId);
+        return set;
       });
     }
   };
@@ -226,12 +238,21 @@ export default function SavedJobsNew() {
 
               {/* Remove Button */}
               <motion.button
+                type="button"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => handleRemoveJob(job.id)}
-                className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                disabled={removingJobs.has(job.id)}
+                className={cn(
+                  "p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors",
+                  removingJobs.has(job.id) && "opacity-50 cursor-not-allowed"
+                )}
               >
-                <Heart className="w-5 h-5 fill-current" />
+                {removingJobs.has(job.id) ? (
+                  <span className="inline-block h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                ) : (
+                  <Heart className="w-5 h-5 fill-current" />
+                )}
               </motion.button>
             </div>
           </CardHeader>

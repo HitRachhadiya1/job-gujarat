@@ -35,6 +35,7 @@ function ProfileNew() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingResume, setUploadingResume] = useState(false);
   const [skillInput, setSkillInput] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -253,6 +254,7 @@ function ProfileNew() {
   };
 
   const handleSave = async () => {
+    setSaving(true);
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(`${API_URL}/jobseeker/`, {
@@ -290,6 +292,8 @@ function ProfileNew() {
         description: "Failed to save profile",
         variant: "destructive",
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -387,11 +391,21 @@ function ProfileNew() {
                   <Button
                     onClick={handleSave}
                     className="bg-green-600 hover:bg-green-700 text-white"
+                    disabled={saving}
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
+                    {saving ? (
+                      <span className="flex items-center">
+                        <span className="h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        Saving...
+                      </span>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
                   </Button>
-                  <Button variant="outline" onClick={() => setEditing(false)}>
+                  <Button variant="outline" onClick={() => setEditing(false)} disabled={saving}>
                     <X className="w-4 h-4 mr-2" />
                     Cancel
                   </Button>
@@ -748,15 +762,26 @@ function ProfileNew() {
                       onClick={handleSave}
                       className="bg-green-600 hover:bg-green-700 text-white text-sm sm:text-base"
                       size="sm"
+                      disabled={saving}
                     >
-                      <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      Save
+                      {saving ? (
+                        <span className="flex items-center">
+                          <span className="h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                          Saving...
+                        </span>
+                      ) : (
+                        <>
+                          <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          Save
+                        </>
+                      )}
                     </Button>
                     <Button
                       onClick={() => setEditing(false)}
                       variant="outline"
                       size="sm"
                       className="text-sm sm:text-base"
+                      disabled={saving}
                     >
                       <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Cancel

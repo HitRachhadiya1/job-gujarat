@@ -36,12 +36,18 @@ import {
   Star,
   ChevronRight,
   Sparkles,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { API_URL } from "@/config";
 import { useToast } from "@/hooks/use-toast";
 import LoadingOverlay from "../components/LoadingOverlay";
 import useDelayedTrue from "../hooks/useDelayedTrue";
+import ApprovalProcessModal from "../components/ApprovalProcessModal";
+
+// StrictMode-safe caches and animation guard
+let __appsCache = null;
+let __appsAnimatedOnce = false;
 
 export default function MyApplicationsNew() {
   const { getAccessTokenSilently } = useAuth0();
@@ -51,12 +57,65 @@ export default function MyApplicationsNew() {
   const [activeTab, setActiveTab] = useState("all");
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+  const [approvalApplication, setApprovalApplication] = useState(null);
+  const [approvalFees, setApprovalFees] = useState({});
+
+  // One-time animation guard for development StrictMode double-mount
+  const shouldAnimateInitial = !__appsAnimatedOnce;
+  useEffect(() => {
+    __appsAnimatedOnce = true;
+  }, []);
 
   useEffect(() => {
     fetchApplications();
   }, []);
 
-  const fetchApplications = async () => {
+  // Prefetch approval fee for HIRED applications so the button can show dynamic amount
+  useEffect(() => {
+    const hiredApps = applications.filter((a) => a.status === "HIRED");
+    hiredApps.forEach((app) => {
+      if (approvalFees[app.id] == null) {
+        fetchApprovalFeeFor(app.id);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applications]);
+
+  const fetchApprovalFeeFor = async (applicationId) => {
+    try {
+      const token = await getAccessTokenSilently();
+      const res = await fetch(`${API_URL}/applications/${applicationId}/approval-fee`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setApprovalFees((prev) => ({ ...prev, [applicationId]: data.approvalFee }));
+      }
+    } catch (e) {
+      // Silently ignore; amount will be shown in modal if not prefetched
+    }
+  };
+
+  const hasAadhaar = (app) => {
+    try {
+      if (!app?.aadhaarDocumentUrl) return false;
+      const data = typeof app.aadhaarDocumentUrl === 'string'
+        ? JSON.parse(app.aadhaarDocumentUrl)
+        : app.aadhaarDocumentUrl;
+      return !!(data?.front || data?.back);
+    } catch {
+      return false;
+    }
+  };
+
+  const fetchApplications = async (force = false) => {
+    // Serve from cache to avoid duplicate fetch in StrictMode dev
+    if (!force && __appsCache !== null) {
+      setApplications(Array.isArray(__appsCache) ? __appsCache : []);
+      setLoading(false);
+      return;
+    }
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(`${API_URL}/applications/my-applications`, {
@@ -64,7 +123,9 @@ export default function MyApplicationsNew() {
       });
       if (response.ok) {
         const data = await response.json();
-        setApplications(data.applications || data);
+        const list = data?.applications || data || [];
+        __appsCache = list;
+        setApplications(list);
       } else if (response.status === 403) {
         // New job seeker without profile - set empty data
         setApplications([]);
@@ -79,45 +140,57 @@ export default function MyApplicationsNew() {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    const s = (status || "").toUpperCase() === "APPLIED" ? "PENDING" : (status || "").toUpperCase();
+    switch (s) {
       case "PENDING":
         return "bg-yellow-500 text-white";
       case "ACCEPTED":
         return "bg-green-500 text-white";
       case "REJECTED":
         return "bg-red-500 text-white";
+      case "HIRED":
+        return "bg-blue-600 text-white";
       default:
         return "bg-gray-500 text-white";
     }
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
+    const s = (status || "").toUpperCase() === "APPLIED" ? "PENDING" : (status || "").toUpperCase();
+    switch (s) {
       case "PENDING":
         return <Clock className="w-4 h-4" />;
       case "ACCEPTED":
         return <CheckCircle className="w-4 h-4" />;
       case "REJECTED":
         return <XCircle className="w-4 h-4" />;
+      case "HIRED":
+        return <Award className="w-4 h-4" />;
       default:
         return <AlertCircle className="w-4 h-4" />;
     }
   };
 
-  const getFilteredApplications = () => {
-    if (activeTab === "all") return applications;
-    return applications.filter((app) => app.status === activeTab.toUpperCase());
+  const normalizeStatus = (status) => {
+    const s = (status || "").toUpperCase();
+    return s === "APPLIED" ? "PENDING" : s;
   };
 
-  const ApplicationCard = ({ application, index }) => {
+  const getFilteredApplications = () => {
+    if (activeTab === "all") return applications;
+    const target = activeTab.toUpperCase();
+    return applications.filter((app) => normalizeStatus(app.status) === target);
+  };
+
+  const ApplicationCard = ({ application, index, animateOnMount }) => {
     const isRecent =
       new Date() - new Date(application.createdAt) < 3 * 24 * 60 * 60 * 1000;
 
     return (
       <motion.div
         layout
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={animateOnMount ? { opacity: 0, y: 20 } : false}
+        animate={animateOnMount ? { opacity: 1, y: 0 } : undefined}
         exit={{ opacity: 0, scale: 0.9 }}
         transition={{ duration: 0.3, delay: index * 0.05 }}
         whileHover={{ y: -5 }}
@@ -135,8 +208,8 @@ export default function MyApplicationsNew() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           <CardHeader className="pb-3">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+              <div className="flex items-center space-x-4 min-w-0 flex-1">
                 {/* Company Logo */}
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg">
                   {application.jobPosting?.company?.name?.[0] ||
@@ -145,14 +218,14 @@ export default function MyApplicationsNew() {
                     "C"}
                 </div>
 
-                <div>
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <div className="min-w-0">
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                     {application.jobPosting?.title ||
                       application.job?.title ||
                       application.jobTitle ||
                       "Job Title"}
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1 truncate">
                     <Building2 className="w-3 h-3" />
                     {application.jobPosting?.company?.name ||
                       application.job?.company?.name ||
@@ -162,7 +235,7 @@ export default function MyApplicationsNew() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
                 {isRecent && (
                   <motion.div
                     initial={{ scale: 0 }}
@@ -182,7 +255,7 @@ export default function MyApplicationsNew() {
                   )}
                 >
                   {getStatusIcon(application.status)}
-                  {application.status}
+                  {normalizeStatus(application.status)}
                 </Badge>
               </div>
             </div>
@@ -252,21 +325,33 @@ export default function MyApplicationsNew() {
                 View Details
                 <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
               </Button>
-              {/* <Button
-                type="button"
-                size="sm"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 cursor-pointer"
-                onClick={() => {
-                  toast({
-                    title: "Contact Company",
-                    description: "Opening contact information...",
-                  });
-                }}
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Contact
-              </Button> */}
+              {application.status === "HIRED" && !hasAadhaar(application) && (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white cursor-pointer"
+                  onClick={() => {
+                    setApprovalApplication(application);
+                    setIsApprovalModalOpen(true);
+                    if (approvalFees[application.id] == null) {
+                      fetchApprovalFeeFor(application.id);
+                    }
+                  }}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {approvalFees[application.id] != null
+                    ? `Pay ₹${approvalFees[application.id]} and Upload`
+                    : "Pay and Upload"}
+                </Button>
+              )}
+              {application.status === "HIRED" && hasAadhaar(application) && (
+                <div className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 text-sm">
+                  <CheckCircle className="w-4 h-4" />
+                  Aadhaar uploaded
+                </div>
+              )}
             </div>
+
           </CardContent>
         </Card>
       </motion.div>
@@ -327,8 +412,8 @@ export default function MyApplicationsNew() {
       <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 relative">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={shouldAnimateInitial ? { opacity: 0, y: -20 } : false}
+          animate={shouldAnimateInitial ? { opacity: 1, y: 0 } : undefined}
           className="mb-6 sm:mb-8"
         >
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
@@ -383,21 +468,25 @@ export default function MyApplicationsNew() {
               onValueChange={setActiveTab}
               className="w-full"
             >
-              <TabsList className="grid grid-cols-4 w-full">
+              <TabsList className="grid grid-cols-5 w-full">
                 <TabsTrigger value="all">
                   All ({applications.length})
                 </TabsTrigger>
                 <TabsTrigger value="pending">
                   Pending (
-                  {applications.filter((a) => a.status === "PENDING").length})
+                  {applications.filter((a) => normalizeStatus(a.status) === "PENDING").length})
                 </TabsTrigger>
                 <TabsTrigger value="accepted">
                   Accepted (
-                  {applications.filter((a) => a.status === "ACCEPTED").length})
+                  {applications.filter((a) => normalizeStatus(a.status) === "ACCEPTED").length})
+                </TabsTrigger>
+                <TabsTrigger value="hired">
+                  Hired (
+                  {applications.filter((a) => normalizeStatus(a.status) === "HIRED").length})
                 </TabsTrigger>
                 <TabsTrigger value="rejected">
                   Rejected (
-                  {applications.filter((a) => a.status === "REJECTED").length})
+                  {applications.filter((a) => normalizeStatus(a.status) === "REJECTED").length})
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -410,6 +499,7 @@ export default function MyApplicationsNew() {
                     key={application.id}
                     application={application}
                     index={index}
+                    animateOnMount={shouldAnimateInitial}
                   />
                 ))}
               </div>
@@ -446,7 +536,7 @@ export default function MyApplicationsNew() {
 
       {/* Job Details Modal */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <DialogContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl sm:rounded-xl max-w-2xl">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl sm:rounded-xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
               {selectedApplication?.jobPosting?.title ||
@@ -480,7 +570,7 @@ export default function MyApplicationsNew() {
               </div>
               <div>
                 <p className="font-medium text-slate-900 dark:text-white">
-                  Application Status: {selectedApplication?.status}
+                  Application Status: {normalizeStatus(selectedApplication?.status)}
                 </p>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
                   Applied on{" "}
@@ -606,6 +696,18 @@ export default function MyApplicationsNew() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Approval Process Modal */}
+      <ApprovalProcessModal
+        isOpen={isApprovalModalOpen}
+        onClose={() => {
+          setIsApprovalModalOpen(false);
+          setApprovalApplication(null);
+          // Refresh applications to reflect potential changes after process
+          fetchApplications(true);
+        }}
+        application={approvalApplication}
+      />
     </div>
   );
 }

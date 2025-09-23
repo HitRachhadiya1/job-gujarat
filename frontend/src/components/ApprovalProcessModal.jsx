@@ -17,6 +17,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [isRazorpayOpen, setIsRazorpayOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && application) {
@@ -145,6 +146,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
         order_id: orderData.id,
         handler: async (response) => {
           try {
+            setIsRazorpayOpen(false);
             // Step 3: Verify payment
             const verifyResponse = await fetch(`${API_URL}/payments/verify-approval-payment`, {
               method: 'POST',
@@ -166,8 +168,8 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
               throw new Error(verifyData.error || 'Payment verification failed');
             }
 
-            // Immediately show completion state to user; continue uploading in background
-            setStep('completed');
+            // Show processing state while uploading documents
+            setStep('processing');
 
             // Step 4: Upload Aadhaar documents after successful payment
             const formData = new FormData();
@@ -188,6 +190,8 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
             if (!uploadResponse.ok) {
               throw new Error(uploadData.error || 'Failed to upload Aadhaar documents');
             }
+            // Upload finished successfully - now show completion state
+            setStep('completed');
           } catch (error) {
             console.error('Error after payment:', error);
             setError(error.message || 'An error occurred after payment');
@@ -197,6 +201,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
         },
         modal: {
           ondismiss: () => {
+            setIsRazorpayOpen(false);
             setProcessing(false);
             setError('Payment was cancelled');
           }
@@ -207,6 +212,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
       };
 
       const rzp = new window.Razorpay(options);
+      setIsRazorpayOpen(true);
       rzp.open();
 
     } catch (error) {
@@ -221,6 +227,15 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <p className="text-sm text-slate-600 dark:text-slate-400">Loading approval process...</p>
+      </div>
+    </div>
+  );
+
+  const renderProcessingStep = () => (
+    <div className="flex items-center justify-center p-8">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Uploading Aadhaar documents. Please wait...</p>
       </div>
     </div>
   );
@@ -469,8 +484,27 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+    <Dialog
+      modal={false}
+      open={isOpen}
+      onOpenChange={(open) => {
+        // Prevent closing while processing/uploading; otherwise allow parent to close
+        if (!open) {
+          if (processing) return;
+          onClose?.();
+        }
+      }}
+    >
+      <DialogContent
+        overlayClassName={isRazorpayOpen ? 'pointer-events-none' : undefined}
+        className={`sm:max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl sm:rounded-xl ${isRazorpayOpen ? 'pointer-events-none' : ''}`}
+        onInteractOutside={(e) => {
+          if (isRazorpayOpen || processing) e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (isRazorpayOpen || processing) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
@@ -497,6 +531,7 @@ const ApprovalProcessModal = ({ isOpen, onClose, application }) => {
 
         {loading && renderLoadingStep()}
         {!loading && step === 'document-selection' && renderDocumentSelectionStep()}
+        {!loading && step === 'processing' && renderProcessingStep()}
         {!loading && step === 'completed' && renderCompletedStep()}
       </DialogContent>
     </Dialog>

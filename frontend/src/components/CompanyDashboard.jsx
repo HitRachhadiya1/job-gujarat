@@ -165,7 +165,7 @@ function CompanyDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* Company Identity */}
                 <div className="lg:col-span-2 space-y-6">
-                  <div className="flex items-start space-x-6">
+                  <div className="flex flex-col sm:flex-row items-start gap-6">
                     {company.logoUrl ? (
                       <div className="flex-shrink-0">
                         <div className="relative group">
@@ -401,7 +401,7 @@ function CompanyDashboard() {
         >
           <Card className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-0 shadow-2xl rounded-3xl overflow-hidden">
             <CardHeader className="pb-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
                 <div>
                   <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                     Candidate Pipeline
@@ -530,7 +530,7 @@ function CompanyDashboard() {
         {/* Full Description Modal */}
         {company?.description && (
           <Dialog open={isDescOpen} onOpenChange={setIsDescOpen}>
-            <DialogContent className="max-w-2xl bg-white dark:bg-slate-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40">
+            <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-2xl bg-white dark:bg-slate-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40">
               <DialogHeader>
                 <DialogTitle className="text-slate-900 dark:text-white">About {company.name}</DialogTitle>
                 <DialogDescription className="text-slate-600 dark:text-slate-400">Company description</DialogDescription>

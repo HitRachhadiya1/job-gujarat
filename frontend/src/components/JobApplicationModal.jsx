@@ -213,6 +213,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
             variant="ghost" 
             size="sm" 
             onClick={onClose}
+            disabled={isSubmitting}
             className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <X className="w-4 h-4" />
@@ -350,7 +351,14 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
                 disabled={isSubmitting}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
               >
-{isSubmitting ? (uploadingResume ? 'Uploading Resume...' : 'Processing...') : 'Pay ₹9 & Apply'}
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <span className="h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    {uploadingResume ? 'Uploading Resume...' : 'Processing...'}
+                  </span>
+                ) : (
+                  'Pay ₹9 & Apply'
+                )}
               </Button>
             </div>
           </form>

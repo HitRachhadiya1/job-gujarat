@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   motion,
+  AnimatePresence,
   useScroll,
   useTransform,
   useMotionValue,
@@ -293,6 +294,59 @@ export default function PublicRoutes({ onGetStarted }) {
             </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="md:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-700/50"
+            >
+              <div className="container mx-auto px-6 py-4">
+                <nav className="flex flex-col space-y-4">
+                  <a
+                    href="#features"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors py-2"
+                  >
+                    Features
+                  </a>
+                  <a
+                    href="#stats"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors py-2"
+                  >
+                    Statistics
+                  </a>
+                  <a
+                    href="#process"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors py-2"
+                  >
+                    How it Works
+                  </a>
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <AnimatedThemeToggler className="p-2 rounded-lg hover:bg-[#77BEE0]/20 dark:hover:bg-white/10 transition-colors" />
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleGetStarted();
+                      }}
+                      className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-medium text-sm hover:shadow-lg transition-shadow"
+                    >
+                      Get Started
+                    </motion.button>
+                  </div>
+                </nav>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.header>
 
       {/* Modern Hero Section */}

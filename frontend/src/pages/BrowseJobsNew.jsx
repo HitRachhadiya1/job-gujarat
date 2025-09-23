@@ -54,6 +54,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
+// StrictMode-safe caches and animation guard
+let __jobsCache = null;
+let __savedJobsCache = null;
+let __browseJobsAnimatedOnce = false;
+
 export default function BrowseJobsNew() {
   const { getAccessTokenSilently } = useAuth0();
   const { toast } = useToast();
@@ -79,6 +84,12 @@ export default function BrowseJobsNew() {
     endOfDay.setHours(23, 59, 59, 999);
     return new Date() > endOfDay;
   };
+
+  // One-time animation guard for StrictMode double-mount in dev
+  const shouldAnimateInitial = !__browseJobsAnimatedOnce;
+  useEffect(() => {
+    __browseJobsAnimatedOnce = true;
+  }, []);
 
   useEffect(() => {
     fetchJobs();
@@ -130,6 +141,12 @@ export default function BrowseJobsNew() {
   }, [jobs, searchTerm, location, jobType, experienceLevel, salaryRange]);
 
   const fetchJobs = async () => {
+    // Serve from cache to avoid duplicate fetch in StrictMode dev
+    if (__jobsCache !== null) {
+      setJobs(Array.isArray(__jobsCache) ? __jobsCache : []);
+      setLoading(false);
+      return;
+    }
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(`${API_URL}/job-postings`, {
@@ -138,7 +155,9 @@ export default function BrowseJobsNew() {
       if (response.ok) {
         const data = await response.json();
         console.log("Fetched jobs data:", data); // Debug log
-        setJobs(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : [];
+        __jobsCache = list;
+        setJobs(list);
       }
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -153,6 +172,11 @@ export default function BrowseJobsNew() {
   };
 
   const fetchSavedJobs = async () => {
+    // Serve from cache to avoid duplicate fetch in StrictMode dev
+    if (__savedJobsCache instanceof Set) {
+      setSavedJobs(__savedJobsCache);
+      return;
+    }
     try {
       const token = await getAccessTokenSilently();
       // Fetch more to cover most users' saved jobs
@@ -160,6 +184,7 @@ export default function BrowseJobsNew() {
       const savedJobIds = new Set(
         response.savedJobs.map((savedJob) => savedJob.job.id)
       );
+      __savedJobsCache = savedJobIds;
       setSavedJobs(savedJobIds);
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
@@ -222,7 +247,7 @@ export default function BrowseJobsNew() {
     });
   };
 
-  const JobCard = memo(({ job, index }) => {
+  const JobCard = memo(({ job, index, animateOnMount }) => {
     const isNew =
       new Date() - new Date(job.createdAt) < 7 * 24 * 60 * 60 * 1000;
     const isSaved = savedJobs.has(job.id);
@@ -231,8 +256,8 @@ export default function BrowseJobsNew() {
 
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={animateOnMount ? { opacity: 0, y: 20 } : false}
+        animate={animateOnMount ? { opacity: 1, y: 0 } : undefined}
         transition={{ duration: 0.3, delay: index * 0.05 }}
         whileHover={{ y: -5, transition: { duration: 0.2 } }}
       >
@@ -247,19 +272,19 @@ export default function BrowseJobsNew() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           <CardHeader className="pb-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+              <div className="flex items-center space-x-4 min-w-0 flex-1">
                 {/* Company Logo */}
                 <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
                   {job.company?.name?.[0] || "C"}
                 </div>
 
                 {/* Job Title and Company */}
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                     {job.title}
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1 truncate">
                     <Building2 className="w-3 h-3" />
                     {job.company?.name || "Company"}
                   </p>
@@ -277,14 +302,20 @@ export default function BrowseJobsNew() {
                 }}
                 disabled={savingJobs.has(job.id)}
                 className={cn(
-                  "p-2 rounded-lg transition-colors cursor-pointer relative z-10",
+                  "p-2 rounded-lg transition-colors cursor-pointer relative z-10 self-start sm:self-auto",
                   savingJobs.has(job.id) && "cursor-not-allowed opacity-50",
                   isSaved
                     ? "bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400"
                     : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
                 )}
               >
-                <Bookmark className={cn("w-5 h-5", isSaved && "fill-current")} />
+                {savingJobs.has(job.id) ? (
+                  <span className="block">
+                    <span className="h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                  </span>
+                ) : (
+                  <Bookmark className={cn("w-5 h-5", isSaved && "fill-current")} />
+                )}
               </motion.button>
             </div>
             {/* Status badges */}
@@ -411,8 +442,8 @@ export default function BrowseJobsNew() {
       <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 relative">
         {/* Header Section */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={shouldAnimateInitial ? { opacity: 0, y: -20 } : false}
+          animate={shouldAnimateInitial ? { opacity: 1, y: 0 } : undefined}
           className="text-center mb-6 sm:mb-8 lg:mb-10"
         >
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4">
@@ -427,8 +458,8 @@ export default function BrowseJobsNew() {
 
         {/* Search and Filter Section */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={shouldAnimateInitial ? { opacity: 0, y: 20 } : false}
+          animate={shouldAnimateInitial ? { opacity: 1, y: 0 } : undefined}
           transition={{ delay: 0.1 }}
           className="mb-6 sm:mb-8"
         >
@@ -632,7 +663,7 @@ export default function BrowseJobsNew() {
             </motion.div>
           ) : (
             filteredJobs.map((job, index) => (
-              <JobCard key={job.id} job={job} index={index} />
+              <JobCard key={job.id} job={job} index={index} animateOnMount={shouldAnimateInitial} />
             ))
           )}
         </div>
@@ -650,7 +681,7 @@ export default function BrowseJobsNew() {
 
       {/* Description Modal */}
       <Dialog open={isDescriptionOpen} onOpenChange={setIsDescriptionOpen}>
-        <DialogContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl sm:rounded-xl">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl sm:rounded-xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
               {descriptionJob?.title || "Job Description"}

@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Users, Filter, Calendar, MapPin, Briefcase, ChevronDown, CheckCircle, Clock, UserCheck, XCircle, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Users, Filter, Calendar, MapPin, Briefcase, ChevronDown, CheckCircle, Clock, UserCheck, XCircle, FileText, Eye } from 'lucide-react';
 import { API_URL } from '@/config';
 import LoadingOverlay from "@/components/LoadingOverlay";
 
@@ -20,6 +21,11 @@ const CompanyApplications = () => {
     totalPages: 1,
   });
   const [updatingStatus, setUpdatingStatus] = useState({});
+  const [aadhaarModalOpen, setAadhaarModalOpen] = useState(false);
+  const [aadhaarLoading, setAadhaarLoading] = useState(false);
+  const [aadhaarError, setAadhaarError] = useState('');
+  const [aadhaarDocs, setAadhaarDocs] = useState(null);
+  const [aadhaarApp, setAadhaarApp] = useState(null);
 
   useEffect(() => {
     fetchApplications();
@@ -53,6 +59,37 @@ const CompanyApplications = () => {
       console.error("Error fetching company applications:", e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleViewAadhaar = async (application) => {
+    try {
+      setAadhaarApp(application);
+      setAadhaarModalOpen(true);
+      setAadhaarLoading(true);
+      setAadhaarError('');
+      setAadhaarDocs(null);
+
+      const token = await getAccessTokenSilently();
+      const res = await fetch(`${API_URL}/applications/${application.id}/aadhaar`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to fetch Aadhaar documents');
+      }
+      const docs = data.aadhaarDocuments || {};
+      const front = docs.front || null;
+      const back = docs.back || null;
+      if (!front && !back) {
+        setAadhaarError('Aadhaar documents are not uploaded yet for this candidate.');
+      } else {
+        setAadhaarDocs({ front, back });
+      }
+    } catch (e) {
+      setAadhaarError(e.message || 'Failed to load Aadhaar documents');
+    } finally {
+      setAadhaarLoading(false);
     }
   };
 
@@ -151,17 +188,19 @@ const CompanyApplications = () => {
 
         <Card className="mb-6 bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-lg rounded-2xl">
           <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <Filter className="w-5 h-5 text-stone-600 dark:text-stone-400" />
-              <label
-                htmlFor="statusFilter"
-                className="text-sm font-medium text-stone-700 dark:text-stone-300"
-              >
-                Filter by Status:
-              </label>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Filter className="w-5 h-5 text-stone-600 dark:text-stone-400" />
+                <label
+                  htmlFor="statusFilter"
+                  className="text-sm font-medium text-stone-700 dark:text-stone-300"
+                >
+                  Filter by Status:
+                </label>
+              </div>
               <select
                 id="statusFilter"
-                className="px-3 py-2 border border-[#77BEE0] dark:border-[#155AA4] rounded-md bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#0574EE]"
+                className="px-3 py-2 border border-[#77BEE0] dark:border-[#155AA4] rounded-md bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-[#0574EE] w-full sm:w-60"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
               >
@@ -171,7 +210,7 @@ const CompanyApplications = () => {
                 <option value="HIRED">Hired</option>
                 <option value="REJECTED">Rejected</option>
               </select>
-              <div className="ml-auto text-stone-700 dark:text-stone-400 font-medium">
+              <div className="sm:ml-auto text-stone-700 dark:text-stone-400 font-medium">
                 {pagination.total || 0} total
               </div>
             </div>
@@ -198,7 +237,7 @@ const CompanyApplications = () => {
                 className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 hover:shadow-xl transition-all duration-200 shadow-lg rounded-2xl"
               >
                 <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
                     <div className="flex-1">
                       <div className="text-lg font-semibold text-stone-900 dark:text-stone-100 tracking-tight">
                         {app.job?.title}
@@ -214,7 +253,7 @@ const CompanyApplications = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex-shrink-0 flex items-center gap-3">
+                    <div className="flex-shrink-0 flex items-center gap-3 w-full sm:w-auto">
                       <div
                         className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
                           app.status
@@ -225,14 +264,14 @@ const CompanyApplications = () => {
                       </div>
 
                       {/* Status Update Dropdown */}
-                      <div className="relative">
+                      <div className="relative w-full sm:w-auto">
                         <select
                           value={app.status}
                           onChange={(e) =>
                             updateApplicationStatus(app.id, e.target.value)
                           }
                           disabled={updatingStatus[app.id]}
-                          className="appearance-none bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] rounded-md px-3 py-1 text-sm font-medium text-stone-700 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-[#0574EE] disabled:opacity-50 disabled:cursor-not-allowed pr-8"
+                          className="appearance-none bg-white dark:bg-stone-900 border border-[#77BEE0] dark:border-[#155AA4] rounded-md px-3 py-1 text-sm font-medium text-stone-700 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-[#0574EE] disabled:opacity-50 disabled:cursor-not-allowed pr-8 w-full sm:w-auto"
                         >
                           <option value="APPLIED">Applied</option>
                           <option value="INTERVIEW">Interview</option>
@@ -287,6 +326,19 @@ const CompanyApplications = () => {
                           </Button>
                         </div>
                       )}
+                      {app.status === 'HIRED' && (
+                        <div className="mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewAadhaar(app)}
+                            className="flex items-center gap-2 text-stone-700 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Aadhaar
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -320,6 +372,44 @@ const CompanyApplications = () => {
           </div>
         )}
       </div>
+      {/* Aadhaar Documents Modal */}
+      <Dialog open={aadhaarModalOpen} onOpenChange={setAadhaarModalOpen}>
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl sm:rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Candidate Aadhaar Documents</DialogTitle>
+            <DialogDescription>
+              {aadhaarApp?.job?.title ? `For ${aadhaarApp.job.title}` : 'View uploaded documents'}
+            </DialogDescription>
+          </DialogHeader>
+          {aadhaarLoading ? (
+            <div className="flex items-center justify-center p-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+            </div>
+          ) : aadhaarError ? (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-sm text-red-700 dark:text-red-300">
+              {aadhaarError}
+            </div>
+          ) : aadhaarDocs ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {aadhaarDocs.front && (
+                <div>
+                  <div className="text-sm font-medium mb-2">Front</div>
+                  <img src={aadhaarDocs.front} alt="Aadhaar Front" className="w-full rounded-md border" />
+                </div>
+              )}
+              {aadhaarDocs.back && (
+                <div>
+                  <div className="text-sm font-medium mb-2">Back</div>
+                  <img src={aadhaarDocs.back} alt="Aadhaar Back" className="w-full rounded-md border" />
+                </div>
+              )}
+              {!aadhaarDocs.front && !aadhaarDocs.back && (
+                <div className="text-sm text-stone-600 dark:text-stone-300">No Aadhaar documents available.</div>
+              )}
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
