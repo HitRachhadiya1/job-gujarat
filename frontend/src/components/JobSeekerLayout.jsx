@@ -162,14 +162,14 @@ export default function JobSeekerLayout({
             {/* Right Side Actions */}
             <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
               {/* Notifications - Hidden on small screens */}
-              <motion.button
+              {/* <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors hidden sm:block"
               >
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-400" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-              </motion.button>
+              </motion.button> */}
 
               {/* Theme Toggle */}
               <motion.button
@@ -286,7 +286,7 @@ export default function JobSeekerLayout({
                     </motion.button>
                   );
                 })}
-                
+
                 {/* Mobile-only actions */}
                 <div className="flex items-center justify-center space-x-4 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                   {/* Theme Toggle for Mobile */}
@@ -302,7 +302,7 @@ export default function JobSeekerLayout({
                       <Moon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                     )}
                   </motion.button>
-                  
+
                   {/* Notifications for Mobile */}
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -320,9 +320,7 @@ export default function JobSeekerLayout({
       </motion.header>
 
       {/* Main Content */}
-      <main className="pt-16 sm:pt-20 min-h-screen">
-        {children}
-      </main>
+      <main className="pt-16 sm:pt-20 min-h-screen">{children}</main>
     </div>
   );
 }

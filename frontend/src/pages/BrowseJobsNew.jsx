@@ -46,7 +46,13 @@ import JobApplicationModal from "../components/JobApplicationModal";
 import { useToast } from "@/hooks/use-toast";
 import LoadingOverlay from "../components/LoadingOverlay";
 import useDelayedTrue from "../hooks/useDelayedTrue";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export default function BrowseJobsNew() {
   const { getAccessTokenSilently } = useAuth0();
@@ -109,7 +115,9 @@ export default function BrowseJobsNew() {
     try {
       const token = await getAccessTokenSilently();
       const response = await savedJobsAPI.getSavedJobs(token);
-      const savedJobIds = new Set(response.savedJobs.map(savedJob => savedJob.job.id));
+      const savedJobIds = new Set(
+        response.savedJobs.map((savedJob) => savedJob.job.id)
+      );
       setSavedJobs(savedJobIds);
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
@@ -160,13 +168,13 @@ export default function BrowseJobsNew() {
 
   const handleSaveJob = async (jobId) => {
     try {
-      setSavingJobs(prev => new Set([...prev, jobId]));
+      setSavingJobs((prev) => new Set([...prev, jobId]));
       const token = await getAccessTokenSilently();
-      
+
       if (savedJobs.has(jobId)) {
         // Unsave the job
         await savedJobsAPI.unsaveJob(jobId, token);
-        setSavedJobs(prev => {
+        setSavedJobs((prev) => {
           const newSet = new Set(prev);
           newSet.delete(jobId);
           return newSet;
@@ -174,7 +182,7 @@ export default function BrowseJobsNew() {
       } else {
         // Save the job
         await savedJobsAPI.saveJob(jobId, token);
-        setSavedJobs(prev => new Set([...prev, jobId]));
+        setSavedJobs((prev) => new Set([...prev, jobId]));
       }
     } catch (error) {
       console.error("Error saving/unsaving job:", error);
@@ -184,7 +192,7 @@ export default function BrowseJobsNew() {
         variant: "destructive",
       });
     } finally {
-      setSavingJobs(prev => {
+      setSavingJobs((prev) => {
         const newSet = new Set(prev);
         newSet.delete(jobId);
         return newSet;
@@ -193,7 +201,11 @@ export default function BrowseJobsNew() {
   };
 
   const handleApplicationSubmitted = (application) => {
-    const jobTitle = application?.job?.title || application?.title || selectedJob?.title || 'this job';
+    const jobTitle =
+      application?.job?.title ||
+      application?.title ||
+      selectedJob?.title ||
+      "this job";
     toast({
       title: "Success",
       description: `Application submitted successfully for "${jobTitle}"!`,
@@ -228,9 +240,7 @@ export default function BrowseJobsNew() {
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-4">
                 {/* Company Logo */}
-                <div
-                  className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg"
-                >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
                   {job.company?.name?.[0] || "C"}
                 </div>
 
@@ -270,7 +280,9 @@ export default function BrowseJobsNew() {
             {/* Status badges */}
             <div className="mt-2 flex items-center gap-2">
               {expired && (
-                <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-0">Closed</Badge>
+                <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-0">
+                  Closed
+                </Badge>
               )}
               {job.expiresAt && !expired && (
                 <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-0 flex items-center gap-1">
@@ -295,9 +307,9 @@ export default function BrowseJobsNew() {
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <DollarSign className="w-4 h-4 text-green-500" />
                 <span>
-                  {job.minSalary && job.maxSalary 
+                  {job.minSalary && job.maxSalary
                     ? `₹${job.minSalary.toLocaleString()} - ₹${job.maxSalary.toLocaleString()}`
-                    : job.minSalary 
+                    : job.minSalary
                     ? `₹${job.minSalary.toLocaleString()}+`
                     : "Salary not specified"}
                 </span>
@@ -327,14 +339,14 @@ export default function BrowseJobsNew() {
             </div>
 
             {/* Apply Button */}
-            <Button
+            {/* <Button
               className={cn("w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 group", expired && "opacity-60 cursor-not-allowed")}
               onClick={() => { if (!expired) { setSelectedJob(job); setIsApplicationModalOpen(true); } }}
               disabled={expired}
             >
               {expired ? "Applications Closed" : "Apply Now"}
               {!expired && <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
-            </Button>
+            </Button> */}
             {/* Action Buttons */}
             <div className="flex gap-2 relative z-10">
               <Button
@@ -353,9 +365,9 @@ export default function BrowseJobsNew() {
                 variant="outline"
                 size="sm"
                 className="px-3 cursor-pointer relative z-10"
-                onClick={() => { 
-                  setDescriptionJob(job); 
-                  setIsDescriptionOpen(true); 
+                onClick={() => {
+                  setDescriptionJob(job);
+                  setIsDescriptionOpen(true);
                 }}
               >
                 <FileText className="w-4 h-4" />
@@ -625,15 +637,15 @@ export default function BrowseJobsNew() {
         <DialogContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl sm:rounded-xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
-              {descriptionJob?.title || 'Job Description'}
+              {descriptionJob?.title || "Job Description"}
             </DialogTitle>
             <DialogDescription className="text-slate-600 dark:text-slate-400">
-              {descriptionJob?.company?.name || 'Company'}
-              {descriptionJob?.location ? ` • ${descriptionJob.location}` : ''}
+              {descriptionJob?.company?.name || "Company"}
+              {descriptionJob?.location ? ` • ${descriptionJob.location}` : ""}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
-            {descriptionJob?.description || 'No description available.'}
+            {descriptionJob?.description || "No description available."}
           </div>
         </DialogContent>
       </Dialog>
