@@ -45,13 +45,21 @@ const Navbar = () => {
       if (!isAuthenticated || role !== "COMPANY") return;
       try {
         const token = await getAccessTokenSilently();
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/api/company`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${
+            import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+          }/api/company`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         if (!res.ok) return; // silent fail
         const data = await res.json();
         if (!active) return;
-        setCompanyInfo({ name: data?.name || "", logoUrl: data?.logoUrl || "" });
+        setCompanyInfo({
+          name: data?.name || "",
+          logoUrl: data?.logoUrl || "",
+        });
       } catch (e) {
         // ignore
       }
@@ -102,8 +110,17 @@ const Navbar = () => {
     return [];
   };
 
-  // Show Navbar only for COMPANY and ADMIN. Hide for JOB_SEEKER to avoid duplicate/back navbar
-  if (!isAuthenticated || !role || role === "JOB_SEEKER") {
+  // Show Navbar only where needed
+  // - For JOB_SEEKER: hide on all routes (JobSeekerLayout provides its own unified header on all pages)
+  // - For ADMIN: hide on admin pages ("/", "/admin", "/users") because AdminDashboard has its own header
+  if (!isAuthenticated || !role) return null;
+  if (role === "JOB_SEEKER") return null;
+  if (
+    role === "ADMIN" &&
+    (location.pathname === "/" ||
+      location.pathname.startsWith("/admin") ||
+      location.pathname.startsWith("/users"))
+  ) {
     return null;
   }
 

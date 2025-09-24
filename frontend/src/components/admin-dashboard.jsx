@@ -661,7 +661,7 @@ export default function AdminDashboard({ onLogout }) {
       <div className="hidden"></div>
 
       {/* Header */}
-      <header className="hidden md:block relative z-10 backdrop-blur-sm bg-stone-100/90 dark:bg-stone-900/90 border-b border-stone-300/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-colors duration-300">
+      <header className="relative z-10 backdrop-blur-sm bg-stone-100/90 dark:bg-stone-900/90 border-b border-stone-300/70 dark:border-stone-700/60 shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-colors duration-300">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -1168,9 +1168,9 @@ export default function AdminDashboard({ onLogout }) {
                               {user.role || "Job Seeker"}
                             </Badge>
                             <Badge
-                              variant={user.blocked ? "destructive" : "default"}
+                              variant={(user.blocked || user.userStatus === "SUSPENDED") ? "destructive" : "default"}
                             >
-                              {user.blocked ? "Blocked" : "Active"}
+                              {(user.blocked || user.userStatus === "SUSPENDED") ? "Blocked" : "Active"}
                             </Badge>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-stone-600 dark:text-stone-400 mb-3">
@@ -1207,16 +1207,20 @@ export default function AdminDashboard({ onLogout }) {
                           View Profile
                         </Button>
                         <Button
+                          type="button"
                           size="sm"
-                          variant={user.blocked ? "default" : "destructive"}
+                          variant={(user.blocked || user.userStatus === "SUSPENDED") ? "default" : "destructive"}
+                          className={(user.blocked || user.userStatus === "SUSPENDED")
+                            ? "bg-green-600 hover:bg-green-700 text-white"
+                            : "bg-red-600 hover:bg-red-700 text-white"}
                           onClick={() =>
                             handleUserAction(
                               user.id,
-                              user.blocked ? "unblock" : "block"
+                              (user.blocked || user.userStatus === "SUSPENDED") ? "unblock" : "block"
                             )
                           }
                         >
-                          {user.blocked ? (
+                          {(user.blocked || user.userStatus === "SUSPENDED") ? (
                             <>
                               <UserCheck className="h-4 w-4 mr-1" />
                               Unblock
@@ -1235,6 +1239,99 @@ export default function AdminDashboard({ onLogout }) {
               ))}
             </div>
           </TabsContent>
+
+          {/* Job Seeker Profile Dialog */}
+          {selectedUser && (
+            <Dialog
+              open={showUserDialog}
+              onOpenChange={(open) => {
+                setShowUserDialog(open);
+                if (!open) {
+                  setSelectedUser(null);
+                  setUserProfileData(null);
+                }
+              }}
+            >
+              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-stone-900">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-bold text-stone-900 dark:text-white">
+                    {selectedUser.name || selectedUser.email}
+                  </DialogTitle>
+                  <DialogDescription className="text-stone-600 dark:text-stone-300">
+                    {selectedUser.email}
+                  </DialogDescription>
+                </DialogHeader>
+
+                {loadingUserProfile ? (
+                  <div className="py-6 text-sm text-stone-600 dark:text-stone-400">Loading profile...</div>
+                ) : (
+                  <div className="space-y-3 text-sm text-stone-700 dark:text-stone-300">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={(selectedUser.blocked || selectedUser.userStatus === "SUSPENDED") ? "destructive" : "default"}>
+                        {(selectedUser.blocked || selectedUser.userStatus === "SUSPENDED") ? "Blocked" : "Active"}
+                      </Badge>
+                    </div>
+                    {userProfileData?.profileExists === false && (
+                      <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                        Job seeker profile not found.
+                      </div>
+                    )}
+                    {userProfileData && userProfileData.profile && (
+                      <div className="space-y-2">
+                        {userProfileData.profile.fullName && (
+                          <div><span className="font-medium">Full Name:</span> {userProfileData.profile.fullName}</div>
+                        )}
+                        {userProfileData.profile.phone && (
+                          <div><span className="font-medium">Phone:</span> {userProfileData.profile.phone}</div>
+                        )}
+                        {Array.isArray(userProfileData.profile.skills) && userProfileData.profile.skills.length > 0 && (
+                          <div>
+                            <span className="font-medium">Skills:</span>
+                            <div className="mt-1 flex flex-wrap gap-2">
+                              {userProfileData.profile.skills.slice(0,8).map((s, i) => (
+                                <Badge key={i} variant="outline">{s}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-4 flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setShowUserDialog(false)}>Close</Button>
+                  <Button
+                    type="button"
+                    variant={(selectedUser?.blocked || selectedUser?.userStatus === "SUSPENDED") ? "default" : "destructive"}
+                    className={(selectedUser?.blocked || selectedUser?.userStatus === "SUSPENDED")
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "bg-red-600 hover:bg-red-700 text-white"}
+                    onClick={async () => {
+                      await handleUserAction(
+                        selectedUser.id,
+                        (selectedUser?.blocked || selectedUser?.userStatus === "SUSPENDED") ? "unblock" : "block"
+                      );
+                      // Keep dialog open but reflect latest data
+                      fetchDashboardData();
+                    }}
+                  >
+                    {(selectedUser?.blocked || selectedUser?.userStatus === "SUSPENDED") ? (
+                      <>
+                        <UserCheck className="h-4 w-4 mr-1" />
+                        Unblock
+                      </>
+                    ) : (
+                      <>
+                        <UserX className="h-4 w-4 mr-1" />
+                        Block
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
 
           <TabsContent value="jobs" className="space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

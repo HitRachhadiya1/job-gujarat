@@ -9,25 +9,112 @@ import { X, MapPin, Building2, IndianRupee, Clock, User, Upload, FileText } from
 import { API_URL } from "@/config";
 
 const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) => {
-  const { getAccessTokenSilently } = useAuth0();
+  const { getAccessTokenSilently, user } = useAuth0();
   const navigate = useNavigate();
   const [coverLetter, setCoverLetter] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [errorData, setErrorData] = useState(null);
+  const [profileGate, setProfileGate] = useState({ checked: false, loading: false, isComplete: false, missingFields: [] });
   const [resumeFile, setResumeFile] = useState(null);
   const [uploadingResume, setUploadingResume] = useState(false);
   const [existingResume, setExistingResume] = useState(null);
   const [checkingResume, setCheckingResume] = useState(true);
+  const [checkingApplied, setCheckingApplied] = useState(true);
+  const [alreadyApplied, setAlreadyApplied] = useState(false);
 
   // Reset resume state when modal opens
   React.useEffect(() => {
+    const checkProfile = async () => {
+      setProfileGate((p) => ({ ...p, loading: true }));
+      try {
+        const token = await getAccessTokenSilently();
+        const res = await fetch(`${API_URL}/jobseeker/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const { isComplete, missing } = evaluateProfileCompleteness(data);
+          setProfileGate({ checked: true, loading: false, isComplete, missingFields: missing });
+          if (!isComplete) {
+            setError('Please complete your profile before applying for jobs');
+            setErrorData({ requiresProfile: true, missingFields: missing });
+          } else {
+            setError('');
+            setErrorData(null);
+          }
+        } else if (res.status === 404) {
+          // No profile exists
+          setProfileGate({ checked: true, loading: false, isComplete: false, missingFields: ['profile'] });
+          setError('Please complete your profile before applying for jobs');
+          setErrorData({ requiresProfile: true, missingFields: ['profile'] });
+        } else {
+          // Unknown error -> do not block, but will be blocked server-side if needed
+          setProfileGate({ checked: true, loading: false, isComplete: false, missingFields: [] });
+        }
+      } catch (e) {
+        setProfileGate({ checked: true, loading: false, isComplete: false, missingFields: [] });
+      }
+    };
+
     if (isOpen) {
       setResumeFile(null);
       setExistingResume(null);
       setCheckingResume(false);
+      checkProfile();
     }
-  }, [isOpen]);
+  }, [isOpen, getAccessTokenSilently]);
+
+  // Check if already applied to this job
+  React.useEffect(() => {
+    const checkApplied = async () => {
+      if (!isOpen || !job?.id) return;
+      setCheckingApplied(true);
+      try {
+        const token = await getAccessTokenSilently();
+        const res = await fetch(`${API_URL}/applications/my-applications`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const list = Array.isArray(data?.applications) ? data.applications : Array.isArray(data) ? data : [];
+          const applied = list.some((app) => {
+            const ids = [app.jobId, app.jobPostingId, app.job?.id, app.job?.jobId];
+            return ids.filter(Boolean).some((x) => String(x) === String(job.id));
+          });
+          setAlreadyApplied(applied);
+        } else {
+          setAlreadyApplied(false);
+        }
+      } catch (e) {
+        setAlreadyApplied(false);
+      } finally {
+        setCheckingApplied(false);
+      }
+    };
+
+    checkApplied();
+  }, [isOpen, job?.id, getAccessTokenSilently]);
+
+  const evaluateProfileCompleteness = (profile) => {
+    // Define required fields for applying
+    const missing = [];
+    const fullName = (profile?.fullName || user?.name || '').trim();
+    const email = (profile?.email || user?.email || '').trim();
+    const phone = (profile?.phone || '').trim();
+    const location = (profile?.location || '').trim();
+    const skills = Array.isArray(profile?.skills) ? profile.skills : [];
+    const experienceYears = profile?.experienceYears;
+
+    if (!fullName) missing.push('fullName');
+    if (!email) missing.push('email');
+    if (!phone) missing.push('phone');
+    if (!location) missing.push('location');
+    if (!skills || skills.length === 0) missing.push('skills');
+    if (experienceYears === undefined || experienceYears === null || experienceYears === '') missing.push('experienceYears');
+
+    return { isComplete: missing.length === 0, missing };
+  };
 
   const validateResumeFile = (file) => {
     if (file.type !== 'application/pdf') {
@@ -56,6 +143,38 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
     setError('');
 
     try {
+      // Gate by profile completeness. If not checked yet, fetch inline.
+      if (!profileGate.checked || profileGate.loading) {
+        try {
+          const token = await getAccessTokenSilently();
+          const res = await fetch(`${API_URL}/jobseeker/`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const { isComplete, missing } = evaluateProfileCompleteness(data);
+            setProfileGate({ checked: true, loading: false, isComplete, missingFields: missing });
+            if (!isComplete) {
+              setError('Please complete your profile before applying for jobs');
+              setErrorData({ requiresProfile: true, missingFields: missing });
+              return;
+            }
+          } else {
+            setError('Please complete your profile before applying for jobs');
+            setErrorData({ requiresProfile: true, missingFields: ['profile'] });
+            return;
+          }
+        } catch (e) {
+          setError('Please complete your profile before applying for jobs');
+          setErrorData({ requiresProfile: true });
+          return;
+        }
+      } else if (!profileGate.isComplete) {
+        setError('Please complete your profile before applying for jobs');
+        setErrorData({ requiresProfile: true, missingFields: profileGate.missingFields });
+        return;
+      }
+
       const token = await getAccessTokenSilently();
 
       // Create payment order for ₹9 application fee (no resume upload yet)
@@ -76,7 +195,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
         // Handle specific case where job seeker profile doesn't exist
         if (paymentResponse.status === 403 && paymentError.error === "JobSeeker profile not found") {
           setError('Please complete your profile before applying for jobs');
-          setErrorData({ requiresProfile: true });
+          setErrorData({ requiresProfile: true, missingFields: ['profile'] });
           return;
         }
         
@@ -186,7 +305,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
       // Check if it's a profile-related error
       if (error.message.includes('JobSeeker profile not found') || error.message.includes('profile')) {
         setError('Please complete your profile before applying for jobs');
-        setErrorData({ requiresProfile: true });
+        setErrorData({ requiresProfile: true, missingFields: ['profile'] });
       } else {
         setError(error.message || 'An error occurred while submitting your application');
       }
@@ -199,7 +318,7 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden bg-white dark:bg-slate-900">
+      <Card className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden bg-white dark:bg-slate-900">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-slate-200 dark:border-slate-700">
           <div>
             <CardTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -248,6 +367,18 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
         </div>
 
         <CardContent className="p-6 overflow-y-auto">
+          {(profileGate.loading || checkingApplied || isSubmitting) && (
+            <div className="absolute inset-0 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-20">
+              <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200 text-sm font-medium">
+                <span className="h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                <span>
+                  {isSubmitting
+                    ? (uploadingResume ? 'Uploading resume...' : 'Processing your application...')
+                    : 'Checking eligibility...'}
+                </span>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
 
             <div className="space-y-4">
@@ -328,6 +459,13 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
                       <User className="w-4 h-4 mr-2" />
                       Complete Your Profile Now
                     </Button>
+                    {Array.isArray(errorData?.requiresProfile ? errorData?.missingFields : []) && errorData.missingFields.length > 0 && (
+                      <ul className="mt-2 text-xs list-disc list-inside text-blue-700 dark:text-blue-300">
+                        {errorData.missingFields.map((f, idx) => (
+                          <li key={idx}>Missing: {f}</li>
+                        ))}
+                      </ul>
+                    )}
                     <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
                       You need to complete your profile to apply for jobs. This helps employers learn more about you.
                     </p>
@@ -344,22 +482,32 @@ const JobApplicationModal = ({ job, isOpen, onClose, onApplicationSubmitted }) =
                 disabled={isSubmitting}
                 className="flex-1"
               >
-                Cancel
+                {alreadyApplied ? 'Close' : 'Cancel'}
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center">
-                    <span className="h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    {uploadingResume ? 'Uploading Resume...' : 'Processing...'}
-                  </span>
-                ) : (
-                  'Pay ₹9 & Apply'
-                )}
-              </Button>
+              {alreadyApplied ? (
+                <div className="flex-1">
+                  <div className="w-full py-2 text-center rounded-md bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 font-medium">
+                    Already Applied
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  type="submit"
+                  disabled={
+                    isSubmitting || profileGate.loading || !profileGate.checked || !profileGate.isComplete || checkingApplied
+                  }
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center">
+                      <span className="h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      {uploadingResume ? 'Uploading Resume...' : 'Processing...'}
+                    </span>
+                  ) : (
+                    'Pay ₹9 & Apply'
+                  )}
+                </Button>
+              )}
             </div>
           </form>
         </CardContent>

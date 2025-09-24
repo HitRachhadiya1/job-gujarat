@@ -59,6 +59,7 @@ import { API_URL } from "@/config";
 
 import AdminDashboard from "./components/admin-dashboard";
 import JobSeekerDashboardNew from "./components/JobSeekerDashboardNew";
+import JobSeekerRouteShell from "./components/JobSeekerRouteShell";
 
 export default function JobPortalApp() {
   const {
@@ -312,7 +313,9 @@ export default function JobPortalApp() {
               path="/profile"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <ProfileNew />
+                  <JobSeekerRouteShell activeView="profile" onLogout={handleLogout}>
+                    <ProfileNew />
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />
@@ -321,7 +324,9 @@ export default function JobPortalApp() {
               path="/browse-jobs"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <BrowseJobsNew />
+                  <JobSeekerRouteShell activeView="browse-jobs" onLogout={handleLogout}>
+                    <BrowseJobsNew />
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />
@@ -330,7 +335,9 @@ export default function JobPortalApp() {
               path="/applications"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <MyApplications />
+                  <JobSeekerRouteShell activeView="applications" onLogout={handleLogout}>
+                    <MyApplications />
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />
@@ -339,7 +346,9 @@ export default function JobPortalApp() {
               path="/saved-jobs"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <SavedJobsNew />
+                  <JobSeekerRouteShell activeView="saved-jobs" onLogout={handleLogout}>
+                    <SavedJobsNew />
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />
@@ -348,9 +357,11 @@ export default function JobPortalApp() {
               path="/recommendations"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <div className="page-container">
-                    Job Recommendations - Coming Soon!
-                  </div>
+                  <JobSeekerRouteShell activeView="dashboard" onLogout={handleLogout}>
+                    <div className="page-container">
+                      Job Recommendations - Coming Soon!
+                    </div>
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />

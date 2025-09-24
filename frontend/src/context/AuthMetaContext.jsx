@@ -23,6 +23,17 @@ export const AuthMetaProvider = ({ children }) => {
   const cacheRef = useRef({ data: null, timestamp: 0 });
   const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache
 
+  // Normalize role values from backend (e.g., 'Admin' -> 'ADMIN', 'Job Seeker' -> 'JOB_SEEKER')
+  const normalizeRole = (role) => {
+    if (!role) return null;
+    const r = String(role).trim().toUpperCase().replace(/\s+/g, "_");
+    if (r === "JOBSEEKER" || r === "JOB-SEEKER") return "JOB_SEEKER";
+    if (r === "ADMINISTRATOR") return "ADMIN";
+    if (r === "EMPLOYER") return "COMPANY";
+    if (["ADMIN", "COMPANY", "JOB_SEEKER"].includes(r)) return r;
+    return r; // fallback to uppercase form
+  };
+
   const fetchAuthMeta = async (forceRefresh = false, retryCount = 0) => {
     if (!isAuthenticated || !user?.sub) {
       setAuthMeta({
@@ -51,14 +62,16 @@ export const AuthMetaProvider = ({ children }) => {
       now - cachedData.timestamp < CACHE_DURATION
     ) {
       console.log("Using cached auth metadata");
+      const normalizedRole = normalizeRole(cachedData.data.role);
+      const normalizedData = { ...cachedData.data, role: normalizedRole };
       setAuthMeta({
-        role: cachedData.data.role,
-        companyStatus: cachedData.data.companyStatus,
-        userStatus: cachedData.data.userStatus,
+        role: normalizedRole,
+        companyStatus: normalizedData.companyStatus,
+        userStatus: normalizedData.userStatus,
         loading: false,
         error: null,
       });
-      return cachedData.data;
+      return normalizedData;
     }
 
     fetchingRef.current = true;
@@ -88,19 +101,21 @@ export const AuthMetaProvider = ({ children }) => {
 
       const data = await response.json();
       console.log("Fresh auth metadata fetched:", data);
+      const normalizedRole = normalizeRole(data.role);
+      const normalizedData = { ...data, role: normalizedRole };
 
       // Update cache
-      cacheRef.current = { data, timestamp: now };
+      cacheRef.current = { data: normalizedData, timestamp: now };
 
       setAuthMeta({
-        role: data.role,
-        companyStatus: data.companyStatus,
-        userStatus: data.userStatus,
+        role: normalizedRole,
+        companyStatus: normalizedData.companyStatus,
+        userStatus: normalizedData.userStatus,
         loading: false,
         error: null,
       });
 
-      return data; // Return the fetched data
+      return normalizedData; // Return the fetched data
     } catch (error) {
       console.error("Error fetching auth metadata:", error);
       setAuthMeta({
