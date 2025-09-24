@@ -262,12 +262,12 @@ export default function PublicRoutes({ onGetStarted }) {
               >
                 Features
               </a>
-              <a
+              {/* <a
                 href="#stats"
                 className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors"
               >
                 Statistics
-              </a>
+              </a> */}
               <a
                 href="#process"
                 className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors"
@@ -429,7 +429,7 @@ export default function PublicRoutes({ onGetStarted }) {
       </section>
 
       {/* Animated Statistics Section */}
-      <section
+      {/* <section
         id="stats"
         className="relative py-20 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-900 dark:to-slate-800"
       >
@@ -474,7 +474,7 @@ export default function PublicRoutes({ onGetStarted }) {
             </motion.div>
           </motion.div>
         </div>
-      </section>
+      </section> */}
 
       {/* Modern Bento Grid Features */}
       <section id="features" className="relative py-20">

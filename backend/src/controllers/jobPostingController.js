@@ -309,10 +309,124 @@ async function getMyJobPostings(req, res) {
   }
 }
 
+// Get recommended job postings for the current job seeker based on skills
+async function getRecommendedJobs(req, res) {
+  try {
+    const user = req.user;
+
+    // Route is protected for JOB_SEEKER, but double-check
+    if (!user || user.role !== "JOB_SEEKER") {
+      return res.status(403).json({ error: "Only job seekers can get recommendations" });
+    }
+
+    if (!user.email) {
+      return res.status(400).json({ error: "User email not found in token" });
+    }
+
+    const limit = Math.max(1, Math.min(parseInt(req.query.limit || "10", 10), 50));
+
+    // Get DB user and their job seeker profile
+    const dbUser = await prisma.user.findFirst({ where: { email: user.email } });
+    if (!dbUser) {
+      return res.json([]);
+    }
+
+    const jobSeeker = await prisma.jobSeeker.findUnique({ where: { userId: dbUser.id } });
+    if (!jobSeeker) {
+      // No profile yet -> no personalized recommendations
+      return res.json([]);
+    }
+
+    const seekerSkills = Array.isArray(jobSeeker.skills) ? jobSeeker.skills : [];
+    const normalizedSkills = seekerSkills
+      .map((s) => (typeof s === "string" ? s.trim().toLowerCase() : ""))
+      .filter(Boolean);
+
+    if (normalizedSkills.length === 0) {
+      return res.json([]);
+    }
+
+    const now = new Date();
+
+    // First try to narrow via array overlap (case-sensitive). If that yields no results (due to case), fallback to all published jobs.
+    let jobs = await prisma.jobPosting.findMany({
+      where: {
+        status: "PUBLISHED",
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gte: now } }
+        ],
+        requirements: { hasSome: seekerSkills },
+      },
+      include: {
+        company: { select: { name: true, logoUrl: true, industry: true } },
+        _count: { select: { Applications: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!jobs || jobs.length === 0) {
+      // Fallback without hasSome because of case-insensitive matching needs
+      jobs = await prisma.jobPosting.findMany({
+        where: {
+          status: "PUBLISHED",
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gte: now } }
+          ],
+        },
+        include: {
+          company: { select: { name: true, logoUrl: true, industry: true } },
+          _count: { select: { Applications: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }
+
+    const skillSet = new Set(normalizedSkills);
+
+    const scored = jobs
+      .map((job) => {
+        const reqs = Array.isArray(job.requirements) ? job.requirements : [];
+        const reqsNorm = reqs
+          .map((r) => (typeof r === "string" ? r.trim().toLowerCase() : ""))
+          .filter(Boolean);
+
+        const matched = reqsNorm.filter((r) => skillSet.has(r));
+        const uniqueMatchedCount = new Set(matched).size;
+        const totalReqs = Math.max(reqsNorm.length, 1);
+        const skillScore = uniqueMatchedCount / totalReqs; // 0..1
+
+        // Recency score: 1 for today, decays to 0 over 30 days
+        const createdAt = new Date(job.createdAt);
+        const daysAgo = Math.max((now - createdAt) / (1000 * 60 * 60 * 24), 0);
+        const recencyScore = Math.max(0, 1 - Math.min(daysAgo, 30) / 30);
+
+        const matchScore = skillScore + 0.2 * recencyScore;
+
+        return {
+          ...job,
+          matchCount: uniqueMatchedCount,
+          totalRequirements: totalReqs,
+          matchScore,
+        };
+      })
+      .filter((j) => j.matchCount > 0);
+
+    scored.sort((a, b) => b.matchScore - a.matchScore);
+
+    return res.json(scored.slice(0, limit));
+  } catch (error) {
+    console.error("Error fetching recommended jobs:", error);
+    return res.status(500).json({ error: "Failed to fetch recommended jobs", details: error.message });
+  }
+}
+
 module.exports = {
   createJobPosting,
   updateJobPosting,
   deleteJobPosting,
   getJobList,
   getMyJobPostings,
+  getRecommendedJobs,
 };

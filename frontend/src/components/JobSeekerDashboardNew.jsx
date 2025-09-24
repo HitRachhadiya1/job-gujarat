@@ -51,6 +51,7 @@ export default function JobSeekerDashboardNew({ onLogout }) {
   });
   const [applications, setApplications] = useState([]);
   const [recentJobs, setRecentJobs] = useState([]);
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [profileCompletion, setProfileCompletion] = useState(0);
 
   // Fetch dashboard data only once
@@ -129,6 +130,28 @@ export default function JobSeekerDashboardNew({ onLogout }) {
         }
       } catch (error) {
         console.error("Error fetching jobs:", error);
+      }
+
+      // Fetch recommended jobs (based on job seeker skills)
+      try {
+        const recResponse = await fetch(
+          `${API_URL}/job-postings/recommended?limit=6`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (recResponse.ok) {
+          const rec = await recResponse.json();
+          setRecommendedJobs(Array.isArray(rec) ? rec : []);
+        } else if (recResponse.status === 403) {
+          // Not a job seeker or blocked by role; show nothing gracefully
+          setRecommendedJobs([]);
+        } else {
+          setRecommendedJobs([]);
+        }
+      } catch (error) {
+        console.error("Error fetching recommended jobs:", error);
+        setRecommendedJobs([]);
       }
 
       // Simulate profile views
@@ -221,7 +244,7 @@ export default function JobSeekerDashboardNew({ onLogout }) {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
         <Card className="border-0 shadow-lg">
           <CardContent className="p-4 sm:p-6">
             <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Quick Actions</h3>
@@ -381,6 +404,92 @@ export default function JobSeekerDashboardNew({ onLogout }) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Recommended For You */}
+      <div className="mt-8 relative z-0">
+        <Card className="border-0 shadow-lg bg-white dark:bg-slate-900">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Recommended For You</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveView("browse-jobs")}
+                className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+              >
+                Browse All
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+
+            {recommendedJobs && recommendedJobs.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {recommendedJobs.slice(0, 6).map((job, index) => (
+                  <div
+                    key={job.id || index}
+                    className="group p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:shadow-lg transition-all cursor-pointer"
+                    onClick={() => setActiveView("browse-jobs")}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900 dark:text-white truncate group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                          {job.title}
+                        </p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center mt-1 truncate">
+                          <Building2 className="w-3 h-3 mr-1" />
+                          {job.company?.name || "Company"}
+                        </p>
+                        {job.location && (
+                          <p className="text-xs text-slate-500 dark:text-slate-500 flex items-center mt-1 truncate">
+                            <MapPin className="w-3 h-3 mr-1" />
+                            {job.location}
+                          </p>
+                        )}
+                      </div>
+                      {typeof job.matchCount === "number" && (
+                        <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-0">
+                          {job.matchCount} match{job.matchCount === 1 ? "" : "es"}
+                        </Badge>
+                      )}
+                    </div>
+                    {/* Show up to 3 required skills */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {(job.requirements || job.skills || []).slice(0, 3).map((skill, i) => (
+                        <Badge key={i} variant="secondary" className="bg-slate-100 dark:bg-slate-800 text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Sparkles className="w-8 h-8 text-green-600 dark:text-green-400" />
+                </div>
+                <h4 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No recommendations yet</h4>
+                <p className="text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto">
+                  Add your skills to your profile and we'll recommend jobs that match your expertise.
+                </p>
+                <Button
+                  onClick={() => setActiveView("profile")}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700"
+                >
+                  Update Skills in Profile
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      
     </div>
   );
 
