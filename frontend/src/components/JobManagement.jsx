@@ -325,54 +325,27 @@ const JobManagement = () => {
                         Create New Job
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="w-[calc(100vw-2rem)] sm:w-auto max-w-5xl max-h-[95vh] overflow-y-auto bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-2xl rounded-3xl">
-                      <DialogHeader className="text-center space-y-4 pb-8 border-b border-stone-200/50 dark:border-stone-700/30">
-                        <div className="relative mx-auto">
-                          <div className="absolute inset-0 bg-gradient-to-br from-[#155AA4]/20 to-[#0574EE]/20 rounded-3xl blur-xl opacity-60" />
-                          <div className="relative w-20 h-20 bg-gradient-to-br from-[#155AA4] to-[#0574EE] rounded-3xl flex items-center justify-center shadow-2xl">
-                            {editingJob ? (
-                              <Edit2 className="h-10 w-10 text-white" />
-                            ) : (
-                              <Plus className="h-10 w-10 text-white" />
-                            )}
-                          </div>
-                        </div>
-                        <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-stone-900 via-stone-800 to-stone-700 dark:from-white dark:via-stone-100 dark:to-stone-200 bg-clip-text text-transparent leading-tight">
-                          {editingJob
-                            ? "Edit Job Posting"
-                            : "Create New Job Posting"}
+                    <DialogContent className="w-[calc(100vw-2rem)] sm:w-auto max-w-4xl max-h-[95vh] overflow-y-auto bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 shadow-lg rounded-lg">
+                      <DialogHeader className="space-y-3 pb-6 border-b border-stone-200 dark:border-stone-700">
+                        <DialogTitle className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+                          {editingJob ? "Edit Job Posting" : "Create New Job Posting"}
                         </DialogTitle>
-                        {/* <DialogDescription className="text-stone-600 dark:text-stone-400 text-lg font-medium max-w-2xl mx-auto leading-relaxed">
-                  {editingJob ? "Update your job posting details to attract the right candidates and grow your team" : "Fill in the details below to create an attractive job posting that stands out to top talent"}
-                </DialogDescription> */}
+                        <DialogDescription className="text-stone-600 dark:text-stone-400">
+                          Fill in the details below to {editingJob ? "update your" : "create a new"} job posting
+                        </DialogDescription>
                       </DialogHeader>
 
-                      <form onSubmit={handleSubmit} className="space-y-10 pt-8">
+                      <form onSubmit={handleSubmit} className="space-y-8 pt-6">
                         {/* Basic Information Section */}
                         <div className="space-y-6">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#155AA4] to-[#0574EE] rounded-2xl flex items-center justify-center shadow-lg">
-                              <Users className="h-6 w-6 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-                                Basic Information
-                              </h3>
-                              <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">
-                                Essential details about the position
-                              </p>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-4">
+                      
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
                               <Label
                                 htmlFor="title"
-                                className="text-stone-700 dark:text-stone-200 font-semibold text-base flex items-center gap-2"
+                                className="text-sm font-medium text-stone-700 dark:text-stone-300"
                               >
-                                Job Title *
-                                <span className="text-xs text-stone-500 dark:text-stone-400 font-normal">
-                                  (Be specific and descriptive)
-                                </span>
+                                Job Title <span className="text-red-500">*</span>
                               </Label>
                               <Input
                                 id="title"
@@ -380,17 +353,17 @@ const JobManagement = () => {
                                 value={formData.title}
                                 onChange={handleInputChange}
                                 placeholder="e.g. Senior React Developer"
-                                className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base font-medium shadow-sm transition-all duration-200"
+                                className="h-11 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md text-sm placeholder:text-stone-400 placeholder:font-normal"
                                 required
                               />
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-2">
                               <Label
                                 htmlFor="jobType"
-                                className="text-stone-700 dark:text-stone-200 font-semibold text-base"
+                                className="text-sm font-medium text-stone-700 dark:text-stone-300"
                               >
-                                Job Type *
+                                Job Type <span className="text-red-500">*</span>
                               </Label>
                               <Select
                                 value={formData.jobType}
@@ -401,53 +374,21 @@ const JobManagement = () => {
                                   }))
                                 }
                               >
-                                <SelectTrigger className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] rounded-xl text-base font-medium shadow-sm w-full">
+                                <SelectTrigger className="h-11 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-600 focus:border-blue-500 rounded-md text-sm w-full">
                                   <SelectValue placeholder="Select employment type" />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl border-2 border-stone-200 dark:border-stone-700 shadow-xl bg-white dark:bg-stone-900 z-50 max-h-64 overflow-auto">
-                                  <SelectItem
-                                    value="FULL_TIME"
-                                    className="cursor-pointer py-3 px-4 rounded-lg data-[highlighted]:bg-blue-50 dark:data-[highlighted]:bg-blue-900/30"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-sm"></div>
-                                      <span className="font-medium">
-                                        Full Time
-                                      </span>
-                                    </div>
+                                <SelectContent className="rounded-md border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-900">
+                                  <SelectItem value="FULL_TIME" className="cursor-pointer">
+                                    Full Time
                                   </SelectItem>
-                                  <SelectItem
-                                    value="PART_TIME"
-                                    className="cursor-pointer py-3 px-4 rounded-lg data-[highlighted]:bg-blue-50 dark:data-[highlighted]:bg-blue-900/30"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-3 h-3 bg-blue-500 rounded-full shadow-sm"></div>
-                                      <span className="font-medium">
-                                        Part Time
-                                      </span>
-                                    </div>
+                                  <SelectItem value="PART_TIME" className="cursor-pointer">
+                                    Part Time
                                   </SelectItem>
-                                  <SelectItem
-                                    value="CONTRACT"
-                                    className="cursor-pointer py-3 px-4 rounded-lg data-[highlighted]:bg-blue-50 dark:data-[highlighted]:bg-blue-900/30"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-3 h-3 bg-orange-500 rounded-full shadow-sm"></div>
-                                      <span className="font-medium">
-                                        Contract
-                                      </span>
-                                    </div>
+                                  <SelectItem value="CONTRACT" className="cursor-pointer">
+                                    Contract
                                   </SelectItem>
-                                  <SelectItem
-                                    value="INTERNSHIP"
-                                    className="cursor-pointer py-3 px-4 rounded-lg data-[highlighted]:bg-blue-50 dark:data-[highlighted]:bg-blue-900/30"
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-3 h-3 bg-purple-500 rounded-full shadow-sm"></div>
-                                      <span className="font-medium">
-                                        Internship
-                                      </span>
-                                    </div>
+                                  <SelectItem value="INTERNSHIP" className="cursor-pointer">
+                                    Internship
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
@@ -457,26 +398,13 @@ const JobManagement = () => {
 
                         {/* Location & Compensation Section */}
                         <div className="space-y-6">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
-                              <MapPin className="h-6 w-6 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-                                Location & Compensation
-                              </h3>
-                              <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">
-                                Where and how much you'll pay
-                              </p>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-4">
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
                               <Label
                                 htmlFor="location"
-                                className="text-stone-700 dark:text-stone-200 font-semibold text-base flex items-center gap-2"
+                                className="text-sm font-medium text-stone-700 dark:text-stone-300"
                               >
-                                <MapPin className="h-4 w-4" />
                                 Work Location
                               </Label>
                               <Input
@@ -485,16 +413,15 @@ const JobManagement = () => {
                                 value={formData.location}
                                 onChange={handleInputChange}
                                 placeholder="e.g. Ahmedabad, Gujarat or Remote"
-                                className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base font-medium shadow-sm transition-all duration-200"
+                                className="h-11 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md text-sm placeholder:text-stone-400 placeholder:font-normal"
                               />
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-2">
                               <Label
                                 htmlFor="salaryRange"
-                                className="text-stone-700 dark:text-stone-200 font-semibold text-base flex items-center gap-2"
+                                className="text-sm font-medium text-stone-700 dark:text-stone-300"
                               >
-                                <IndianRupee className="h-4 w-4" />
                                 Monthly Salary (INR)
                               </Label>
                               <Input
@@ -512,52 +439,36 @@ const JobManagement = () => {
                                     handleInputChange(e);
                                   }
                                 }}
-                                placeholder="e.g. 25000"
-                                className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base font-medium shadow-sm transition-all duration-200"
+                                placeholder="25000"
+                                className="h-11 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md text-sm placeholder:text-stone-400 placeholder:font-normal"
                               />
-                              <div className="text-sm text-stone-500 dark:text-stone-400 bg-stone-50 dark:bg-stone-800/50 p-3 rounded-lg">
-                                💡 Enter monthly salary amount in INR (numbers
-                                only). Do not enter annual package.
-                              </div>
+                              <p className="text-xs text-stone-500 dark:text-stone-400">
+                                Enter monthly salary amount in INR (numbers only)
+                              </p>
                             </div>
                           </div>
                         </div>
 
                         {/* Job Description Section */}
                         <div className="space-y-6">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-                              <FileText className="h-6 w-6 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-                                Job Description
-                              </h3>
-                              <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">
-                                Outline responsibilities, culture, and growth
-                              </p>
-                            </div>
-                          </div>
-                          <div className="space-y-3">
+                          
+                          <div className="space-y-2">
                             <Label
                               htmlFor="description"
-                              className="text-stone-700 dark:text-stone-200 font-semibold text-base"
+                              className="text-sm font-medium text-stone-700 dark:text-stone-300"
                             >
-                              Detailed Description *
-                              <span className="text-xs text-stone-500 font-normal ml-2">
-                                (Include role responsibilities, team culture,
-                                growth opportunities)
-                              </span>
+                              Job Description <span className="text-red-500">*</span>
                             </Label>
                             <Textarea
                               id="description"
                               name="description"
                               value={formData.description}
                               onChange={handleInputChange}
-                              className="h-40 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base shadow-sm resize-none"
+                              placeholder="Describe the role, responsibilities, team culture, and growth opportunities..."
+                              className="min-h-[120px] bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md text-sm placeholder:text-stone-400 placeholder:font-normal resize-none"
                               required
                             />
-                            <div className="text-xs text-stone-600 dark:text-stone-400 flex justify-between">
+                            <div className="text-xs text-stone-500 dark:text-stone-400 flex justify-between">
                               <span>
                                 {formData.description.length} characters
                               </span>
@@ -568,25 +479,10 @@ const JobManagement = () => {
 
                         {/* Requirements Section */}
                         <div className="space-y-6">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-                              <Tag className="h-6 w-6 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-                                Requirements & Skills
-                              </h3>
-                              <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">
-                                List key qualifications and desired skills
-                              </p>
-                            </div>
-                          </div>
+                         
                           <div className="space-y-4">
-                            <Label className="text-slate-700 dark:text-slate-200 font-medium">
+                            <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
                               Add Requirements
-                              <span className="text-xs text-slate-500 font-normal ml-2">
-                                (Skills, experience, education, etc.)
-                              </span>
                             </Label>
                             <div className="flex gap-2">
                               <div className="flex-1 relative">
@@ -595,8 +491,8 @@ const JobManagement = () => {
                                   onChange={(e) =>
                                     setNewRequirement(e.target.value)
                                   }
-                                  placeholder="e.g. 3+ years React experience, Bachelor's degree, etc."
-                                  className="h-12 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 pr-24 rounded-xl"
+                                  placeholder="e.g. 3+ years React experience, Bachelor's degree"
+                                  className="h-11 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 pr-20 rounded-md text-sm placeholder:text-stone-400 placeholder:font-normal"
                                   onKeyPress={(e) =>
                                     e.key === "Enter" &&
                                     (e.preventDefault(), addRequirement())
@@ -605,7 +501,7 @@ const JobManagement = () => {
                                 <Button
                                   type="button"
                                   onClick={addRequirement}
-                                  className="absolute right-1 top-1 h-10 px-4 bg-[#0574EE] hover:bg-[#155AA4] rounded-lg"
+                                  className="absolute right-1 top-1 h-9 px-3 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md"
                                   disabled={!newRequirement.trim()}
                                 >
                                   Add
@@ -614,21 +510,21 @@ const JobManagement = () => {
                             </div>
                             {formData.requirements.length > 0 && (
                               <div className="space-y-2">
-                                <Label className="text-sm text-stone-700 dark:text-stone-300 font-semibold">
+                                <Label className="text-sm font-medium text-stone-700 dark:text-stone-300">
                                   Added Requirements:
                                 </Label>
-                                <div className="flex flex-wrap gap-2 p-4 bg-white dark:bg-stone-900 rounded-xl border-2 border-stone-200 dark:border-stone-700 shadow-sm">
+                                <div className="flex flex-wrap gap-2 p-3 bg-stone-50 dark:bg-stone-800/50 rounded-md border border-stone-200 dark:border-stone-700">
                                   {formData.requirements.map((req, index) => (
                                     <Badge
                                       key={index}
                                       variant="secondary"
-                                      className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-0 hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+                                      className="flex items-center gap-2 px-2 py-1 rounded-md bg-white dark:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-600 text-sm"
                                     >
                                       <span>{req}</span>
                                       <button
                                         type="button"
                                         onClick={() => removeRequirement(index)}
-                                        className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+                                        className="text-red-500 hover:text-red-700 ml-1"
                                       >
                                         ×
                                       </button>
@@ -642,29 +538,13 @@ const JobManagement = () => {
 
                         {/* Additional Details Section */}
                         <div className="space-y-6">
-                          <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-                              <Calendar className="h-6 w-6 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="text-xl font-bold text-stone-900 dark:text-stone-100 tracking-tight">
-                                Additional Details
-                              </h3>
-                              <p className="text-sm text-stone-600 dark:text-stone-400 font-medium">
-                                Optional settings to refine your posting
-                              </p>
-                            </div>
-                          </div>
-                          <div className="space-y-3">
+                          
+                          <div className="space-y-2">
                             <Label
                               htmlFor="expiresAt"
-                              className="text-stone-700 dark:text-stone-200 font-semibold text-base flex items-center gap-2"
+                              className="text-sm font-medium text-stone-700 dark:text-stone-300"
                             >
-                              <Calendar className="h-4 w-4" />
-                              Due Date
-                              <span className="text-xs text-stone-500 font-normal">
-                                (Optional)
-                              </span>
+                              Application Deadline (Optional)
                             </Label>
                             <Input
                               type="date"
@@ -672,39 +552,36 @@ const JobManagement = () => {
                               name="expiresAt"
                               value={formData.expiresAt}
                               onChange={handleInputChange}
-                              className="h-14 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl text-base shadow-sm max-w-xs"
+                              className="h-11 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md text-sm max-w-xs"
                               min={(() => {
                                 const d = new Date();
                                 d.setDate(d.getDate() + 1);
                                 return d.toISOString().split("T")[0];
                               })()}
                             />
-                            <div className="text-sm text-stone-600 dark:text-stone-400 bg-stone-50 dark:bg-stone-800/50 p-3 rounded-lg">
-                              Leave empty if you don't want to set an Due Date
-                            </div>
+                            <p className="text-xs text-stone-500 dark:text-stone-400">
+                              Leave empty if you don't want to set a deadline
+                            </p>
                           </div>
                         </div>
 
-                        <Separator className="my-6" />
-
                         {/* Action Buttons */}
-                        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4">
-                          <div className="text-sm text-slate-600 dark:text-slate-400">
-                            <span className="text-red-500">*</span> Required
-                            fields
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-stone-200 dark:border-stone-700">
+                          <div className="text-sm text-stone-500 dark:text-stone-400">
+                            <span className="text-red-500">*</span> Required fields
                           </div>
                           <div className="flex gap-3 w-full sm:w-auto">
                             <Button
                               type="button"
                               variant="outline"
                               onClick={resetForm}
-                              className="px-6 py-2 h-11 w-full sm:w-auto border-[#77BEE0] dark:border-[#155AA4] hover:bg-[#77BEE0]/20 dark:hover:bg-stone-800/60 text-[#155AA4] dark:text-stone-300"
+                              className="px-6 py-2 h-11 w-full sm:w-auto border-stone-300 dark:border-stone-600 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300"
                             >
                               Cancel
                             </Button>
                             <Button
                               type="submit"
-                              className="px-8 py-2 h-11 w-full sm:w-auto bg-[#0574EE] hover:bg-[#155AA4] shadow-lg hover:shadow-xl transition-all duration-200"
+                              className="px-8 py-2 h-11 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
                             >
                               {editingJob ? (
                                 <>
