@@ -3,6 +3,13 @@
 // - GMAIL_USER (required)
 // - GMAIL_PASS (required, use App Password)
 // - FROM_EMAIL (optional, defaults to gmail user or hardcoded fallback)
+// Optional advanced config for production:
+// - SMTP_HOST, SMTP_PORT, SMTP_SECURE (true/false)
+// - SMTP_USER, SMTP_PASS (overrides GMAIL_* if provided)
+// - SMTP_CONN_TIMEOUT, SMTP_GREET_TIMEOUT (ms)
+// - RESEND_API_KEY (if set, will prefer HTTP-based email to avoid SMTP egress issues)
+
+const axios = require("axios");
 
 function buildStatusEmail({ status, name, jobTitle, companyName }) {
   const safeName = name || "Job Seeker";
@@ -55,7 +62,56 @@ function buildStatusEmail({ status, name, jobTitle, companyName }) {
   return { subject, text, html };
 }
 
+async function sendViaResend({ from, to, subject, text, html }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { skipped: true };
+
+  try {
+    const res = await axios.post(
+      "https://api.resend.com/emails",
+      {
+        from,
+        to: Array.isArray(to) ? to : [to],
+        subject,
+        html: html || undefined,
+        text: text || undefined,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 15000,
+      }
+    );
+    return { messageId: res.data?.id || res.data?.data?.id || "resend" };
+  } catch (err) {
+    // Surface compact error for upstream logging
+    const code = err.response?.status || err.code;
+    const detail = err.response?.data || err.message;
+    throw new Error(`Resend error (${code}): ${typeof detail === "string" ? detail : JSON.stringify(detail)}`);
+  }
+}
+
 async function sendMail({ to, subject, text, html }) {
+  // Determine sender
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailPass = process.env.GMAIL_PASS;
+  const smtpUser = process.env.SMTP_USER || gmailUser;
+  const smtpPass = process.env.SMTP_PASS || gmailPass;
+  const from = process.env.FROM_EMAIL || smtpUser || "rachhadiyahit@gmail.com";
+
+  // Try HTTP provider first if available (more reliable on serverless / egress-restricted hosts)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      return await sendViaResend({ from, to, subject, text, html });
+    } catch (err) {
+      // Log and continue to SMTP fallback
+      console.error("Resend failed, falling back to SMTP:", err.message || err);
+    }
+  }
+
+  // Fallback to SMTP via Nodemailer
   let nodemailer;
   try {
     nodemailer = require("nodemailer");
@@ -64,32 +120,60 @@ async function sendMail({ to, subject, text, html }) {
     return { skipped: true };
   }
 
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_PASS;
-  const from = process.env.FROM_EMAIL || user || "rachhadiyahit@gmail.com";
-
-  if (!user || !pass) {
-    console.warn("GMAIL_USER/GMAIL_PASS not configured. Skipping email send.");
+  if (!smtpUser || !smtpPass) {
+    console.warn("SMTP/GMAIL credentials not configured. Skipping email send.");
     return { skipped: true };
   }
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user,
-      pass,
-    },
-  });
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : undefined;
+  const secure = process.env.SMTP_SECURE ? String(process.env.SMTP_SECURE).toLowerCase() === "true" : undefined;
+  const connTimeout = process.env.SMTP_CONN_TIMEOUT ? parseInt(process.env.SMTP_CONN_TIMEOUT, 10) : 15000;
+  const greetTimeout = process.env.SMTP_GREET_TIMEOUT ? parseInt(process.env.SMTP_GREET_TIMEOUT, 10) : 15000;
 
-  const info = await transporter.sendMail({
-    from,
-    to,
-    subject,
-    text,
-    html,
-  });
+  const useExplicitHost = Boolean(host);
 
-  return { messageId: info.messageId };
+  const transportOptions = useExplicitHost
+    ? {
+        host,
+        port: port ?? 465,
+        secure: secure ?? true, // default to SMTPS
+        auth: { user: smtpUser, pass: smtpPass },
+        connectionTimeout: connTimeout,
+        greetingTimeout: greetTimeout,
+        tls: { servername: host },
+        pool: false,
+      }
+    : {
+        service: "gmail",
+        auth: { user: smtpUser, pass: smtpPass },
+        connectionTimeout: connTimeout,
+        greetingTimeout: greetTimeout,
+        pool: false,
+      };
+
+  const transporter = nodemailer.createTransport(transportOptions);
+
+  try {
+    const info = await transporter.sendMail({ from, to, subject, text, html });
+    return { messageId: info.messageId };
+  } catch (err) {
+    // If SMTP times out and HTTP provider is available but not yet tried, attempt as last resort
+    if (!process.env.RESEND_API_KEY) {
+      throw err;
+    }
+    try {
+      return await sendViaResend({ from, to, subject, text, html });
+    } catch (fallbackErr) {
+      // Bubble up SMTP error with context plus fallback error message
+      const parts = [];
+      if (err && err.code) parts.push(`smtpCode=${err.code}`);
+      if (err && err.command) parts.push(`smtpCmd=${err.command}`);
+      parts.push(`smtpMsg=${err?.message || err}`);
+      parts.push(`resendMsg=${fallbackErr?.message || fallbackErr}`);
+      throw new Error(`Email send failed: ${parts.join("; ")}`);
+    }
+  }
 }
 
 async function sendApplicationStatusEmail({ to, status, name, jobTitle, companyName }) {
