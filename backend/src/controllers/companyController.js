@@ -10,6 +10,83 @@ function cleanField(value) {
   return value.replace(/^Content-Disposition:[\s\S]*?\r?\n\r?\n/i, '').trim();
 }
 
+// Get current plan credits for the authenticated company (no carry-forward)
+async function getPlanCredits(req, res) {
+  try {
+    const authUser = req.user;
+    if (!authUser?.email) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Resolve DB user and company
+    const dbUser = await prisma.user.findFirst({
+      where: { email: authUser.email },
+      include: { Company: true },
+    });
+    if (!dbUser || !dbUser.Company) {
+      return res.status(404).json({ error: "Company profile not found" });
+    }
+
+    // Get the latest purchase for this company
+    const latest = await prisma.companyPlanPurchase.findFirst({
+      where: { companyId: dbUser.Company.id },
+      orderBy: { createdAt: 'desc' },
+      include: { pricingPlan: true },
+    });
+
+    if (!latest) {
+      return res.json({
+        activePlan: null,
+        totals: { totalJobs: 0, usedJobs: 0, remainingJobs: 0 },
+      });
+    }
+
+    const now = new Date();
+    const createdAt = new Date(latest.createdAt);
+    const planDays = Number(latest.pricingPlan?.duration || 0);
+    const fallbackExpiry = planDays > 0
+      ? new Date(createdAt.getTime() + planDays * 24 * 60 * 60 * 1000)
+      : null;
+    const effectiveExpiry = latest.expiryDate || fallbackExpiry; // can be null for no expiry
+
+    // If we have an expiry and it is past, there is NO active plan and no credits
+    if (effectiveExpiry && effectiveExpiry < now) {
+      return res.json({
+        activePlan: null,
+        totals: { totalJobs: 0, usedJobs: 0, remainingJobs: 0 },
+        lastPlan: {
+          id: latest.id,
+          planName: latest.pricingPlan?.name || null,
+          pricingPlanId: latest.pricingPlanId,
+          startDate: latest.startDate,
+          expiryDate: effectiveExpiry,
+        },
+      });
+    }
+
+    const totalJobs = Number(latest.totalJobs) || 0;
+    const usedJobs = Math.min(Number(latest.usedJobs) || 0, totalJobs);
+    const remainingJobs = Math.max(totalJobs - usedJobs, 0);
+
+    return res.json({
+      activePlan: {
+        id: latest.id,
+        planName: latest.pricingPlan?.name || null,
+        pricingPlanId: latest.pricingPlanId,
+        startDate: latest.startDate,
+        expiryDate: effectiveExpiry,
+        totalJobs,
+        usedJobs,
+        remainingJobs,
+      },
+      totals: { totalJobs, usedJobs, remainingJobs },
+    });
+  } catch (error) {
+    console.error('Error fetching plan credits:', error);
+    return res.status(500).json({ error: 'Failed to fetch plan credits' });
+  }
+}
+
 function sanitizeCompanyPayload(body) {
   return {
     name: cleanField(body.name),
@@ -394,4 +471,5 @@ module.exports = {
   updateCompany,
   deleteCompany,
   getCompanyStatus,
+  getPlanCredits,
 };
