@@ -73,7 +73,6 @@ const Navbar = () => {
   const isActive = (path) => {
     return location.pathname === path;
   };
-
   const getNavigationItems = () => {
     if (!isAuthenticated || !role) return [];
 
@@ -86,9 +85,9 @@ const Navbar = () => {
           label: "Applications",
           icon: FileText,
         },
+        { path: "/company/pricing", label: "Pricing", icon: BarChart3 },
       ];
     }
-
     if (role === "JOB_SEEKER") {
       return [
         { path: "/", label: "Dashboard", icon: Home },
@@ -156,14 +155,14 @@ const Navbar = () => {
                   variant={isActive(item.path) ? "default" : "ghost"}
                   size="sm"
                   onClick={() => navigate(item.path)}
-                  className={`relative overflow-hidden flex items-center space-x-2 transition-all duration-200 font-medium rounded-xl ${
+                  className={`relative overflow-hidden flex items-center space-x-2 transition-all duration-200 font-semibold rounded-xl ${
                     isActive(item.path)
                       ? "bg-gradient-to-r from-[#155AA4] to-[#0574EE] text-white shadow-md ring-1 ring-[#77BEE0]/40"
                       : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-[#77BEE0]/20 dark:hover:bg-white/10 hover:shadow-sm"
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-sm font-semibold">{item.label}</span>
                 </Button>
               );
             })}
@@ -270,7 +269,7 @@ const Navbar = () => {
                 <Button
                   key={item.path}
                   variant={isActive(item.path) ? "default" : "ghost"}
-                  className={`relative w-full justify-start space-x-3 font-medium rounded-xl transition-all duration-200 ${
+                  className={`relative w-full justify-start space-x-3 font-semibold rounded-xl transition-all duration-200 ${
                     isActive(item.path)
                       ? "bg-gradient-to-r from-[#155AA4] to-[#0574EE] text-white ring-1 ring-[#77BEE0]/40"
                       : "text-slate-700 dark:text-slate-300 hover:bg-[#77BEE0]/20 dark:hover:bg-white/10"

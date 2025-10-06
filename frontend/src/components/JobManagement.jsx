@@ -171,14 +171,44 @@ const JobManagement = () => {
         resetForm();
         toast.success("Job updated successfully!");
       } else {
-        // Create flow: do NOT post job yet. Go to payment first.
-        toast.message("Proceed to payment to publish your job.");
-        setShowAddForm(false);
-        navigate("/job-posting-payment", {
-          state: {
-            jobData: { ...formData },
-          },
-        });
+        // Try to post directly using existing plan credits. If none, fall back to payment page.
+        try {
+          const token = await getAccessTokenSilently();
+          const createRes = await fetch(`${API_URL}/job-postings`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(formData),
+          });
+
+          if (createRes.ok) {
+            await fetchJobs();
+            resetForm();
+            toast.success("Job posted successfully using your plan credit.");
+            return;
+          }
+
+          const errData = await createRes.json().catch(() => ({}));
+          if (createRes.status === 402 && errData?.requiresPayment) {
+            // No credits or no plan -> go to new Pricing page
+            if (errData?.requiresPlanSelection) {
+              toast.message("You must purchase a plan to post jobs. Please select a plan and complete payment.");
+            } else {
+              toast.message("No remaining plan credits. Please purchase a new plan to continue posting jobs.");
+            }
+            setShowAddForm(false);
+            navigate("/company/pricing", {
+              state: { jobData: { ...formData } },
+            });
+          } else {
+            throw new Error(errData?.error || "Failed to create job");
+          }
+        } catch (createErr) {
+          console.error("Create job error:", createErr);
+          toast.error(createErr.message || "Failed to create job");
+        }
       }
     } catch (error) {
       console.error("Error saving job:", error);

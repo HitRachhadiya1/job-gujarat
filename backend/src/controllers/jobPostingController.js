@@ -43,29 +43,70 @@ async function createJobPosting(req, res) {
       return res.status(400).json({ error: "Title, description, and job type are required" });
     }
 
-    const jobPosting = await prisma.jobPosting.create({
-      data: {
-        companyId: company.id,
-        title,
-        description,
-        requirements: requirements || [],
-        location,
-        jobType,
-        salaryRange,
-        status: "PUBLISHED", // Default to published
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
-      },
-      include: {
-        company: {
-          select: {
-            name: true,
-            logoUrl: true,
-          }
-        }
-      }
+    // Check for a valid (non-expired) plan purchase with remaining job credits
+    const now = new Date();
+    const purchases = await prisma.companyPlanPurchase.findMany({
+      where: { companyId: company.id },
+      include: { pricingPlan: true },
+      orderBy: { createdAt: 'asc' }
     });
 
-    console.log("Job posting created successfully:", jobPosting);
+    const activePurchase = purchases.find((p) => {
+      const createdAt = new Date(p.createdAt);
+      const durationDays = Number(p.pricingPlan?.duration || 0);
+      const fallbackExpiry = durationDays > 0 ? new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000) : null;
+      const effectiveExpiry = p.expiryDate || fallbackExpiry; // support older purchases without stored expiryDate
+      const isValid = !effectiveExpiry || effectiveExpiry >= now;
+      return isValid && (p.usedJobs < p.totalJobs);
+    });
+
+    if (!activePurchase) {
+      // No remaining credits or no plan purchased -> require payment
+      return res.status(402).json({
+        error: "You must purchase a plan to post jobs. Please select a plan and complete payment.",
+        requiresPayment: true,
+        requiresPlanSelection: true
+      });
+    }
+
+    // Consume one credit and set job expiry to the plan purchase expiry
+    const planDurationDays = Number(activePurchase.pricingPlan?.duration || 0);
+    const fallbackExpiry = planDurationDays > 0 ? new Date(new Date(activePurchase.createdAt).getTime() + planDurationDays * 24 * 60 * 60 * 1000) : null;
+    const expiry = activePurchase.expiryDate || fallbackExpiry;
+
+    const jobPosting = await prisma.$transaction(async (tx) => {
+      const job = await tx.jobPosting.create({
+        data: {
+          companyId: company.id,
+          title,
+          description,
+          requirements: requirements || [],
+          location,
+          jobType,
+          salaryRange,
+          status: "PUBLISHED",
+          expiresAt: expiry,
+          planPurchaseId: activePurchase.id,
+        },
+        include: {
+          company: {
+            select: {
+              name: true,
+              logoUrl: true,
+            }
+          }
+        }
+      });
+
+      await tx.companyPlanPurchase.update({
+        where: { id: activePurchase.id },
+        data: { usedJobs: { increment: 1 } }
+      });
+
+      return job;
+    });
+
+    console.log("Job posting created successfully using plan credit:", jobPosting);
     res.json(jobPosting);
   } catch (error) {
     console.error("Error creating job posting:", error);
@@ -223,9 +264,14 @@ async function getJobList(req, res) {
       });
     }
     
+    const now = new Date();
     const jobs = await prisma.jobPosting.findMany({
       where: {
-        status: 'PUBLISHED' // Only show published jobs
+        status: 'PUBLISHED', // Only show published jobs
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gte: now } }
+        ]
       },
       include: {
         company: {

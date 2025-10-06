@@ -32,6 +32,7 @@ import {
 import { API_URL, PUBLIC_API_URL } from "../config";
 import LoadingOverlay from "../components/LoadingOverlay";
 import PaymentSuccessAlert from "../components/comp-271";
+import { toast } from "sonner";
 
 const JobPostingPayment = () => {
   const navigate = useNavigate();
@@ -185,6 +186,11 @@ const JobPostingPayment = () => {
   }, []);
 
   const handlePayment = async () => {
+    if (!selectedPlan) {
+      toast.error("Please select a plan before proceeding to payment.");
+      return;
+    }
+    
     setLoading(true);
     try {
       // 1) Get Razorpay key: prefer env var; fallback to public endpoint if available
@@ -326,62 +332,29 @@ const JobPostingPayment = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-6 pb-10 relative overflow-x-hidden overflow-y-auto">
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
-      </div>
-
+    <div className="min-h-screen bg-white dark:bg-slate-900 py-4">
       {loading && <LoadingOverlay message="Processing payment..." />}
       {success && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
           <PaymentSuccessAlert message="Payment successful! Publishing your job..." />
         </div>
       )}
-      <div className="container mx-auto px-4 max-w-7xl relative z-10">
-        {/* Header */}
-        <div className="mb-8">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="mb-4 flex items-center">
           <Button
             variant="ghost"
             onClick={() => navigate("/jobs")}
-            className="mb-4 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100"
+            className="text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Job Management
+            Back
           </Button>
-
-          <div className="text-center mb-6">
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg">
-                <CreditCard className="w-8 h-8 text-white" />
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
-                Complete Your Job Posting
-              </h1>
-            </div>
-            <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-              Choose the perfect plan to publish your job and start receiving
-              quality applications from verified candidates
-            </p>
-          </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Pricing Plans */}
           <div className="lg:col-span-2">
-            <div className="mb-8 text-center">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent mb-3">
-                Select Your Plan
-              </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
-                Choose the perfect plan for your hiring needs and start
-                attracting top talent today
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {loadingPlans
                 ? // Loading skeleton
                   [...Array(3)].map((_, index) => (
@@ -412,16 +385,10 @@ const JobPostingPayment = () => {
                           : plan.popular
                           ? "border-purple-500 shadow-xl shadow-purple-500/10"
                           : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-xl"
-                      } min-h-[320px] flex flex-col group`}
+                      } min-h-[260px] flex flex-col group`}
                       onClick={() => setSelectedPlan(plan.id)}
                     >
-                      {plan.popular && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                          <Badge className="bg-[#155AA4] dark:bg-[#155AA4] text-white px-3 py-1 shadow">
-                            Most Popular
-                          </Badge>
-                        </div>
-                      )}
+                      {/* Popular badge removed to save vertical space */}
 
                       <CardHeader className="text-center pb-4">
                         <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100">
@@ -433,9 +400,8 @@ const JobPostingPayment = () => {
                               ₹{plan.price}
                             </span>
                           </div>
-                          <p className="text-sm text-stone-600 dark:text-stone-400 mt-1">
-                            Valid for {plan.duration} days
-                          </p>
+                          <p className="text-sm text-stone-600 dark:text-stone-400 mt-1">Valid {plan.duration} days</p>
+                          <p className="text-xs text-stone-500 dark:text-stone-400">Includes {plan.jobCount || 1} job {Number(plan.jobCount) === 1 ? 'post' : 'posts'}</p>
                         </div>
                       </CardHeader>
 
@@ -470,38 +436,7 @@ const JobPostingPayment = () => {
                   ))}
             </div>
 
-            {/* Features Highlight */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="text-center p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl">
-                <Users className="w-8 h-8 text-stone-600 dark:text-stone-400 mx-auto mb-3" />
-                <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-2">
-                  Quality Candidates
-                </h3>
-                <p className="text-sm text-stone-600 dark:text-stone-400">
-                  Access to verified job seekers with relevant skills
-                </p>
-              </Card>
-
-              <Card className="text-center p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl">
-                <TrendingUp className="w-8 h-8 text-stone-600 dark:text-stone-400 mx-auto mb-3" />
-                <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-2">
-                  Better Visibility
-                </h3>
-                <p className="text-sm text-stone-600 dark:text-stone-400">
-                  Higher ranking in search results and recommendations
-                </p>
-              </Card>
-
-              <Card className="text-center p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl">
-                <Zap className="w-8 h-8 text-stone-600 dark:text-stone-400 mx-auto mb-3" />
-                <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-2">
-                  Fast Hiring
-                </h3>
-                <p className="text-sm text-stone-600 dark:text-stone-400">
-                  Advanced tools to streamline your hiring process
-                </p>
-              </Card>
-            </div>
+            {/* Decorative features section removed for compact layout */}
           </div>
 
           {/* Order Summary */}

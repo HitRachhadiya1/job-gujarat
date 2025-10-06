@@ -19,6 +19,7 @@ import {
   Calendar,
   ArrowRight,
   Sparkles,
+  BarChart3,
 } from "lucide-react";
 import { API_URL, resolveAssetUrl } from "@/config";
 import LoadingOverlay from "@/components/LoadingOverlay";
@@ -33,6 +34,7 @@ function CompanyDashboard() {
   const [applicationsTotal, setApplicationsTotal] = useState(0);
   const [recentApplicants, setRecentApplicants] = useState([]);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [credits, setCredits] = useState(null);
   const [isDescOpen, setIsDescOpen] = useState(false);
   const isDescLong = !!company?.description && company.description.length > 180;
   
@@ -99,6 +101,16 @@ function CompanyDashboard() {
       }, 1, 500);
       setApplicationsTotal(data.pagination?.total || 0);
       setRecentApplicants(Array.isArray(data.applications) ? data.applications : []);
+      // Fetch plan credits summary
+      try {
+        const creditsData = await fetchJSONWithRetry(`${API_URL}/company/plan-credits`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }, 1, 500);
+        setCredits(creditsData);
+      } catch (e) {
+        // Non-blocking if credits endpoint fails
+        setCredits(null);
+      }
     } catch (e) {
       // Non-blocking for dashboard stats
       console.warn("CompanyDashboard: failed to load stats", e);
@@ -300,93 +312,176 @@ function CompanyDashboard() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-8"
         >
-          <Card className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-0 shadow-2xl rounded-3xl overflow-hidden">
-            <CardHeader className="pb-6">
-              <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
-                Company Analytics
-              </CardTitle>
-              <CardDescription className="text-slate-600 dark:text-slate-400 text-base">
-                Overview of your hiring performance and job posting metrics
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Active Jobs */}
-                <div className="group">
-                  <div className="bg-gradient-to-br from-blue-50/80 to-blue-100/60 dark:from-blue-900/20 dark:to-blue-800/10 rounded-2xl p-6 border border-blue-200/30 dark:border-blue-800/20 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#155AA4] to-[#0574EE] rounded-xl flex items-center justify-center shadow-lg">
-                        <Briefcase className="w-6 h-6 text-white" />
-                      </div>
-                      <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-0">
-                        Active
-                      </Badge>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Active Job Postings</p>
-                      {statsLoading ? (
-                        <div className="h-8 w-20 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
-                      ) : (
-                        <div className="text-3xl font-bold text-slate-900 dark:text-white">
-                          {jobs.filter(j => j.status === 'PUBLISHED').length}
-                        </div>
-                      )}
-                      <p className="text-xs text-slate-500 dark:text-slate-500">Currently accepting applications</p>
-                    </div>
+          <Card className="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-0 shadow-2xl rounded-3xl overflow-hidden">
+            {/* Gradient Background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-purple-50/30 dark:from-blue-900/10 dark:via-transparent dark:to-purple-900/10" />
+            
+            <CardHeader className="relative pb-8 pt-8">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-slate-700 dark:from-white dark:via-blue-200 dark:to-slate-200 bg-clip-text text-transparent">
+                    Analytics Dashboard
+                  </CardTitle>
+                  <CardDescription className="text-lg text-slate-600 dark:text-slate-400 font-medium">
+                    Real-time insights into your hiring performance and engagement metrics
+                  </CardDescription>
+                </div>
+                <div className="hidden sm:flex items-center space-x-2">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <BarChart3 className="w-6 h-6 text-white" />
                   </div>
                 </div>
+              </div>
+            </CardHeader>
+            <CardContent className="relative pt-0 pb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Plan Status */}
+                <motion.div 
+                  className="group"
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="relative bg-gradient-to-br from-white to-slate-50/80 dark:from-slate-800/90 dark:to-slate-900/60 rounded-2xl p-6 border border-slate-200/60 dark:border-slate-700/40 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 transition-all duration-300 backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-blue-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <Calendar className="w-7 h-7 text-white" />
+                        </div>
+                        <Badge variant="secondary" className="bg-slate-100/80 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 border-0 font-semibold px-3 py-1">
+                          Plan Status
+                        </Badge>
+                      </div>
+                    {statsLoading ? (
+                      <div className="space-y-2">
+                        <div className="h-5 w-40 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
+                        <div className="h-4 w-56 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
+                      </div>
+                    ) : credits?.activePlan ? (
+                      <div className="space-y-2">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Active Plan</p>
+                        <div className="text-xl font-bold text-slate-900 dark:text-white">
+                          {credits.activePlan.planName}
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          Expires on {new Date(credits.activePlan.expiryDate).toLocaleDateString()}
+                        </p>
+                        <p className="text-sm text-slate-700 dark:text-slate-300">
+                          {credits.activePlan.remainingJobs} of {credits.activePlan.totalJobs} remaining
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-sm text-slate-700 dark:text-slate-300">No active plan. Purchase a plan to post jobs.</p>
+                        <Button 
+                          onClick={() => navigate('/company/pricing')}
+                          className="bg-gradient-to-r from-[#155AA4] to-[#0574EE] hover:from-[#155AA4] hover:to-[#0574EE]/90 text-white font-medium px-4 py-2 rounded-xl"
+                        >
+                          View Plans
+                        </Button>
+                      </div>
+                    )}
+                    </div>
+                  </div>
+                </motion.div>
+                {/* Active Jobs */}
+                <motion.div 
+                  className="group"
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="relative bg-gradient-to-br from-white to-blue-50/60 dark:from-slate-800/90 dark:to-blue-900/20 rounded-2xl p-6 border border-blue-200/40 dark:border-blue-800/30 hover:shadow-xl hover:shadow-blue-200/30 dark:hover:shadow-blue-900/20 transition-all duration-300 backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <Briefcase className="w-7 h-7 text-white" />
+                        </div>
+                        <Badge variant="secondary" className="bg-blue-100/80 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-0 font-semibold px-3 py-1">
+                          Active Jobs
+                        </Badge>
+                      </div>
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Published Positions</p>
+                        {statsLoading ? (
+                          <div className="h-10 w-16 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
+                        ) : (
+                          <div className="text-4xl font-bold text-slate-900 dark:text-white">
+                            {jobs.filter(j => j.status === 'PUBLISHED').length}
+                          </div>
+                        )}
+                        <p className="text-sm text-slate-500 dark:text-slate-500 font-medium">Currently accepting applications</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
 
                 {/* Total Applications */}
-                <div className="group">
-                  <div className="bg-gradient-to-br from-emerald-50/80 to-emerald-100/60 dark:from-emerald-900/20 dark:to-emerald-800/10 rounded-2xl p-6 border border-emerald-200/30 dark:border-emerald-800/20 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Users className="w-6 h-6 text-white" />
-                      </div>
-                      <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0">
-                        Total
-                      </Badge>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Applications</p>
-                      {statsLoading ? (
-                        <div className="h-8 w-20 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
-                      ) : (
-                        <div className="text-3xl font-bold text-slate-900 dark:text-white">
-                          {applicationsTotal}
+                <motion.div 
+                  className="group"
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="relative bg-gradient-to-br from-white to-emerald-50/60 dark:from-slate-800/90 dark:to-emerald-900/20 rounded-2xl p-6 border border-emerald-200/40 dark:border-emerald-800/30 hover:shadow-xl hover:shadow-emerald-200/30 dark:hover:shadow-emerald-900/20 transition-all duration-300 backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <Users className="w-7 h-7 text-white" />
                         </div>
-                      )}
-                      <p className="text-xs text-slate-500 dark:text-slate-500">All-time applications received</p>
+                        <Badge variant="secondary" className="bg-emerald-100/80 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-0 font-semibold px-3 py-1">
+                          Applications
+                        </Badge>
+                      </div>
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Total Received</p>
+                        {statsLoading ? (
+                          <div className="h-10 w-16 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
+                        ) : (
+                          <div className="text-4xl font-bold text-slate-900 dark:text-white">
+                            {applicationsTotal}
+                          </div>
+                        )}
+                        <p className="text-sm text-slate-500 dark:text-slate-500 font-medium">All-time applications received</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
-                
-
-                {/* Recent Activity */}
-                <div className="group">
-                  <div className="bg-gradient-to-br from-purple-50/80 to-purple-100/60 dark:from-purple-900/20 dark:to-purple-800/10 rounded-2xl p-6 border border-purple-200/30 dark:border-purple-800/20 hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Sparkles className="w-6 h-6 text-white" />
-                      </div>
-                      <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-0">
-                        Recent
-                      </Badge>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Recent Applications</p>
-                      {statsLoading ? (
-                        <div className="h-8 w-20 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
-                      ) : (
-                        <div className="text-3xl font-bold text-slate-900 dark:text-white">
-                          {recentApplicants.length}
+                {/* Remaining Job Credits (overall) */}
+                <motion.div 
+                  className="group"
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="relative bg-gradient-to-br from-white to-amber-50/60 dark:from-slate-800/90 dark:to-amber-900/20 rounded-2xl p-6 border border-amber-200/40 dark:border-amber-800/30 hover:shadow-xl hover:shadow-amber-200/30 dark:hover:shadow-amber-900/20 transition-all duration-300 backdrop-blur-sm">
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-amber-600 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <Sparkles className="w-7 h-7 text-white" />
                         </div>
-                      )}
-                      <p className="text-xs text-slate-500 dark:text-slate-500">Last 7 days</p>
+                        <Badge variant="secondary" className="bg-amber-100/80 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-0 font-semibold px-3 py-1">
+                          Credits
+                        </Badge>
+                      </div>
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Available Credits</p>
+                        {statsLoading ? (
+                          <div className="h-10 w-16 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
+                        ) : (
+                          <div className="text-4xl font-bold text-slate-900 dark:text-white">
+                            {credits?.remainingJobs ?? 0}
+                          </div>
+                        )}
+                        <p className="text-sm text-slate-500 dark:text-slate-500 font-medium">
+                          Used {credits?.usedJobs ?? 0} of {credits?.totalJobs ?? 0}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
+
               </div>
             </CardContent>
           </Card>

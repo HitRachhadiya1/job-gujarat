@@ -71,6 +71,7 @@ model Company {
   user        User                 @relation(fields: [userId], references: [id])
   Jobs        JobPosting[]
   Payments    PaymentTransaction[]
+  PlanPurchases CompanyPlanPurchase[]
 }
 
 model JobPosting {
@@ -92,6 +93,8 @@ model JobPosting {
   company             Company              @relation(fields: [companyId], references: [id])
   PaymentTransactions PaymentTransaction[]
   SavedJobs           SavedJob[]
+  planPurchaseId      String?
+  planPurchase        CompanyPlanPurchase? @relation(fields: [planPurchaseId], references: [id])
 }
 
 model JobApplication {
@@ -196,12 +199,29 @@ model PricingPlan {
   name      String               @unique
   price     Decimal
   duration  Int
+  jobCount  Int                  @default(1)
   features  String[]
   active    Boolean              @default(true)
   popular   Boolean              @default(false)
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
   purchases PaymentTransaction[] @relation("PlanPurchases")
+  CompanyPlanPurchases CompanyPlanPurchase[]
+}
+
+model CompanyPlanPurchase {
+  id            String       @id @default(uuid())
+  companyId     String
+  pricingPlanId String
+  totalJobs     Int
+  usedJobs      Int          @default(0)
+  startDate     DateTime     @default(now())
+  expiryDate    DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  company       Company      @relation(fields: [companyId], references: [id])
+  pricingPlan   PricingPlan  @relation(fields: [pricingPlanId], references: [id])
+  Jobs          JobPosting[]
 }
 
 enum UserRole {

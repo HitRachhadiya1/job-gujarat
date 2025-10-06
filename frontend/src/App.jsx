@@ -47,6 +47,7 @@ import SavedJobsNew from "./pages/SavedJobsNew";
 import CompanySettings from "./pages/CompanySettings";
 import CompanyApplications from "./pages/CompanyApplications";
 import JobPostingPayment from "./pages/JobPostingPayment";
+import CompanyPricing from "./pages/CompanyPricing";
 import { useAuthMeta } from "./context/AuthMetaContext";
 import LoadingOverlay from "./components/LoadingOverlay";
 import useDelayedTrue from "./hooks/useDelayedTrue";
@@ -294,6 +295,15 @@ export default function JobPortalApp() {
               element={
                 <ProtectedRoute roles={["COMPANY"]}>
                   <JobPostingPayment />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/company/pricing"
+              element={
+                <ProtectedRoute roles={["COMPANY"]}>
+                  <CompanyPricing />
                 </ProtectedRoute>
               }
             />

@@ -76,6 +76,10 @@ async function confirmAndPublish(req, res) {
     if (!jobData?.title || !jobData?.description || !jobData?.jobType) {
       return res.status(400).json({ error: "Incomplete job data" });
     }
+    
+    if (!pricingPlanId) {
+      return res.status(400).json({ error: "Pricing plan must be selected to post a job" });
+    }
 
     // Verify signature
     const body = `${payment.razorpay_order_id}|${payment.razorpay_payment_id}`;
@@ -93,6 +97,25 @@ async function confirmAndPublish(req, res) {
     if (!user || !user.Company) {
       return res.status(403).json({ error: "Company profile not found" });
     }
+
+    // Block new plan purchase if an active plan already exists (no overlapping plans)
+    const existingPurchase = await prisma.companyPlanPurchase.findFirst({
+      where: { companyId: user.Company.id },
+      orderBy: { createdAt: 'desc' },
+      include: { pricingPlan: true },
+    });
+    if (existingPurchase) {
+      const createdAt = new Date(existingPurchase.createdAt);
+      const durationDays = Number(existingPurchase.pricingPlan?.duration || 0);
+      const fallbackExpiry = durationDays > 0
+        ? new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000)
+        : null;
+      const effectiveExpiry = existingPurchase.expiryDate || fallbackExpiry;
+      if (!effectiveExpiry || effectiveExpiry >= new Date()) {
+        return res.status(409).json({ error: "Active plan already exists. Purchase a new plan after the current one expires." });
+      }
+    }
+
 
     // Fetch Razorpay order to capture accurate amount & currency (robust fallbacks)
     let capturedAmount = 0;
@@ -114,16 +137,61 @@ async function confirmAndPublish(req, res) {
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      // Validate pricing plan exists (optional)
+      // Validate pricing plan and derive plan settings (optional)
       let planIdToUse = null;
+      let planDurationDays = null;
+      let totalJobsFromPlan = 1;
+      let planPurchaseRecord = null;
+
       if (pricingPlanId) {
         try {
           const plan = await tx.pricingPlan.findUnique({ where: { id: pricingPlanId } });
-          if (plan) planIdToUse = plan.id;
+          if (plan) {
+            planIdToUse = plan.id;
+            // Duration from plan
+            planDurationDays = Number(plan.duration) || null;
+
+            // Prefer explicit jobCount; fallback to parsing features
+            let parsedFromFeatures = null;
+            if (Array.isArray(plan.features)) {
+              const jobsMatch = plan.features
+                .map((f) => {
+                  const m = String(f).toLowerCase().match(/(\d+)\s*(job|jobs|post|posts)/);
+                  return m ? parseInt(m[1], 10) : null;
+                })
+                .filter((n) => Number.isFinite(n));
+              if (jobsMatch.length > 0) parsedFromFeatures = jobsMatch[0];
+            }
+            totalJobsFromPlan = Number(plan.jobCount) || parsedFromFeatures || 1;
+
+            // Create a CompanyPlanPurchase allocating credits; we'll consume 1 for this job now
+            const startDate = new Date();
+            const expiryDate = planDurationDays && planDurationDays > 0
+              ? new Date(startDate.getTime() + planDurationDays * 24 * 60 * 60 * 1000)
+              : null;
+            planPurchaseRecord = await tx.companyPlanPurchase.create({
+              data: {
+                companyId: user.Company.id,
+                pricingPlanId: plan.id,
+                totalJobs: totalJobsFromPlan,
+                usedJobs: 1,
+                startDate,
+                expiryDate,
+              },
+            });
+          }
         } catch (e) {
-          // ignore missing plan
+          // ignore missing/invalid plan
         }
       }
+
+      // Compute expiry: plan-based if available, else from provided jobData
+      // Job expiry should be the plan's expiry date (all jobs under a plan expire together)
+      let expiresAtToSet = planPurchaseRecord?.expiryDate || null;
+      if (!expiresAtToSet && jobData.expiresAt) {
+        expiresAtToSet = new Date(jobData.expiresAt);
+      }
+
       const job = await tx.jobPosting.create({
         data: {
           companyId: user.Company.id,
@@ -134,7 +202,8 @@ async function confirmAndPublish(req, res) {
           jobType: jobData.jobType,
           salaryRange: jobData.salaryRange || null,
           status: "PUBLISHED",
-          expiresAt: jobData.expiresAt ? new Date(jobData.expiresAt) : null,
+          expiresAt: expiresAtToSet,
+          ...(planPurchaseRecord ? { planPurchaseId: planPurchaseRecord.id } : {}),
         },
       });
 
@@ -189,19 +258,9 @@ async function confirmAndPublish(req, res) {
 // Create application fee payment (₹9)
 async function createApplicationFeePayment(req, res) {
   try {
-    const authUser = req.user;
-    if (!authUser?.email) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    const { jobId } = req.body;
-    if (!jobId) {
-      return res.status(400).json({ error: "Job ID is required" });
-    }
-
     // Check if job exists
     const job = await prisma.jobPosting.findUnique({
-      where: { id: jobId }
+      where: { id: order.jobId }
     });
 
     if (!job) {
@@ -470,11 +529,136 @@ async function verifyApprovalPayment(req, res) {
   }
 }
 
+// Confirm a plan purchase WITHOUT creating a job posting
+async function confirmPlanPurchase(req, res) {
+  try {
+    const authUser = req.user;
+    if (!authUser?.email) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { payment, amount, order, pricingPlanId } = req.body || {};
+    if (!payment?.razorpay_order_id || !payment?.razorpay_payment_id || !payment?.razorpay_signature) {
+      return res.status(400).json({ error: "Missing payment fields" });
+    }
+    if (!pricingPlanId) {
+      return res.status(400).json({ error: "Pricing plan must be selected" });
+    }
+
+    // Verify signature
+    const body = `${payment.razorpay_order_id}|${payment.razorpay_payment_id}`;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest("hex");
+
+    if (expectedSignature !== payment.razorpay_signature) {
+      return res.status(400).json({ error: "Payment verification failed" });
+    }
+
+    // Resolve internal user and company
+    const user = await prisma.user.findFirst({ where: { email: authUser.email }, include: { Company: true } });
+    if (!user || !user.Company) {
+      return res.status(403).json({ error: "Company profile not found" });
+    }
+
+    // Block new plan purchase if an active plan already exists (no overlapping plans)
+    const activeOrLatest = await prisma.companyPlanPurchase.findFirst({
+      where: { companyId: user.Company.id },
+      orderBy: { createdAt: 'desc' },
+      include: { pricingPlan: true },
+    });
+    if (activeOrLatest) {
+      const createdAt = new Date(activeOrLatest.createdAt);
+      const durationDays = Number(activeOrLatest.pricingPlan?.duration || 0);
+      const fallbackExpiry = durationDays > 0
+        ? new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000)
+        : null;
+      const effectiveExpiry = activeOrLatest.expiryDate || fallbackExpiry;
+      if (!effectiveExpiry || effectiveExpiry >= new Date()) {
+        return res.status(409).json({ error: "Active plan already exists. Purchase a new plan after the current one expires." });
+      }
+    }
+
+    // Capture amount and currency from Razorpay order (fallbacks supported)
+    let capturedAmount = 0;
+    let capturedCurrency = "INR";
+    try {
+      const fetchedOrder = await razorpay.orders.fetch(payment.razorpay_order_id);
+      if (fetchedOrder?.amount) {
+        capturedAmount = fetchedOrder.amount / 100;
+        capturedCurrency = fetchedOrder.currency || "INR";
+      }
+    } catch (e) {
+      if (order?.amount) {
+        capturedAmount = Number(order.amount) / 100;
+        capturedCurrency = order.currency || "INR";
+      } else {
+        capturedAmount = Number(amount) || 0;
+      }
+    }
+
+    const purchase = await prisma.$transaction(async (tx) => {
+      // Validate pricing plan
+      const plan = await tx.pricingPlan.findUnique({ where: { id: pricingPlanId } });
+      if (!plan) {
+        throw new Error("Pricing plan not found");
+      }
+
+      const startDate = new Date();
+      const durationDays = Number(plan.duration) || 0;
+      const expiryDate = durationDays > 0 ? new Date(startDate.getTime() + durationDays * 24 * 60 * 60 * 1000) : null;
+      const totalJobs = Number(plan.jobCount) || 1;
+
+      // Create purchase with full credits (no consumption now)
+      const purchaseRecord = await tx.companyPlanPurchase.create({
+        data: {
+          companyId: user.Company.id,
+          pricingPlanId: plan.id,
+          totalJobs,
+          usedJobs: 0,
+          startDate,
+          expiryDate,
+        },
+        include: { pricingPlan: true },
+      });
+
+      // Record payment transaction
+      const existingTx = await tx.paymentTransaction.findUnique({
+        where: { transactionId: payment.razorpay_payment_id },
+      });
+      if (!existingTx) {
+        await tx.paymentTransaction.create({
+          data: {
+            companyId: user.Company.id,
+            pricingPlanId: plan.id,
+            paymentType: "SUBSCRIPTION_FEE",
+            gateway: "razorpay",
+            transactionId: payment.razorpay_payment_id,
+            amount: new Prisma.Decimal(capturedAmount),
+            currency: capturedCurrency,
+            status: "SUCCESS",
+            completedAt: new Date(),
+          },
+        });
+      }
+
+      return purchaseRecord;
+    });
+
+    return res.json({ success: true, purchase });
+  } catch (err) {
+    console.error("Error confirming plan purchase:", err);
+    return res.status(500).json({ error: "Plan purchase confirmation failed" });
+  }
+}
+
 module.exports = { 
   createOrder, 
   verifyPayment, 
   getPublicKey, 
   confirmAndPublish,
+  confirmPlanPurchase,
   createApplicationFeePayment,
   confirmApplicationPayment,
   createApprovalFeeOrder,

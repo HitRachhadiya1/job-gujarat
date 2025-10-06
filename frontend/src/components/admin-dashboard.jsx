@@ -106,6 +106,7 @@ export default function AdminDashboard({ onLogout }) {
     name: "",
     price: "",
     duration: "",
+    jobCount: "",
     features: "",
   });
   const [editingCategory, setEditingCategory] = useState(null);
@@ -371,13 +372,14 @@ export default function AdminDashboard({ onLogout }) {
             features: featuresArray,
             price: parseFloat(newPlan.price),
             duration: parseInt(newPlan.duration),
+            jobCount: newPlan.jobCount ? parseInt(newPlan.jobCount) : 1,
           }),
         }
       );
 
       if (response.ok) {
         toast.success("Pricing plan created successfully");
-        setNewPlan({ name: "", price: "", duration: "", features: "" });
+        setNewPlan({ name: "", price: "", duration: "", jobCount: "", features: "" });
         setShowAddPlanDialog(false);
         fetchDashboardData();
       } else {
@@ -483,6 +485,7 @@ export default function AdminDashboard({ onLogout }) {
             features: featuresArray,
             price: parseFloat(editingPlan.price),
             duration: parseInt(editingPlan.duration),
+            jobCount: editingPlan.jobCount ? parseInt(editingPlan.jobCount) : undefined,
           }),
         }
       );
@@ -1998,12 +2001,24 @@ export default function AdminDashboard({ onLogout }) {
                 open={showAddPlanDialog}
                 onOpenChange={setShowAddPlanDialog}
               >
-                <DialogTrigger asChild>
-                  <Button className="bg-stone-900 hover:bg-stone-800 text-white">
+                {pricingPlans.length < 4 ? (
+                  <Button
+                    className="bg-stone-900 hover:bg-stone-800 text-white"
+                    onClick={() => setShowAddPlanDialog(true)}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Plan
                   </Button>
-                </DialogTrigger>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="text-stone-700 dark:text-stone-300"
+                    onClick={() => toast.warning("Maximum of 4 pricing plans allowed")}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Plan
+                  </Button>
+                )}
                 <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-stone-900">
                   <DialogHeader>
                     <DialogTitle>Create Pricing Plan</DialogTitle>
@@ -2054,6 +2069,21 @@ export default function AdminDashboard({ onLogout }) {
                           }))
                         }
                         placeholder="30"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="planJobCount">Job Post Count</Label>
+                      <Input
+                        id="planJobCount"
+                        type="number"
+                        value={newPlan.jobCount}
+                        onChange={(e) =>
+                          setNewPlan((prev) => ({
+                            ...prev,
+                            jobCount: e.target.value,
+                          }))
+                        }
+                        placeholder="3"
                       />
                     </div>
                     <div>
@@ -2108,6 +2138,9 @@ export default function AdminDashboard({ onLogout }) {
                             /{plan.duration} days
                           </span>
                         </div>
+                        <div className="text-sm text-stone-700 dark:text-stone-300 mt-1">
+                          Includes {plan.jobCount || 1} job {Number(plan.jobCount) === 1 ? 'post' : 'posts'}
+                        </div>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Button
@@ -2128,14 +2161,15 @@ export default function AdminDashboard({ onLogout }) {
                         </Button>
                       </div>
                     </div>
+
                     <div className="space-y-2 mb-4">
-                      {plan.features?.slice(0, 3).map((feature, index) => (
+                      {Array.isArray(plan.features) && plan.features.slice(0, 3).map((feature, index) => (
                         <div
                           key={index}
                           className="flex items-center space-x-2 text-sm text-stone-700 dark:text-stone-300"
                         >
                           <CheckCircle className="w-4 h-4 text-green-600" />
-                          <span>{feature.trim()}</span>
+                          <span>{String(feature).trim()}</span>
                         </div>
                       ))}
                       {Array.isArray(plan.features) && plan.features.length > 3 && (
@@ -2149,10 +2183,9 @@ export default function AdminDashboard({ onLogout }) {
                         </Button>
                       )}
                     </div>
+
                     <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
-                      <span>
-                        Used by {plan._count?.purchases || 0} companies
-                      </span>
+                      <span>Used by {plan._count?.purchases || 0} companies</span>
                       <Badge variant={plan.active ? "default" : "secondary"}>
                         {plan.active ? "Active" : "Inactive"}
                       </Badge>
@@ -2176,107 +2209,6 @@ export default function AdminDashboard({ onLogout }) {
                       <span>{feature}</span>
                     </div>
                   ))}
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* Edit Pricing Plan Dialog */}
-            <Dialog
-              open={showEditPlanDialog}
-              onOpenChange={setShowEditPlanDialog}
-            >
-              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-stone-900">
-                <DialogHeader>
-                  <DialogTitle>Edit Pricing Plan</DialogTitle>
-                  <DialogDescription>
-                    Update the pricing plan information
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="editPlanName">Plan Name</Label>
-                    <Input
-                      id="editPlanName"
-                      value={editingPlan?.name || ""}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                      placeholder="e.g., Basic Plan"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="editPlanPrice">Price (₹)</Label>
-                    <Input
-                      id="editPlanPrice"
-                      type="number"
-                      value={editingPlan?.price || ""}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          price: e.target.value,
-                        }))
-                      }
-                      placeholder="299"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="editPlanDuration">Duration (days)</Label>
-                    <Input
-                      id="editPlanDuration"
-                      type="number"
-                      value={editingPlan?.duration || ""}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          duration: e.target.value,
-                        }))
-                      }
-                      placeholder="30"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="editPlanFeatures">
-                      Features (comma separated)
-                    </Label>
-                    <Textarea
-                      id="editPlanFeatures"
-                      value={editingPlan?.features || ""}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          features: e.target.value,
-                        }))
-                      }
-                      placeholder="Featured listing, Priority support, Analytics"
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="editPlanPopular"
-                      checked={editingPlan?.popular || false}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          popular: e.target.checked,
-                        }))
-                      }
-                      className="rounded"
-                    />
-                    <Label htmlFor="editPlanPopular">Mark as Popular</Label>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowEditPlanDialog(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleUpdatePlan}>Update Plan</Button>
-                  </div>
                 </div>
               </DialogContent>
             </Dialog>
