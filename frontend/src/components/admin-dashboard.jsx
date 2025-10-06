@@ -349,6 +349,36 @@ export default function AdminDashboard({ onLogout }) {
     }
   };
 
+  const handleUpdateCategory = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch(`${API_URL}/admin/categories/${editingCategory.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: editingCategory.name,
+          description: editingCategory.description,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success("Category updated successfully");
+        setEditingCategory(null);
+        setShowEditCategoryDialog(false);
+        fetchDashboardData();
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.error || "Failed to update category");
+      }
+    } catch (error) {
+      console.error("Error updating category:", error);
+      toast.error("Failed to update category");
+    }
+  };
+
   const handleAddPlan = async () => {
     try {
       const token = await getAccessTokenSilently();
@@ -383,83 +413,13 @@ export default function AdminDashboard({ onLogout }) {
         setShowAddPlanDialog(false);
         fetchDashboardData();
       } else {
-        toast.error("Failed to create pricing plan");
+        const error = await response.json().catch(() => ({}));
+        toast.error(error.error || "Failed to create pricing plan");
       }
     } catch (error) {
       console.error("Error creating pricing plan:", error);
       toast.error("Failed to create pricing plan");
     }
-  };
-
-  const handleEditCategory = (category) => {
-    setEditingCategory(category);
-    setShowEditCategoryDialog(true);
-  };
-  const handleUpdateCategory = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/admin/categories/${editingCategory.id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: editingCategory.name,
-          description: editingCategory.description,
-        }),
-      });
-
-      if (response.ok) {
-        toast.success("Category updated successfully");
-        setEditingCategory(null);
-        setShowEditCategoryDialog(false);
-        fetchDashboardData();
-      } else {
-        toast.error("Failed to update category");
-      }
-    } catch (error) {
-      console.error("Error updating category:", error);
-      toast.error("Failed to update category");
-    }
-  };
-
-  const handleDeleteCategory = async (categoryId) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
-
-    try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(
-        `${API_URL}/admin/categories/${categoryId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        toast.success("Category deleted successfully");
-        fetchDashboardData();
-      } else {
-        const error = await response.json();
-        toast.error(error.error || "Failed to delete category");
-      }
-    } catch (error) {
-      console.error("Error deleting category:", error);
-      toast.error("Failed to delete category");
-    }
-  };
-
-  const handleEditPlan = (plan) => {
-    setEditingPlan({
-      ...plan,
-      features: Array.isArray(plan.features)
-        ? plan.features.join(", ")
-        : plan.features || "",
-    });
-    setShowEditPlanDialog(true);
   };
 
   const handleUpdatePlan = async () => {
@@ -496,7 +456,8 @@ export default function AdminDashboard({ onLogout }) {
         setShowEditPlanDialog(false);
         fetchDashboardData();
       } else {
-        toast.error("Failed to update pricing plan");
+        const error = await response.json().catch(() => ({}));
+        toast.error(error.error || "Failed to update pricing plan");
       }
     } catch (error) {
       console.error("Error updating pricing plan:", error);
@@ -2194,6 +2155,97 @@ export default function AdminDashboard({ onLogout }) {
                 </Card>
               ))}
             </div>
+
+            {/* Edit Plan Dialog */}
+            <Dialog open={showEditPlanDialog} onOpenChange={setShowEditPlanDialog}>
+              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-stone-900">
+                <DialogHeader>
+                  <DialogTitle>Edit Pricing Plan</DialogTitle>
+                  <DialogDescription>Update plan details</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="editPlanName">Plan Name</Label>
+                    <Input
+                      id="editPlanName"
+                      value={editingPlan?.name || ""}
+                      onChange={(e) =>
+                        setEditingPlan((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., Standard Plan"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="editPlanPrice">Price (₹)</Label>
+                    <Input
+                      id="editPlanPrice"
+                      type="number"
+                      value={editingPlan?.price ?? ""}
+                      onChange={(e) =>
+                        setEditingPlan((prev) => ({
+                          ...prev,
+                          price: e.target.value,
+                        }))
+                      }
+                      placeholder="299"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="editPlanDuration">Duration (days)</Label>
+                    <Input
+                      id="editPlanDuration"
+                      type="number"
+                      value={editingPlan?.duration ?? ""}
+                      onChange={(e) =>
+                        setEditingPlan((prev) => ({
+                          ...prev,
+                          duration: e.target.value,
+                        }))
+                      }
+                      placeholder="30"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="editPlanJobCount">Job Post Count</Label>
+                    <Input
+                      id="editPlanJobCount"
+                      type="number"
+                      value={editingPlan?.jobCount ?? ""}
+                      onChange={(e) =>
+                        setEditingPlan((prev) => ({
+                          ...prev,
+                          jobCount: e.target.value,
+                        }))
+                      }
+                      placeholder="3"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="editPlanFeatures">Features (comma separated)</Label>
+                    <Textarea
+                      id="editPlanFeatures"
+                      value={editingPlan?.features || ""}
+                      onChange={(e) =>
+                        setEditingPlan((prev) => ({
+                          ...prev,
+                          features: e.target.value,
+                        }))
+                      }
+                      placeholder="Featured listing, Priority support, Analytics"
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setShowEditPlanDialog(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleUpdatePlan}>Update Plan</Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
 
             {/* Features Details Dialog */}
             <Dialog open={showFeaturesDialog} onOpenChange={setShowFeaturesDialog}>
