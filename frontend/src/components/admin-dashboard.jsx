@@ -106,6 +106,7 @@ export default function AdminDashboard({ onLogout }) {
     name: "",
     price: "",
     duration: "",
+    jobCount: "",
     features: "",
   });
   const [editingCategory, setEditingCategory] = useState(null);
@@ -371,13 +372,14 @@ export default function AdminDashboard({ onLogout }) {
             features: featuresArray,
             price: parseFloat(newPlan.price),
             duration: parseInt(newPlan.duration),
+            jobCount: newPlan.jobCount ? parseInt(newPlan.jobCount) : 1,
           }),
         }
       );
 
       if (response.ok) {
         toast.success("Pricing plan created successfully");
-        setNewPlan({ name: "", price: "", duration: "", features: "" });
+        setNewPlan({ name: "", price: "", duration: "", jobCount: "", features: "" });
         setShowAddPlanDialog(false);
         fetchDashboardData();
       } else {
@@ -483,6 +485,7 @@ export default function AdminDashboard({ onLogout }) {
             features: featuresArray,
             price: parseFloat(editingPlan.price),
             duration: parseInt(editingPlan.duration),
+            jobCount: editingPlan.jobCount ? parseInt(editingPlan.jobCount) : undefined,
           }),
         }
       );
@@ -707,9 +710,27 @@ export default function AdminDashboard({ onLogout }) {
       {loading && <LoadingOverlay message="Loading..." />}
 
       {/* Main Content */}
-      <main className="relative z-10 container mx-auto px-4 py-8">
+      <main className="relative z-10 container mx-auto px-4 py-8 overflow-x-hidden">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7 mb-4 bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 rounded-xl p-2 shadow">
+          {/* Mobile Tab Selector */}
+          <div className="md:hidden mb-4">
+            <Select value={activeTab} onValueChange={setActiveTab}>
+              <SelectTrigger className="w-full bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-[#77BEE0]/60 dark:border-[#155AA4]/60 rounded-xl shadow-sm">
+                <SelectValue placeholder="Select Section" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 border border-[#77BEE0]/60 dark:border-[#155AA4]/60 shadow-xl z-50 rounded-xl">
+                <SelectItem value="overview">Overview</SelectItem>
+                <SelectItem value="companies">Companies</SelectItem>
+                <SelectItem value="jobs">Jobs</SelectItem>
+                <SelectItem value="users">Job Seekers</SelectItem>
+                <SelectItem value="payments">Payments</SelectItem>
+                <SelectItem value="categories">Categories</SelectItem>
+                <SelectItem value="pricing">Pricing</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <TabsList className="hidden md:grid w-full grid-cols-7 mb-4 bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 rounded-xl p-2 shadow">
             <TabsTrigger
               value="overview"
               className="data-[state=active]:bg-stone-900 data-[state=active]:text-white dark:data-[state=active]:bg-stone-700"
@@ -860,17 +881,17 @@ export default function AdminDashboard({ onLogout }) {
                     {jobSeekerUsers.slice(0, 5).map((user, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 rounded-lg bg-stone-50 dark:bg-stone-900/50"
+                        className="flex items-center justify-between p-3 rounded-lg bg-stone-50 dark:bg-stone-900/50 gap-3"
                       >
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-3 min-w-0">
                           <div className="w-8 h-8 bg-stone-200 dark:bg-stone-700 rounded-full flex items-center justify-center">
                             <Users className="w-4 h-4 text-stone-600 dark:text-stone-300" />
                           </div>
-                          <div>
-                            <p className="font-medium text-stone-900 dark:text-white">
+                          <div className="min-w-0">
+                            <p className="font-medium text-stone-900 dark:text-white truncate max-w-[12rem] sm:max-w-[16rem]">
                               {user.name || user.email}
                             </p>
-                            <p className="text-sm text-stone-600 dark:text-stone-400">
+                            <p className="text-sm text-stone-600 dark:text-stone-400 truncate max-w-[12rem] sm:max-w-[16rem]">
                               {user.email}
                             </p>
                           </div>
@@ -907,17 +928,17 @@ export default function AdminDashboard({ onLogout }) {
                     {jobs.slice(0, 5).map((job, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 rounded-lg bg-stone-50 dark:bg-stone-900/50"
+                        className="flex items-center justify-between p-3 rounded-lg bg-stone-50 dark:bg-stone-900/50 gap-3"
                       >
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-3 min-w-0">
                           <div className="w-8 h-8 bg-stone-200 dark:bg-stone-700 rounded-full flex items-center justify-center">
                             <Briefcase className="w-4 h-4 text-stone-600 dark:text-stone-300" />
                           </div>
-                          <div>
-                            <p className="font-medium text-stone-900 dark:text-white">
+                          <div className="min-w-0">
+                            <p className="font-medium text-stone-900 dark:text-white truncate max-w-[12rem] sm:max-w-[16rem]">
                               {job.title}
                             </p>
-                            <p className="text-sm text-stone-600 dark:text-stone-400">
+                            <p className="text-sm text-stone-600 dark:text-stone-400 truncate max-w-[12rem] sm:max-w-[16rem]">
                               {job.company?.name}
                             </p>
                           </div>
@@ -942,7 +963,7 @@ export default function AdminDashboard({ onLogout }) {
           </TabsContent>
 
           <TabsContent value="companies" className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
                   Company Management
@@ -951,18 +972,18 @@ export default function AdminDashboard({ onLogout }) {
                   Approve, verify and manage company registrations
                 </p>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3 sm:items-center sm:space-x-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 h-4 w-4" />
                   <Input
                     placeholder="Search companies..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl"
+                    className="pl-10 w-full sm:w-64 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl"
                   />
                 </div>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-40 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] rounded-xl">
+                  <SelectTrigger className="w-full sm:w-40 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] rounded-xl">
                     <SelectValue placeholder="Filter status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -982,14 +1003,14 @@ export default function AdminDashboard({ onLogout }) {
                   className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                       <div className="flex items-start space-x-4">
                         <div className="w-16 h-16 bg-stone-200 dark:bg-stone-700 rounded-xl flex items-center justify-center">
                           <Building2 className="w-8 h-8 text-stone-600 dark:text-stone-300" />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="text-xl font-bold text-stone-900 dark:text-white">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-2">
+                            <h4 className="text-xl font-bold text-stone-900 dark:text-white break-words max-w-full">
                               {company.name}
                             </h4>
                             <Badge
@@ -1049,7 +1070,7 @@ export default function AdminDashboard({ onLogout }) {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
                         {!company.verified && !company.blocked && (
                           <>
                             <Button
@@ -1099,7 +1120,7 @@ export default function AdminDashboard({ onLogout }) {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
                   Job Seeker Management
@@ -1108,14 +1129,14 @@ export default function AdminDashboard({ onLogout }) {
                   Monitor and manage job seeker accounts
                 </p>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3 sm:items-center sm:space-x-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 h-4 w-4" />
                   <Input
                     placeholder="Search job seekers..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl"
+                    className="pl-10 w-full sm:w-64 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl"
                   />
                 </div>
               </div>
@@ -1128,14 +1149,14 @@ export default function AdminDashboard({ onLogout }) {
                   className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                       <div className="flex items-start space-x-4">
                         <div className="w-16 h-16 bg-stone-200 dark:bg-stone-700 rounded-xl flex items-center justify-center">
                           <Users className="w-8 h-8 text-stone-600 dark:text-stone-300" />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="text-xl font-bold text-stone-900 dark:text-white">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-2">
+                            <h4 className="text-xl font-bold text-stone-900 dark:text-white break-all max-w-full">
                               {user.name || user.email}
                             </h4>
                             <Badge
@@ -1150,9 +1171,9 @@ export default function AdminDashboard({ onLogout }) {
                               {user.role || "Job Seeker"}
                             </Badge>
                             <Badge
-                              variant={user.blocked ? "destructive" : "default"}
+                              variant={(user.blocked || user.userStatus === "SUSPENDED") ? "destructive" : "default"}
                             >
-                              {user.blocked ? "Blocked" : "Active"}
+                              {(user.blocked || user.userStatus === "SUSPENDED") ? "Blocked" : "Active"}
                             </Badge>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-stone-600 dark:text-stone-400 mb-3">
@@ -1178,7 +1199,7 @@ export default function AdminDashboard({ onLogout }) {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
                         <Button
                           size="sm"
                           variant="outline"
@@ -1189,16 +1210,20 @@ export default function AdminDashboard({ onLogout }) {
                           View Profile
                         </Button>
                         <Button
+                          type="button"
                           size="sm"
-                          variant={user.blocked ? "default" : "destructive"}
+                          variant={(user.blocked || user.userStatus === "SUSPENDED") ? "default" : "destructive"}
+                          className={(user.blocked || user.userStatus === "SUSPENDED")
+                            ? "bg-green-600 hover:bg-green-700 text-white"
+                            : "bg-red-600 hover:bg-red-700 text-white"}
                           onClick={() =>
                             handleUserAction(
                               user.id,
-                              user.blocked ? "unblock" : "block"
+                              (user.blocked || user.userStatus === "SUSPENDED") ? "unblock" : "block"
                             )
                           }
                         >
-                          {user.blocked ? (
+                          {(user.blocked || user.userStatus === "SUSPENDED") ? (
                             <>
                               <UserCheck className="h-4 w-4 mr-1" />
                               Unblock
@@ -1230,126 +1255,89 @@ export default function AdminDashboard({ onLogout }) {
                 }
               }}
             >
-              <DialogContent className="bg-white dark:bg-stone-900 max-w-2xl">
+              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-stone-900">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold text-stone-900 dark:text-white">
                     {selectedUser.name || selectedUser.email}
                   </DialogTitle>
-                  <DialogDescription>
-                    Job Seeker Profile
+                  <DialogDescription className="text-stone-600 dark:text-stone-300">
+                    {selectedUser.email}
                   </DialogDescription>
                 </DialogHeader>
+
                 {loadingUserProfile ? (
-                  <p className="text-stone-600 dark:text-stone-300">Loading profile...</p>
+                  <div className="py-6 text-sm text-stone-600 dark:text-stone-400">Loading profile...</div>
                 ) : (
-                  <div className="space-y-4">
-                    {userProfileData?.profileExists && userProfileData.profile ? (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-stone-700 dark:text-stone-300">
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4" />
-                            <span>{userProfileData.profile.fullName}</span>
+                  <div className="space-y-3 text-sm text-stone-700 dark:text-stone-300">
+                    <div className="flex items-center gap-2">
+                      <Badge variant={(selectedUser.blocked || selectedUser.userStatus === "SUSPENDED") ? "destructive" : "default"}>
+                        {(selectedUser.blocked || selectedUser.userStatus === "SUSPENDED") ? "Blocked" : "Active"}
+                      </Badge>
+                    </div>
+                    {userProfileData?.profileExists === false && (
+                      <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                        Job seeker profile not found.
+                      </div>
+                    )}
+                    {userProfileData && userProfileData.profile && (
+                      <div className="space-y-2">
+                        {userProfileData.profile.fullName && (
+                          <div><span className="font-medium">Full Name:</span> {userProfileData.profile.fullName}</div>
+                        )}
+                        {userProfileData.profile.phone && (
+                          <div><span className="font-medium">Phone:</span> {userProfileData.profile.phone}</div>
+                        )}
+                        {Array.isArray(userProfileData.profile.skills) && userProfileData.profile.skills.length > 0 && (
+                          <div>
+                            <span className="font-medium">Skills:</span>
+                            <div className="mt-1 flex flex-wrap gap-2">
+                              {userProfileData.profile.skills.slice(0,8).map((s, i) => (
+                                <Badge key={i} variant="outline">{s}</Badge>
+                              ))}
+                            </div>
                           </div>
-                          {userProfileData.profile.phone && (
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4" />
-                              <span>{userProfileData.profile.phone}</span>
-                            </div>
-                          )}
-                          {userProfileData.profile.location && (
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4" />
-                              <span>{userProfileData.profile.location}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-2">
-                            <Globe className="w-4 h-4" />
-                            <span>{selectedUser.email}</span>
-                          </div>
-                          {Array.isArray(userProfileData.profile.skills) && userProfileData.profile.skills.length > 0 && (
-                            <div className="md:col-span-2">
-                              <span className="font-semibold">Skills:</span>{" "}
-                              <span>{userProfileData.profile.skills.join(", ")}</span>
-                            </div>
-                          )}
-                          {userProfileData.profile.experienceYears !== null && userProfileData.profile.experienceYears !== undefined && (
-                            <div>
-                              <span className="font-semibold">Experience:</span>{" "}
-                              <span>{userProfileData.profile.experienceYears} years</span>
-                            </div>
-                          )}
-                          {userProfileData.profile.resumeUrl && (
-                            <div>
-                              <a href={userProfileData.profile.resumeUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline">
-                                <ExternalLink className="w-4 h-4" /> View Resume
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-end gap-2 pt-2">
-                          <Button
-                            size="sm"
-                            variant={selectedUser.blocked ? "default" : "destructive"}
-                            onClick={async () => {
-                              await handleUserAction(
-                                selectedUser.id,
-                                selectedUser.blocked ? "unblock" : "block"
-                              );
-                              setShowUserDialog(false);
-                            }}
-                          >
-                            {selectedUser.blocked ? (
-                              <>
-                                <UserCheck className="w-4 h-4 mr-1" /> Unblock
-                              </>
-                            ) : (
-                              <>
-                                <UserX className="w-4 h-4 mr-1" /> Block
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-sm text-stone-700 dark:text-stone-300">
-                        <p>No job seeker profile found. Showing available details:</p>
-                        <ul className="list-disc pl-5 mt-2">
-                          <li>Email: {selectedUser.email}</li>
-                          <li>Status: {userProfileData?.dbStatus || "Unknown"}</li>
-                        </ul>
-                        <div className="flex items-center justify-end gap-2 pt-3">
-                          <Button
-                            size="sm"
-                            variant={selectedUser.blocked ? "default" : "destructive"}
-                            onClick={async () => {
-                              await handleUserAction(
-                                selectedUser.id,
-                                selectedUser.blocked ? "unblock" : "block"
-                              );
-                              setShowUserDialog(false);
-                            }}
-                          >
-                            {selectedUser.blocked ? (
-                              <>
-                                <UserCheck className="w-4 h-4 mr-1" /> Unblock
-                              </>
-                            ) : (
-                              <>
-                                <UserX className="w-4 h-4 mr-1" /> Block
-                              </>
-                            )}
-                          </Button>
-                        </div>
+                        )}
                       </div>
                     )}
                   </div>
                 )}
+
+                <div className="mt-4 flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setShowUserDialog(false)}>Close</Button>
+                  <Button
+                    type="button"
+                    variant={(selectedUser?.blocked || selectedUser?.userStatus === "SUSPENDED") ? "default" : "destructive"}
+                    className={(selectedUser?.blocked || selectedUser?.userStatus === "SUSPENDED")
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "bg-red-600 hover:bg-red-700 text-white"}
+                    onClick={async () => {
+                      await handleUserAction(
+                        selectedUser.id,
+                        (selectedUser?.blocked || selectedUser?.userStatus === "SUSPENDED") ? "unblock" : "block"
+                      );
+                      // Keep dialog open but reflect latest data
+                      fetchDashboardData();
+                    }}
+                  >
+                    {(selectedUser?.blocked || selectedUser?.userStatus === "SUSPENDED") ? (
+                      <>
+                        <UserCheck className="h-4 w-4 mr-1" />
+                        Unblock
+                      </>
+                    ) : (
+                      <>
+                        <UserX className="h-4 w-4 mr-1" />
+                        Block
+                      </>
+                    )}
+                  </Button>
+                </div>
               </DialogContent>
             </Dialog>
           )}
 
           <TabsContent value="jobs" className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
                   Job Management
@@ -1358,18 +1346,18 @@ export default function AdminDashboard({ onLogout }) {
                   Moderate, approve and manage job postings
                 </p>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3 sm:items-center sm:space-x-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 h-4 w-4" />
                   <Input
                     placeholder="Search jobs..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-64 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl"
+                    className="pl-10 w-full sm:w-64 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] focus:ring-0 rounded-xl"
                   />
                 </div>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-40 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] rounded-xl">
+                  <SelectTrigger className="w-full sm:w-40 bg-white dark:bg-stone-900 border-2 border-stone-200 dark:border-stone-700 focus:border-[#0574EE] rounded-xl">
                     <SelectValue placeholder="Filter status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1391,14 +1379,14 @@ export default function AdminDashboard({ onLogout }) {
                   className="bg-white dark:bg-stone-900 border border-[#77BEE0]/40 dark:border-[#155AA4]/40 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                       <div className="flex items-start space-x-4">
                         <div className="w-16 h-16 bg-stone-200 dark:bg-stone-700 rounded-xl flex items-center justify-center">
                           <Briefcase className="w-8 h-8 text-stone-600 dark:text-stone-300" />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="text-xl font-bold text-stone-900 dark:text-white">
+                        <div className="flex-1 min-w-0 w-full">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-2">
+                            <h4 className="text-xl font-bold text-stone-900 dark:text-white break-words max-w-full">
                               {job.title}
                             </h4>
                             <Badge
@@ -1557,7 +1545,7 @@ export default function AdminDashboard({ onLogout }) {
           )}
 
           <TabsContent value="payments" className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
                   Payment Management
@@ -1641,7 +1629,7 @@ export default function AdminDashboard({ onLogout }) {
                   className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div>
                         <div className="text-xl font-bold text-stone-900 dark:text-white">
                           ₹{Number(payment.amount).toLocaleString()}
@@ -1653,7 +1641,7 @@ export default function AdminDashboard({ onLogout }) {
                           Date: {new Date(payment.createdAt).toLocaleDateString()}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
                         <Button
                           size="sm"
                           variant="outline"
@@ -1683,7 +1671,7 @@ export default function AdminDashboard({ onLogout }) {
 
             {/* Payment Details Dialog */}
             <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-              <DialogContent className="bg-white dark:bg-stone-900 max-w-lg">
+              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-stone-900">
                 <DialogHeader>
                   <DialogTitle>Payment Details</DialogTitle>
                   <DialogDescription>Detailed transaction information</DialogDescription>
@@ -1804,7 +1792,7 @@ export default function AdminDashboard({ onLogout }) {
           </TabsContent>
 
           <TabsContent value="categories" className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
                   Category & Skill Management
@@ -1823,7 +1811,7 @@ export default function AdminDashboard({ onLogout }) {
                     Add Category
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-white dark:bg-stone-900">
+                <DialogContent className="max-w-md w-full bg-white dark:bg-stone-900">
                   <DialogHeader>
                     <DialogTitle>Add New Category</DialogTitle>
                     <DialogDescription>
@@ -1882,7 +1870,7 @@ export default function AdminDashboard({ onLogout }) {
                   className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-stone-200 dark:bg-stone-700 rounded-lg flex items-center justify-center">
                           <Layers className="w-6 h-6 text-stone-600 dark:text-stone-300" />
@@ -1947,7 +1935,7 @@ export default function AdminDashboard({ onLogout }) {
               open={showEditCategoryDialog}
               onOpenChange={setShowEditCategoryDialog}
             >
-              <DialogContent className="bg-white dark:bg-stone-900">
+              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-stone-900">
                 <DialogHeader>
                   <DialogTitle>Edit Category</DialogTitle>
                   <DialogDescription>
@@ -2000,7 +1988,7 @@ export default function AdminDashboard({ onLogout }) {
           </TabsContent>
 
           <TabsContent value="pricing" className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-2xl font-bold text-stone-800 dark:text-white">
                   Pricing Plans Management
@@ -2013,13 +2001,25 @@ export default function AdminDashboard({ onLogout }) {
                 open={showAddPlanDialog}
                 onOpenChange={setShowAddPlanDialog}
               >
-                <DialogTrigger asChild>
-                  <Button className="bg-stone-900 hover:bg-stone-800 text-white">
+                {pricingPlans.length < 4 ? (
+                  <Button
+                    className="bg-stone-900 hover:bg-stone-800 text-white"
+                    onClick={() => setShowAddPlanDialog(true)}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Plan
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-white dark:bg-stone-900">
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="text-stone-700 dark:text-stone-300"
+                    onClick={() => toast.warning("Maximum of 4 pricing plans allowed")}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Plan
+                  </Button>
+                )}
+                <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-stone-900">
                   <DialogHeader>
                     <DialogTitle>Create Pricing Plan</DialogTitle>
                     <DialogDescription>
@@ -2072,6 +2072,21 @@ export default function AdminDashboard({ onLogout }) {
                       />
                     </div>
                     <div>
+                      <Label htmlFor="planJobCount">Job Post Count</Label>
+                      <Input
+                        id="planJobCount"
+                        type="number"
+                        value={newPlan.jobCount}
+                        onChange={(e) =>
+                          setNewPlan((prev) => ({
+                            ...prev,
+                            jobCount: e.target.value,
+                          }))
+                        }
+                        placeholder="3"
+                      />
+                    </div>
+                    <div>
                       <Label htmlFor="planFeatures">
                         Features (comma separated)
                       </Label>
@@ -2110,7 +2125,7 @@ export default function AdminDashboard({ onLogout }) {
                   className="bg-white/80 dark:bg-stone-800/50 backdrop-blur-sm border border-stone-200 dark:border-stone-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[240px] flex flex-col"
                 >
                   <CardContent className="p-6 flex-1 flex flex-col">
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-4">
                       <div>
                         <h4 className="text-xl font-bold text-stone-900 dark:text-white">
                           {plan.name}
@@ -2122,6 +2137,9 @@ export default function AdminDashboard({ onLogout }) {
                           <span className="text-sm text-stone-600 dark:text-stone-400">
                             /{plan.duration} days
                           </span>
+                        </div>
+                        <div className="text-sm text-stone-700 dark:text-stone-300 mt-1">
+                          Includes {plan.jobCount || 1} job {Number(plan.jobCount) === 1 ? 'post' : 'posts'}
                         </div>
                       </div>
                       <div className="flex items-center space-x-1">
@@ -2143,14 +2161,15 @@ export default function AdminDashboard({ onLogout }) {
                         </Button>
                       </div>
                     </div>
+
                     <div className="space-y-2 mb-4">
-                      {plan.features?.slice(0, 3).map((feature, index) => (
+                      {Array.isArray(plan.features) && plan.features.slice(0, 3).map((feature, index) => (
                         <div
                           key={index}
                           className="flex items-center space-x-2 text-sm text-stone-700 dark:text-stone-300"
                         >
                           <CheckCircle className="w-4 h-4 text-green-600" />
-                          <span>{feature.trim()}</span>
+                          <span>{String(feature).trim()}</span>
                         </div>
                       ))}
                       {Array.isArray(plan.features) && plan.features.length > 3 && (
@@ -2164,10 +2183,9 @@ export default function AdminDashboard({ onLogout }) {
                         </Button>
                       )}
                     </div>
+
                     <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400">
-                      <span>
-                        Used by {plan._count?.purchases || 0} companies
-                      </span>
+                      <span>Used by {plan._count?.purchases || 0} companies</span>
                       <Badge variant={plan.active ? "default" : "secondary"}>
                         {plan.active ? "Active" : "Inactive"}
                       </Badge>
@@ -2179,7 +2197,7 @@ export default function AdminDashboard({ onLogout }) {
 
             {/* Features Details Dialog */}
             <Dialog open={showFeaturesDialog} onOpenChange={setShowFeaturesDialog}>
-              <DialogContent className="bg-white dark:bg-stone-900 max-w-lg">
+              <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-stone-900">
                 <DialogHeader>
                   <DialogTitle>{featuresPlan?.name} - All Features</DialogTitle>
                   <DialogDescription>Full list of features for this plan</DialogDescription>
@@ -2191,107 +2209,6 @@ export default function AdminDashboard({ onLogout }) {
                       <span>{feature}</span>
                     </div>
                   ))}
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* Edit Pricing Plan Dialog */}
-            <Dialog
-              open={showEditPlanDialog}
-              onOpenChange={setShowEditPlanDialog}
-            >
-              <DialogContent className="bg-white dark:bg-stone-900">
-                <DialogHeader>
-                  <DialogTitle>Edit Pricing Plan</DialogTitle>
-                  <DialogDescription>
-                    Update the pricing plan information
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="editPlanName">Plan Name</Label>
-                    <Input
-                      id="editPlanName"
-                      value={editingPlan?.name || ""}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                      placeholder="e.g., Basic Plan"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="editPlanPrice">Price (₹)</Label>
-                    <Input
-                      id="editPlanPrice"
-                      type="number"
-                      value={editingPlan?.price || ""}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          price: e.target.value,
-                        }))
-                      }
-                      placeholder="299"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="editPlanDuration">Duration (days)</Label>
-                    <Input
-                      id="editPlanDuration"
-                      type="number"
-                      value={editingPlan?.duration || ""}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          duration: e.target.value,
-                        }))
-                      }
-                      placeholder="30"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="editPlanFeatures">
-                      Features (comma separated)
-                    </Label>
-                    <Textarea
-                      id="editPlanFeatures"
-                      value={editingPlan?.features || ""}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          features: e.target.value,
-                        }))
-                      }
-                      placeholder="Featured listing, Priority support, Analytics"
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="editPlanPopular"
-                      checked={editingPlan?.popular || false}
-                      onChange={(e) =>
-                        setEditingPlan((prev) => ({
-                          ...prev,
-                          popular: e.target.checked,
-                        }))
-                      }
-                      className="rounded"
-                    />
-                    <Label htmlFor="editPlanPopular">Mark as Popular</Label>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowEditPlanDialog(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={handleUpdatePlan}>Update Plan</Button>
-                  </div>
                 </div>
               </DialogContent>
             </Dialog>

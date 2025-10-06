@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const dns = require("dns");
 const authRoutes = require("./routes/authRoutes");
 const { getManagementToken } = require("./services/auth0Service");
 const jobPostingRoutes = require("./routes/jobPostingRoutes");
@@ -13,8 +14,17 @@ const savedJobRoutes = require("./routes/savedJobRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const publicRoutes = require("./routes/publicRoutes");
 
+if (dns && typeof dns.setDefaultResultOrder === "function") {
+  dns.setDefaultResultOrder("ipv4first");
+}
 const app = express();
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ 
+  origin: [
+    "http://localhost:5173",
+    "https://job-gujarat.vercel.app"
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Serve uploaded files statically

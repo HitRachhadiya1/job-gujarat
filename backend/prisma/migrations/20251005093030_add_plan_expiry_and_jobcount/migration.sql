@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "CompanyPlanPurchase" ADD COLUMN     "expiryDate" TIMESTAMP(3),
+ADD COLUMN     "startDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "PricingPlan" ADD COLUMN     "jobCount" INTEGER NOT NULL DEFAULT 1;

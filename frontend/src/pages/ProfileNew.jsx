@@ -35,6 +35,7 @@ function ProfileNew() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingResume, setUploadingResume] = useState(false);
   const [skillInput, setSkillInput] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -253,6 +254,7 @@ function ProfileNew() {
   };
 
   const handleSave = async () => {
+    setSaving(true);
     try {
       const token = await getAccessTokenSilently();
       const response = await fetch(`${API_URL}/jobseeker/`, {
@@ -290,6 +292,8 @@ function ProfileNew() {
         description: "Failed to save profile",
         variant: "destructive",
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -387,11 +391,21 @@ function ProfileNew() {
                   <Button
                     onClick={handleSave}
                     className="bg-green-600 hover:bg-green-700 text-white"
+                    disabled={saving}
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
+                    {saving ? (
+                      <span className="flex items-center">
+                        <span className="h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        Saving...
+                      </span>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
                   </Button>
-                  <Button variant="outline" onClick={() => setEditing(false)}>
+                  <Button variant="outline" onClick={() => setEditing(false)} disabled={saving}>
                     <X className="w-4 h-4 mr-2" />
                     Cancel
                   </Button>
@@ -670,14 +684,65 @@ function ProfileNew() {
                     alt="Profile"
                     className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-2xl border-4 border-white shadow-xl object-cover"
                   />
+                  
+                  {/* Hidden file input for photo - only functional when editing */}
+                  <input
+                    id="profilePhotoMobile"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && editing) {
+                        handlePhotoUpload(file);
+                      } else if (file && !editing) {
+                        // Clear the input if not in edit mode
+                        e.target.value = '';
+                      }
+                    }}
+                    disabled={!editing}
+                  />
+                  
+                  {/* Camera overlay - only visible when editing */}
+                  {editing && (
+                    <label htmlFor="profilePhotoMobile">
+                      <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center cursor-pointer transition-opacity">
+                        <div className="text-center text-white">
+                          <Camera className="w-6 h-6 mx-auto mb-1" />
+                          <span className="text-xs font-medium">
+                            {uploadingPhoto ? "Uploading..." : "Change Photo"}
+                          </span>
+                        </div>
+                      </div>
+                    </label>
+                  )}
                 </div>
-                <div className="text-center sm:text-left pb-0 sm:pb-2">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">
-                    {formData.fullName || user?.name || "Your Name"}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                    {formData.email || user?.email || ""}
-                  </p>
+                
+                <div className="flex flex-col items-center sm:items-start space-y-2">
+                  <div className="text-center sm:text-left">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white">
+                      {formData.fullName || user?.name || "Your Name"}
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                      {formData.email || user?.email || ""}
+                    </p>
+                  </div>
+                  
+                  {/* Upload Photo Button - visible when editing */}
+                  {editing && (
+                    <label htmlFor="profilePhotoMobile">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="cursor-pointer"
+                        disabled={uploadingPhoto}
+                      >
+                        <Camera className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                        {uploadingPhoto ? "Uploading..." : "Upload Photo"}
+                      </Button>
+                    </label>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
@@ -697,15 +762,26 @@ function ProfileNew() {
                       onClick={handleSave}
                       className="bg-green-600 hover:bg-green-700 text-white text-sm sm:text-base"
                       size="sm"
+                      disabled={saving}
                     >
-                      <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      Save
+                      {saving ? (
+                        <span className="flex items-center">
+                          <span className="h-4 w-4 mr-2 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                          Saving...
+                        </span>
+                      ) : (
+                        <>
+                          <Save className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                          Save
+                        </>
+                      )}
                     </Button>
                     <Button
                       onClick={() => setEditing(false)}
                       variant="outline"
                       size="sm"
                       className="text-sm sm:text-base"
+                      disabled={saving}
                     >
                       <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Cancel

@@ -598,12 +598,18 @@ async function createPricingPlan(req, res) {
       return res.status(403).json({ error: "Admin access required" });
     }
 
-    const { name, price, duration, features, popular } = req.body;
+    const { name, price, duration, features, popular, jobCount } = req.body;
 
     if (!name || !price || !duration) {
       return res
         .status(400)
         .json({ error: "Name, price, and duration are required" });
+    }
+
+    // Enforce max 4 plans
+    const existingCount = await prisma.pricingPlan.count();
+    if (existingCount >= 4) {
+      return res.status(400).json({ error: "Maximum of 4 pricing plans allowed" });
     }
 
     // Parse features from comma-separated string to array
@@ -620,6 +626,7 @@ async function createPricingPlan(req, res) {
         name: name.trim(),
         price: parseFloat(price),
         duration: parseInt(duration),
+        jobCount: Number.isFinite(parseInt(jobCount)) ? parseInt(jobCount) : 1,
         features: featuresArray,
         popular: popular || false,
       },
@@ -645,7 +652,7 @@ async function updatePricingPlan(req, res) {
     }
 
     const { planId } = req.params;
-    const { name, price, duration, features, active, popular } = req.body;
+    const { name, price, duration, features, active, popular, jobCount } = req.body;
 
     // Parse features if provided
     const featuresArray =
@@ -662,6 +669,7 @@ async function updatePricingPlan(req, res) {
         ...(name && { name: name.trim() }),
         ...(price !== undefined && { price: parseFloat(price) }),
         ...(duration !== undefined && { duration: parseInt(duration) }),
+        ...(jobCount !== undefined && { jobCount: parseInt(jobCount) }),
         ...(featuresArray && { features: featuresArray }),
         ...(active !== undefined && { active }),
         ...(popular !== undefined && { popular }),

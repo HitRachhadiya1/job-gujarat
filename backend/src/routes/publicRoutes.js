@@ -32,12 +32,12 @@ router.get('/categories', async (req, res) => {
 router.get('/pricing-plans', async (req, res) => {
   try {
     const pricingPlans = await prisma.pricingPlan.findMany({
-      where: { active: true },
       select: {
         id: true,
         name: true,
         price: true,
         duration: true,
+        jobCount: true,
         features: true,
         popular: true
       },

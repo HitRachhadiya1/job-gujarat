@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { uploadFile } = require("../services/supabaseService");
 const multer = require('multer');
+const { sendApplicationStatusEmail } = require("../services/emailService");
 
 const prisma = new PrismaClient();
 
@@ -576,6 +577,28 @@ const updateApplicationStatus = async (req, res) => {
     });
 
     console.log("Application status updated successfully");
+
+    // Fire-and-forget email notification (do not block response)
+    try {
+      if (status === "HIRED" || status === "REJECTED") {
+        const to = application?.jobSeeker?.user?.email;
+        const name = application?.jobSeeker?.fullName || null;
+        const jobTitle = updatedApplication?.job?.title || application?.job?.title || null;
+        const companyName = user?.Company?.name || null;
+
+        if (to) {
+          Promise.resolve(
+            sendApplicationStatusEmail({ to, status, name, jobTitle, companyName })
+          )
+            .then((info) => console.log("Status email dispatched:", info))
+            .catch((err) => console.error("Failed to send status email:", err?.message || err));
+        } else {
+          console.warn("No recipient email found for application", applicationId);
+        }
+      }
+    } catch (e) {
+      console.error("Email notification error:", e?.message || e);
+    }
 
     res.json({
       message: "Application status updated successfully",

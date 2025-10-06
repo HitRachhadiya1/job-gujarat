@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthMeta } from "../context/AuthMetaContext";
@@ -23,23 +23,56 @@ import {
 } from "lucide-react";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import AppLogo from "./AppLogo";
+import { resolveAssetUrl } from "@/config";
 
 const Navbar = () => {
-  const { logout, user, isAuthenticated } = useAuth0();
+  const { logout, user, isAuthenticated, getAccessTokenSilently } = useAuth0();
   const { role } = useAuthMeta();
   const { appLogo } = useLogo();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [companyInfo, setCompanyInfo] = useState({ name: "", logoUrl: "" });
 
   const handleLogout = () => {
     logout({ returnTo: window.location.origin });
   };
 
+  // Fetch company basic info for COMPANY role to render logo/initial in Navbar
+  useEffect(() => {
+    let active = true;
+    const fetchCompany = async () => {
+      if (!isAuthenticated || role !== "COMPANY") return;
+      try {
+        const token = await getAccessTokenSilently();
+        const res = await fetch(
+          `${
+            import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+          }/api/company`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (!res.ok) return; // silent fail
+        const data = await res.json();
+        if (!active) return;
+        setCompanyInfo({
+          name: data?.name || "",
+          logoUrl: data?.logoUrl || "",
+        });
+      } catch (e) {
+        // ignore
+      }
+    };
+    fetchCompany();
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated, role, getAccessTokenSilently]);
+
   const isActive = (path) => {
     return location.pathname === path;
   };
-
   const getNavigationItems = () => {
     if (!isAuthenticated || !role) return [];
 
@@ -52,9 +85,9 @@ const Navbar = () => {
           label: "Applications",
           icon: FileText,
         },
+        { path: "/company/pricing", label: "Pricing", icon: BarChart3 },
       ];
     }
-
     if (role === "JOB_SEEKER") {
       return [
         { path: "/", label: "Dashboard", icon: Home },
@@ -76,8 +109,17 @@ const Navbar = () => {
     return [];
   };
 
-  // Only show navbar for authenticated company users
-  if (!isAuthenticated || role !== "COMPANY") {
+  // Show Navbar only where needed
+  // - For JOB_SEEKER: hide on all routes (JobSeekerLayout provides its own unified header on all pages)
+  // - For ADMIN: hide on admin pages ("/", "/admin", "/users") because AdminDashboard has its own header
+  if (!isAuthenticated || !role) return null;
+  if (role === "JOB_SEEKER") return null;
+  if (
+    role === "ADMIN" &&
+    (location.pathname === "/" ||
+      location.pathname.startsWith("/admin") ||
+      location.pathname.startsWith("/users"))
+  ) {
     return null;
   }
 
@@ -113,14 +155,14 @@ const Navbar = () => {
                   variant={isActive(item.path) ? "default" : "ghost"}
                   size="sm"
                   onClick={() => navigate(item.path)}
-                  className={`relative overflow-hidden flex items-center space-x-2 transition-all duration-200 font-medium rounded-xl ${
+                  className={`relative overflow-hidden flex items-center space-x-2 transition-all duration-200 font-semibold rounded-xl ${
                     isActive(item.path)
                       ? "bg-gradient-to-r from-[#155AA4] to-[#0574EE] text-white shadow-md ring-1 ring-[#77BEE0]/40"
                       : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-[#77BEE0]/20 dark:hover:bg-white/10 hover:shadow-sm"
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-sm font-semibold">{item.label}</span>
                 </Button>
               );
             })}
@@ -128,14 +170,30 @@ const Navbar = () => {
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">
-            {/* User Avatar Only */}
+            {/* Company Avatar / Initial for COMPANY role, else user avatar */}
             <div className="hidden md:flex items-center">
-              {user?.picture && (
-                <img
-                  src={user.picture}
-                  alt="User Avatar"
-                  className="w-8 h-8 rounded-full border-2 border-stone-400 dark:border-stone-600"
-                />
+              {role === "COMPANY" ? (
+                companyInfo.logoUrl ? (
+                  <img
+                    src={resolveAssetUrl(companyInfo.logoUrl)}
+                    alt="Company Logo"
+                    className="w-9 h-9 rounded-xl border-2 border-stone-300 dark:border-stone-600 bg-white object-contain"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-xl border-2 border-stone-300 dark:border-stone-600 bg-gradient-to-br from-[#155AA4] to-[#0574EE] text-white flex items-center justify-center font-bold">
+                    <span className="leading-none">
+                      {(companyInfo.name || "C").charAt(0)}
+                    </span>
+                  </div>
+                )
+              ) : (
+                user?.picture && (
+                  <img
+                    src={user.picture}
+                    alt="User Avatar"
+                    className="w-8 h-8 rounded-full border-2 border-stone-400 dark:border-stone-600"
+                  />
+                )
               )}
             </div>
 
@@ -177,12 +235,28 @@ const Navbar = () => {
             {/* Mobile Header */}
             <div className="flex items-center justify-between pb-4 border-b border-stone-400 dark:border-stone-700">
               <div className="flex items-center space-x-3">
-                {user?.picture && (
-                  <img
-                    src={user.picture}
-                    alt="User Avatar"
-                    className="w-10 h-10 rounded-full border-2 border-stone-400 dark:border-stone-600"
-                  />
+                {role === "COMPANY" ? (
+                  companyInfo.logoUrl ? (
+                    <img
+                      src={resolveAssetUrl(companyInfo.logoUrl)}
+                      alt="Company Logo"
+                      className="w-10 h-10 rounded-xl border-2 border-stone-300 dark:border-stone-600 bg-white object-contain"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl border-2 border-stone-300 dark:border-stone-600 bg-gradient-to-br from-[#155AA4] to-[#0574EE] text-white flex items-center justify-center font-bold">
+                      <span className="leading-none">
+                        {(companyInfo.name || "C").charAt(0)}
+                      </span>
+                    </div>
+                  )
+                ) : (
+                  user?.picture && (
+                    <img
+                      src={user.picture}
+                      alt="User Avatar"
+                      className="w-10 h-10 rounded-full border-2 border-stone-400 dark:border-stone-600"
+                    />
+                  )
                 )}
               </div>
               <AnimatedThemeToggler className="p-2 rounded-lg hover:bg-[#77BEE0]/20 dark:hover:bg-white/10 transition-colors" />
@@ -195,7 +269,7 @@ const Navbar = () => {
                 <Button
                   key={item.path}
                   variant={isActive(item.path) ? "default" : "ghost"}
-                  className={`relative w-full justify-start space-x-3 font-medium rounded-xl transition-all duration-200 ${
+                  className={`relative w-full justify-start space-x-3 font-semibold rounded-xl transition-all duration-200 ${
                     isActive(item.path)
                       ? "bg-gradient-to-r from-[#155AA4] to-[#0574EE] text-white ring-1 ring-[#77BEE0]/40"
                       : "text-slate-700 dark:text-slate-300 hover:bg-[#77BEE0]/20 dark:hover:bg-white/10"

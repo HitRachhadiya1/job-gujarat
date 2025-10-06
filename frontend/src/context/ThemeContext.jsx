@@ -14,16 +14,15 @@ export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState("light");
 
   useEffect(() => {
-    // Check localStorage for saved theme
-    const savedTheme = localStorage.getItem("job-gujarat-theme");
-    if (savedTheme && ["light", "dark"].includes(savedTheme)) {
-      setTheme(savedTheme);
+    // Read persisted theme (default to light). Also migrate from legacy 'theme' key if present.
+    const legacy = localStorage.getItem("theme");
+    const saved = localStorage.getItem("job-gujarat-theme") || legacy;
+    if (saved && (saved === "light" || saved === "dark")) {
+      setTheme(saved);
+      // Migrate to unified key
+      localStorage.setItem("job-gujarat-theme", saved);
     } else {
-      // Check system preference
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      ).matches;
-      setTheme(prefersDark ? "dark" : "light");
+      setTheme("light");
     }
   }, []);
 

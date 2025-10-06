@@ -43,9 +43,11 @@ import JobManagement from "./components/JobManagement";
 import BrowseJobsNew from "./pages/BrowseJobsNew";
 import MyApplications from "./pages/MyApplications";
 import ProfileNew from "./pages/ProfileNew";
+import SavedJobsNew from "./pages/SavedJobsNew";
 import CompanySettings from "./pages/CompanySettings";
 import CompanyApplications from "./pages/CompanyApplications";
 import JobPostingPayment from "./pages/JobPostingPayment";
+import CompanyPricing from "./pages/CompanyPricing";
 import { useAuthMeta } from "./context/AuthMetaContext";
 import LoadingOverlay from "./components/LoadingOverlay";
 import useDelayedTrue from "./hooks/useDelayedTrue";
@@ -58,6 +60,7 @@ import { API_URL } from "@/config";
 
 import AdminDashboard from "./components/admin-dashboard";
 import JobSeekerDashboardNew from "./components/JobSeekerDashboardNew";
+import JobSeekerRouteShell from "./components/JobSeekerRouteShell";
 
 export default function JobPortalApp() {
   const {
@@ -94,9 +97,9 @@ export default function JobPortalApp() {
 
       console.log("Role assigned successfully");
 
-      // Wait for Auth0 metadata to propagate before refreshing
+      // Minimal wait for Auth0 metadata to propagate
       console.log("Waiting for Auth0 metadata to propagate...");
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Reduced to 1 second
+      await new Promise((resolve) => setTimeout(resolve, 200)); // Reduced to 200ms for faster loading
 
       // Try to refresh with retry logic
       await refreshAuthMetaWithRetry(selectedRole);
@@ -157,7 +160,7 @@ export default function JobPortalApp() {
   const authLoading = auth0Loading || loading;
 
   // Call hooks at the top level - never conditionally
-  const showInitialLoader = useDelayedTrue(auth0Loading, 300);
+  const showInitialLoader = useDelayedTrue(auth0Loading, 100); // Reduced delay for faster loading
 
   // Show overlay only during initial Auth0 loading
   if (showInitialLoader) {
@@ -296,6 +299,15 @@ export default function JobPortalApp() {
               }
             />
 
+            <Route
+              path="/company/pricing"
+              element={
+                <ProtectedRoute roles={["COMPANY"]}>
+                  <CompanyPricing />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Admin Routes */}
             <Route
               path="/admin"
@@ -311,7 +323,9 @@ export default function JobPortalApp() {
               path="/profile"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <ProfileNew />
+                  <JobSeekerRouteShell activeView="profile" onLogout={handleLogout}>
+                    <ProfileNew />
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />
@@ -320,7 +334,9 @@ export default function JobPortalApp() {
               path="/browse-jobs"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <BrowseJobsNew />
+                  <JobSeekerRouteShell activeView="browse-jobs" onLogout={handleLogout}>
+                    <BrowseJobsNew />
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />
@@ -329,7 +345,9 @@ export default function JobPortalApp() {
               path="/applications"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <MyApplications />
+                  <JobSeekerRouteShell activeView="applications" onLogout={handleLogout}>
+                    <MyApplications />
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />
@@ -338,9 +356,9 @@ export default function JobPortalApp() {
               path="/saved-jobs"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <div className="page-container">
-                    Saved Jobs - Coming Soon!
-                  </div>
+                  <JobSeekerRouteShell activeView="saved-jobs" onLogout={handleLogout}>
+                    <SavedJobsNew />
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />
@@ -349,9 +367,11 @@ export default function JobPortalApp() {
               path="/recommendations"
               element={
                 <ProtectedRoute roles={["JOB_SEEKER"]}>
-                  <div className="page-container">
-                    Job Recommendations - Coming Soon!
-                  </div>
+                  <JobSeekerRouteShell activeView="dashboard" onLogout={handleLogout}>
+                    <div className="page-container">
+                      Job Recommendations - Coming Soon!
+                    </div>
+                  </JobSeekerRouteShell>
                 </ProtectedRoute>
               }
             />

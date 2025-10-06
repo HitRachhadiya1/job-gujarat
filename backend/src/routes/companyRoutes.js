@@ -19,7 +19,7 @@ router.post("/", jwtWithRole, requireRole("COMPANY"), uploadSingleLogo, createCo
 router.get("/", jwtWithRole, getMyCompany);
 router.put("/", jwtWithRole, requireRole("COMPANY"), uploadSingleLogo, updateCompany);
 router.delete("/", jwtWithRole, requireRole("COMPANY"), deleteCompany);
-// Plan credits for company (no carry-forward beyond active plan)
+// Plan credits summary
 router.get("/plan-credits", jwtWithRole, requireRole("COMPANY"), getPlanCredits);
 
 module.exports = router;

@@ -314,7 +314,7 @@ export default function CompanyPricing() {
                     >
                       {/* Popular Badge */}
                       {plan.popular && (
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10">
                           <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 text-sm font-bold shadow-lg border-0 rounded-full">
                             <Crown className="w-4 h-4 mr-1" />
                             Most Popular

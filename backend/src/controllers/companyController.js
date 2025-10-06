@@ -465,6 +465,81 @@ async function getCompanyStatus(req, res) {
   }
 }
 
+// Get plan credits summary for current employer
+async function getPlanCredits(req, res) {
+  try {
+    const user = req.user;
+    if (!user || user.role !== 'COMPANY') {
+      return res.status(403).json({ error: 'Only companies can view credits' });
+    }
+
+    // Resolve DB user id
+    let userId = user.id;
+    if (!userId) {
+      const dbUser = await prisma.user.findFirst({ where: { email: user.email } });
+      if (!dbUser) return res.status(404).json({ error: 'User record not found' });
+      userId = dbUser.id;
+    }
+
+    const company = await prisma.company.findUnique({ where: { userId } });
+    if (!company) return res.status(404).json({ error: 'Company not found' });
+
+    const purchases = await prisma.companyPlanPurchase.findMany({
+      where: { companyId: company.id },
+      include: { pricingPlan: true },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // No-carry-forward model: only the current non-expired plan is considered active
+    const now = new Date();
+    const withEffectiveExpiry = purchases.map((p) => {
+      const createdAt = new Date(p.createdAt);
+      const durationDays = Number(p.pricingPlan?.duration || 0);
+      const fallbackExpiry = durationDays > 0
+        ? new Date(createdAt.getTime() + durationDays * 24 * 60 * 60 * 1000)
+        : null;
+      return { ...p, effectiveExpiry: p.expiryDate || fallbackExpiry };
+    });
+    const activePurchase = withEffectiveExpiry.find(
+      (p) => (!p.effectiveExpiry || p.effectiveExpiry >= now)
+    );
+
+    // Top-level credits reflect ONLY the active plan (no carry forward)
+    const totalJobs = activePurchase?.totalJobs || 0;
+    const usedJobs = activePurchase?.usedJobs || 0;
+    const remainingJobs = Math.max(0, totalJobs - usedJobs);
+
+    res.json({
+      companyId: company.id,
+      totalJobs,
+      usedJobs,
+      remainingJobs,
+      activePlan: activePurchase
+        ? {
+            planId: activePurchase.pricingPlanId,
+            planName: activePurchase.pricingPlan?.name || null,
+            expiryDate: activePurchase.effectiveExpiry || null,
+            totalJobs: activePurchase.totalJobs,
+            usedJobs: activePurchase.usedJobs,
+            remainingJobs: Math.max(0, (activePurchase.totalJobs || 0) - (activePurchase.usedJobs || 0)),
+          }
+        : null,
+      purchases: purchases.map((p) => ({
+        id: p.id,
+        planId: p.pricingPlanId,
+        planName: p.pricingPlan?.name,
+        totalJobs: p.totalJobs,
+        usedJobs: p.usedJobs,
+        createdAt: p.createdAt,
+        expiryDate: p.expiryDate || null,
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching plan credits:', error);
+    res.status(500).json({ error: 'Failed to fetch plan credits' });
+  }
+}
+
 module.exports = {
   createCompany,
   getMyCompany,

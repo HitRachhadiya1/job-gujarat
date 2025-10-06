@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,9 +20,9 @@ import {
   Building2,
   Briefcase,
   Clock,
-  DollarSign,
+  IndianRupee,
   Calendar,
-  Heart,
+  Bookmark,
   Filter,
   X,
   TrendingUp,
@@ -46,7 +46,18 @@ import JobApplicationModal from "../components/JobApplicationModal";
 import { useToast } from "@/hooks/use-toast";
 import LoadingOverlay from "../components/LoadingOverlay";
 import useDelayedTrue from "../hooks/useDelayedTrue";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+// StrictMode-safe caches and animation guard
+let __jobsCache = null;
+let __savedJobsCache = null;
+let __browseJobsAnimatedOnce = false;
 
 export default function BrowseJobsNew() {
   const { getAccessTokenSilently } = useAuth0();
@@ -58,7 +69,7 @@ export default function BrowseJobsNew() {
   const [jobType, setJobType] = useState("all");
   const [experienceLevel, setExperienceLevel] = useState("all");
   const [salaryRange, setSalaryRange] = useState([0, 200000]);
-  const [filteredJobs, setFilteredJobs] = useState([]);
+  // Remove filteredJobs state, we'll use useMemo instead
   const [savedJobs, setSavedJobs] = useState(new Set());
   const [selectedJob, setSelectedJob] = useState(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
@@ -74,49 +85,19 @@ export default function BrowseJobsNew() {
     return new Date() > endOfDay;
   };
 
+  // One-time animation guard for StrictMode double-mount in dev
+  const shouldAnimateInitial = !__browseJobsAnimatedOnce;
+  useEffect(() => {
+    __browseJobsAnimatedOnce = true;
+  }, []);
+
   useEffect(() => {
     fetchJobs();
     fetchSavedJobs();
   }, []);
 
-  useEffect(() => {
-    filterJobs();
-  }, [jobs, searchTerm, location, jobType, experienceLevel, salaryRange]);
-
-  const fetchJobs = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-      const response = await fetch(`${API_URL}/job-postings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setJobs(Array.isArray(data) ? data : []);
-      }
-    } catch (error) {
-      console.error("Error fetching jobs:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch jobs",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSavedJobs = async () => {
-    try {
-      const token = await getAccessTokenSilently();
-      const response = await savedJobsAPI.getSavedJobs(token);
-      const savedJobIds = new Set(response.savedJobs.map(savedJob => savedJob.job.id));
-      setSavedJobs(savedJobIds);
-    } catch (error) {
-      console.error("Error fetching saved jobs:", error);
-    }
-  };
-
-  const filterJobs = () => {
+  // Memoized filtered jobs to prevent unnecessary re-renders
+  const filteredJobs = useMemo(() => {
     let filtered = [...jobs];
 
     // Search filter
@@ -148,33 +129,95 @@ export default function BrowseJobsNew() {
       );
     }
 
-    // Salary range filter
-    filtered = filtered.filter((job) => {
-      const minSalary = job.minSalary || 0;
-      const maxSalary = job.maxSalary || 999999999;
-      return minSalary >= salaryRange[0] && minSalary <= salaryRange[1];
-    });
+    // Salary range filter - skip for now since salaryRange is a string
+    // TODO: Parse salaryRange string to extract numeric values for filtering
+    // filtered = filtered.filter((job) => {
+    //   const minSalary = job.minSalary || 0;
+    //   const maxSalary = job.maxSalary || 999999999;
+    //   return minSalary >= salaryRange[0] && minSalary <= salaryRange[1];
+    // });
 
-    setFilteredJobs(filtered);
+    return filtered;
+  }, [jobs, searchTerm, location, jobType, experienceLevel, salaryRange]);
+
+  const fetchJobs = async () => {
+    // Serve from cache to avoid duplicate fetch in StrictMode dev
+    if (__jobsCache !== null) {
+      setJobs(Array.isArray(__jobsCache) ? __jobsCache : []);
+      setLoading(false);
+      return;
+    }
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await fetch(`${API_URL}/job-postings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Fetched jobs data:", data); // Debug log
+        const list = Array.isArray(data) ? data : [];
+        __jobsCache = list;
+        setJobs(list);
+      }
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch jobs",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSaveJob = async (jobId) => {
+  const fetchSavedJobs = async () => {
+    // Serve from cache to avoid duplicate fetch in StrictMode dev
+    if (__savedJobsCache instanceof Set) {
+      setSavedJobs(__savedJobsCache);
+      return;
+    }
     try {
-      setSavingJobs(prev => new Set([...prev, jobId]));
       const token = await getAccessTokenSilently();
-      
+      // Fetch more to cover most users' saved jobs
+      const response = await savedJobsAPI.getSavedJobs(token, 1, 200);
+      const savedJobIds = new Set(
+        response.savedJobs.map((savedJob) => savedJob.job.id)
+      );
+      __savedJobsCache = savedJobIds;
+      setSavedJobs(savedJobIds);
+    } catch (error) {
+      console.error("Error fetching saved jobs:", error);
+    }
+  };
+
+  // Removed filterJobs function - now using useMemo above
+
+  const handleSaveJob = useCallback(async (jobId) => {
+    try {
+      setSavingJobs((prev) => new Set([...prev, jobId]));
+      const token = await getAccessTokenSilently();
+
       if (savedJobs.has(jobId)) {
         // Unsave the job
         await savedJobsAPI.unsaveJob(jobId, token);
-        setSavedJobs(prev => {
+        setSavedJobs((prev) => {
           const newSet = new Set(prev);
           newSet.delete(jobId);
           return newSet;
         });
+        toast({
+          title: "Removed",
+          description: "Job removed from saved list",
+        });
       } else {
         // Save the job
         await savedJobsAPI.saveJob(jobId, token);
-        setSavedJobs(prev => new Set([...prev, jobId]));
+        setSavedJobs((prev) => new Set([...prev, jobId]));
+        toast({
+          title: "Saved",
+          description: "Job saved to your collection",
+        });
       }
     } catch (error) {
       console.error("Error saving/unsaving job:", error);
@@ -184,23 +227,27 @@ export default function BrowseJobsNew() {
         variant: "destructive",
       });
     } finally {
-      setSavingJobs(prev => {
+      setSavingJobs((prev) => {
         const newSet = new Set(prev);
         newSet.delete(jobId);
         return newSet;
       });
     }
-  };
+  }, [savedJobs, getAccessTokenSilently, toast]);
 
   const handleApplicationSubmitted = (application) => {
-    const jobTitle = application?.job?.title || application?.title || selectedJob?.title || 'this job';
+    const jobTitle =
+      application?.job?.title ||
+      application?.title ||
+      selectedJob?.title ||
+      "this job";
     toast({
       title: "Success",
       description: `Application submitted successfully for "${jobTitle}"!`,
     });
   };
 
-  const JobCard = ({ job, index }) => {
+  const JobCard = memo(({ job, index, animateOnMount }) => {
     const isNew =
       new Date() - new Date(job.createdAt) < 7 * 24 * 60 * 60 * 1000;
     const isSaved = savedJobs.has(job.id);
@@ -209,14 +256,14 @@ export default function BrowseJobsNew() {
 
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={animateOnMount ? { opacity: 0, y: 20 } : false}
+        animate={animateOnMount ? { opacity: 1, y: 0 } : undefined}
         transition={{ duration: 0.3, delay: index * 0.05 }}
         whileHover={{ y: -5, transition: { duration: 0.2 } }}
       >
         <Card
           className={cn(
-            "group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300",
+            "group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 h-full flex flex-col",
             "bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm",
             selectedJob?.id === job.id && "ring-2 ring-blue-500"
           )}
@@ -225,21 +272,19 @@ export default function BrowseJobsNew() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           <CardHeader className="pb-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+              <div className="flex items-center space-x-4 min-w-0 flex-1">
                 {/* Company Logo */}
-                <div
-                  className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg"
-                >
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
                   {job.company?.name?.[0] || "C"}
                 </div>
 
                 {/* Job Title and Company */}
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                     {job.title}
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1 truncate">
                     <Building2 className="w-3 h-3" />
                     {job.company?.name || "Company"}
                   </p>
@@ -257,20 +302,28 @@ export default function BrowseJobsNew() {
                 }}
                 disabled={savingJobs.has(job.id)}
                 className={cn(
-                  "p-2 rounded-lg transition-colors cursor-pointer relative z-10",
+                  "p-2 rounded-lg transition-colors cursor-pointer relative z-10 self-start sm:self-auto",
                   savingJobs.has(job.id) && "cursor-not-allowed opacity-50",
                   isSaved
-                    ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400"
+                    ? "bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400"
                     : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
                 )}
               >
-                <Heart className={cn("w-5 h-5", isSaved && "fill-current")} />
+                {savingJobs.has(job.id) ? (
+                  <span className="block">
+                    <span className="h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                  </span>
+                ) : (
+                  <Bookmark className={cn("w-5 h-5", isSaved && "fill-current")} />
+                )}
               </motion.button>
             </div>
             {/* Status badges */}
             <div className="mt-2 flex items-center gap-2">
               {expired && (
-                <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-0">Closed</Badge>
+                <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-0">
+                  Closed
+                </Badge>
               )}
               {job.expiresAt && !expired && (
                 <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-0 flex items-center gap-1">
@@ -281,7 +334,7 @@ export default function BrowseJobsNew() {
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col">
             {/* Job Details */}
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -293,13 +346,9 @@ export default function BrowseJobsNew() {
                 <span>{job.type || "Full-time"}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                <DollarSign className="w-4 h-4 text-green-500" />
+                <IndianRupee className="w-4 h-4 text-green-500" />
                 <span>
-                  {job.minSalary && job.maxSalary 
-                    ? `₹${job.minSalary.toLocaleString()} - ₹${job.maxSalary.toLocaleString()}`
-                    : job.minSalary 
-                    ? `₹${job.minSalary.toLocaleString()}+`
-                    : "Salary not specified"}
+                  {job.salaryRange || "Salary not specified"}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
@@ -327,35 +376,45 @@ export default function BrowseJobsNew() {
             </div>
 
             {/* Apply Button */}
-            <Button
+            {/* <Button
               className={cn("w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 group", expired && "opacity-60 cursor-not-allowed")}
               onClick={() => { if (!expired) { setSelectedJob(job); setIsApplicationModalOpen(true); } }}
               disabled={expired}
             >
               {expired ? "Applications Closed" : "Apply Now"}
               {!expired && <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
-            </Button>
-            {/* Action Buttons */}
-            <div className="flex gap-2 relative z-10">
+            </Button> */}
+            {/* Action Buttons - Push to bottom */}
+            <div className="flex gap-2 relative z-10 mt-auto">
               <Button
                 type="button"
-                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 group cursor-pointer relative z-10"
+                className={cn(
+                  "flex-1 group cursor-pointer relative z-10",
+                  expired
+                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                )}
                 onClick={() => {
-                  setSelectedJob(job);
-                  setIsApplicationModalOpen(true);
+                  if (!expired) {
+                    setSelectedJob(job);
+                    setIsApplicationModalOpen(true);
+                  }
                 }}
+                disabled={expired}
               >
-                Apply Now
-                <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                {expired ? "Applications Closed" : "Apply Now"}
+                {!expired && (
+                  <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                )}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="px-3 cursor-pointer relative z-10"
-                onClick={() => { 
-                  setDescriptionJob(job); 
-                  setIsDescriptionOpen(true); 
+                onClick={() => {
+                  setDescriptionJob(job);
+                  setIsDescriptionOpen(true);
                 }}
               >
                 <FileText className="w-4 h-4" />
@@ -365,7 +424,7 @@ export default function BrowseJobsNew() {
         </Card>
       </motion.div>
     );
-  };
+  });
 
   if (loading) {
     return <LoadingOverlay message="Loading jobs..." />;
@@ -383,8 +442,8 @@ export default function BrowseJobsNew() {
       <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 relative">
         {/* Header Section */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={shouldAnimateInitial ? { opacity: 0, y: -20 } : false}
+          animate={shouldAnimateInitial ? { opacity: 1, y: 0 } : undefined}
           className="text-center mb-6 sm:mb-8 lg:mb-10"
         >
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4">
@@ -399,8 +458,8 @@ export default function BrowseJobsNew() {
 
         {/* Search and Filter Section */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={shouldAnimateInitial ? { opacity: 0, y: 20 } : false}
+          animate={shouldAnimateInitial ? { opacity: 1, y: 0 } : undefined}
           transition={{ delay: 0.1 }}
           className="mb-6 sm:mb-8"
         >
@@ -604,7 +663,7 @@ export default function BrowseJobsNew() {
             </motion.div>
           ) : (
             filteredJobs.map((job, index) => (
-              <JobCard key={job.id} job={job} index={index} />
+              <JobCard key={job.id} job={job} index={index} animateOnMount={shouldAnimateInitial} />
             ))
           )}
         </div>
@@ -622,18 +681,18 @@ export default function BrowseJobsNew() {
 
       {/* Description Modal */}
       <Dialog open={isDescriptionOpen} onOpenChange={setIsDescriptionOpen}>
-        <DialogContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl sm:rounded-xl">
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl sm:rounded-xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
-              {descriptionJob?.title || 'Job Description'}
+              {descriptionJob?.title || "Job Description"}
             </DialogTitle>
             <DialogDescription className="text-slate-600 dark:text-slate-400">
-              {descriptionJob?.company?.name || 'Company'}
-              {descriptionJob?.location ? ` • ${descriptionJob.location}` : ''}
+              {descriptionJob?.company?.name || "Company"}
+              {descriptionJob?.location ? ` • ${descriptionJob.location}` : ""}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-2 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
-            {descriptionJob?.description || 'No description available.'}
+            {descriptionJob?.description || "No description available."}
           </div>
         </DialogContent>
       </Dialog>
