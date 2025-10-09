@@ -222,6 +222,38 @@ export default function AdminDashboard({ onLogout }) {
     }
   };
 
+  const togglePlanActive = async (plan) => {
+    try {
+      const token = await getAccessTokenSilently();
+      const desired = !plan.active;
+      const response = await fetch(
+        `${API_URL}/admin/pricing-plans/${plan.id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ active: desired }),
+        }
+      );
+
+      if (response.ok) {
+        toast.success(desired ? "Plan activated" : "Plan archived");
+        // Update only the affected plan locally to avoid reloading other sections
+        setPricingPlans((prev) =>
+          prev.map((p) => (p.id === plan.id ? { ...p, active: desired } : p))
+        );
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.error || "Failed to update plan status");
+      }
+    } catch (error) {
+      console.error("Error toggling plan active status:", error);
+      toast.error("Failed to update plan status");
+    }
+  };
+
   const handleUserAction = async (userId, action) => {
     try {
       const token = await getAccessTokenSilently();
@@ -463,6 +495,16 @@ export default function AdminDashboard({ onLogout }) {
       console.error("Error updating pricing plan:", error);
       toast.error("Failed to update pricing plan");
     }
+  };
+
+  const handleEditPlan = (plan) => {
+    setEditingPlan({
+      ...plan,
+      features: Array.isArray(plan.features)
+        ? plan.features.join(", ")
+        : plan.features || "",
+    });
+    setShowEditPlanDialog(true);
   };
 
   const handleDeletePlan = async (planId) => {
@@ -1962,7 +2004,7 @@ export default function AdminDashboard({ onLogout }) {
                 open={showAddPlanDialog}
                 onOpenChange={setShowAddPlanDialog}
               >
-                {pricingPlans.length < 4 ? (
+                {pricingPlans.filter((p) => p.active).length < 4 ? (
                   <Button
                     className="bg-stone-900 hover:bg-stone-800 text-white"
                     onClick={() => setShowAddPlanDialog(true)}
@@ -1974,7 +2016,7 @@ export default function AdminDashboard({ onLogout }) {
                   <Button
                     variant="outline"
                     className="text-stone-700 dark:text-stone-300"
-                    onClick={() => toast.warning("Maximum of 4 pricing plans allowed")}
+                    onClick={() => toast.warning("Maximum of 4 active pricing plans allowed. Archive a plan to add a new one.")}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Plan
@@ -2115,8 +2157,34 @@ export default function AdminDashboard({ onLogout }) {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="bg-white/50 dark:bg-stone-800/50 text-red-600"
-                          onClick={() => handleDeletePlan(plan.id)}
+                          title={plan.active ? "Archive plan" : "Activate plan"}
+                          className="bg-white/50 dark:bg-stone-800/50"
+                          onClick={() => togglePlanActive(plan)}
+                        >
+                          {plan.active ? (
+                            <XCircle className="h-4 w-4" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className={`bg-white/50 dark:bg-stone-800/50 text-red-600 ${
+                            (plan._count?.purchases || 0) > 0 ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          disabled={(plan._count?.purchases || 0) > 0}
+                          onClick={() => {
+                            if ((plan._count?.purchases || 0) > 0) {
+                              toast.error("Cannot delete a plan with purchases. Please deactivate it instead via Edit.");
+                              return;
+                            }
+                            handleDeletePlan(plan.id);
+                          }}
+                          title={(plan._count?.purchases || 0) > 0 ? 
+                            `Cannot delete: ${plan._count.purchases} purchases exist. Use Edit to deactivate instead.` : 
+                            'Delete this pricing plan'
+                          }
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -2222,6 +2290,34 @@ export default function AdminDashboard({ onLogout }) {
                       }
                       placeholder="3"
                     />
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!!editingPlan?.active}
+                        onChange={(e) =>
+                          setEditingPlan((prev) => ({
+                            ...prev,
+                            active: e.target.checked,
+                          }))
+                        }
+                      />
+                      <span>Active</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={!!editingPlan?.popular}
+                        onChange={(e) =>
+                          setEditingPlan((prev) => ({
+                            ...prev,
+                            popular: e.target.checked,
+                          }))
+                        }
+                      />
+                      <span>Popular</span>
+                    </label>
                   </div>
                   <div>
                     <Label htmlFor="editPlanFeatures">Features (comma separated)</Label>

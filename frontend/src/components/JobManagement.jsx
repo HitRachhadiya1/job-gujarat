@@ -31,7 +31,6 @@ import {
   Trash2,
   MapPin,
   IndianRupee,
-  Calendar,
   Users,
   FileText,
   Tag,
@@ -55,7 +54,6 @@ const JobManagement = () => {
     location: "",
     jobType: "FULL_TIME",
     salaryRange: "",
-    expiresAt: "",
   });
   const [newRequirement, setNewRequirement] = useState("");
   const [isDescOpen, setIsDescOpen] = useState(false);
@@ -122,7 +120,6 @@ const JobManagement = () => {
       location: "",
       jobType: "FULL_TIME",
       salaryRange: "",
-      expiresAt: "",
     });
     setNewRequirement("");
     setEditingJob(null);
@@ -131,21 +128,9 @@ const JobManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.title || !formData.description || !formData.jobType) {
       toast.error("Please fill in all required fields");
       return;
-    }
-
-    // Validate expiry date: must be strictly greater than today
-    if (formData.expiresAt) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const selected = new Date(formData.expiresAt + "T00:00:00");
-      if (selected <= today) {
-        toast.error("Application deadline must be a future date (after today)");
-        return;
-      }
     }
 
     try {
@@ -224,7 +209,6 @@ const JobManagement = () => {
       location: job.location || "",
       jobType: job.jobType,
       salaryRange: job.salaryRange || "",
-      expiresAt: job.expiresAt ? job.expiresAt.split("T")[0] : "",
     });
     setEditingJob(job);
     setShowAddForm(true);
@@ -566,34 +550,7 @@ const JobManagement = () => {
                           </div>
                         </div>
 
-                        {/* Additional Details Section */}
-                        <div className="space-y-6">
-                          
-                          <div className="space-y-2">
-                            <Label
-                              htmlFor="expiresAt"
-                              className="text-sm font-medium text-stone-700 dark:text-stone-300"
-                            >
-                              Application Deadline (Optional)
-                            </Label>
-                            <Input
-                              type="date"
-                              id="expiresAt"
-                              name="expiresAt"
-                              value={formData.expiresAt}
-                              onChange={handleInputChange}
-                              className="h-11 bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-md text-sm max-w-xs"
-                              min={(() => {
-                                const d = new Date();
-                                d.setDate(d.getDate() + 1);
-                                return d.toISOString().split("T")[0];
-                              })()}
-                            />
-                            <p className="text-xs text-stone-500 dark:text-stone-400">
-                              Leave empty if you don't want to set a deadline
-                            </p>
-                          </div>
-                        </div>
+                        {/* Removed manual Application Deadline field: expiry is handled by plan */}
 
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-stone-200 dark:border-stone-700">
@@ -731,10 +688,7 @@ const JobManagement = () => {
                           Applications: {job._count?.Applications || 0}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-                        <Calendar className="h-3 w-3" />
-                        <span>Expires: {formatDate(job.expiresAt)}</span>
-                      </div>
+                      {/* Removed manual expiry display; job expiry is controlled by plan */}
                     </div>
 
                     <Separator className="bg-slate-200 dark:bg-slate-700" />

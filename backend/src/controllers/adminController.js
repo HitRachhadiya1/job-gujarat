@@ -606,10 +606,10 @@ async function createPricingPlan(req, res) {
         .json({ error: "Name, price, and duration are required" });
     }
 
-    // Enforce max 4 plans
-    const existingCount = await prisma.pricingPlan.count();
-    if (existingCount >= 4) {
-      return res.status(400).json({ error: "Maximum of 4 pricing plans allowed" });
+    // Enforce max 4 ACTIVE plans
+    const activeCount = await prisma.pricingPlan.count({ where: { active: true } });
+    if (activeCount >= 4) {
+      return res.status(400).json({ error: "Maximum of 4 active pricing plans allowed" });
     }
 
     // Parse features from comma-separated string to array
@@ -653,6 +653,18 @@ async function updatePricingPlan(req, res) {
 
     const { planId } = req.params;
     const { name, price, duration, features, active, popular, jobCount } = req.body;
+
+    // If attempting to activate, ensure we don't exceed 4 active plans
+    if (active === true) {
+      const existing = await prisma.pricingPlan.findUnique({ where: { id: planId }, select: { active: true } });
+      // Only check limit if transitioning from inactive -> active
+      if (!existing?.active) {
+        const activeCount = await prisma.pricingPlan.count({ where: { active: true } });
+        if (activeCount >= 4) {
+          return res.status(400).json({ error: "Maximum of 4 active pricing plans allowed" });
+        }
+      }
+    }
 
     // Parse features if provided
     const featuresArray =
